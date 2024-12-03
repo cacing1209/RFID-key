@@ -10,7 +10,7 @@
 #define cardsize 8 // value
 #define RST_PIN 9
 #define SS_PIN 10
-#define totalcard 3
+#define totalcard 4
 #define interval_automatic 500
 #define Delay_PUSH 450
 #define Delay_Push_buzzer 170
@@ -27,9 +27,9 @@ byte cardINPUT[8];
 byte IDcard[totalcard][cardsize] = {
     {51, 159, 195, 254},
     {208, 116, 56, 88},
-    {5, 131, 31, 150, 139, 209, 0}
-
-};
+    {5, 131, 31, 150, 139, 209, 0},
+    {24, 130, 53, 166, 242, 66, 40}
+    };
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 MFRC522::Uid card;
 bool terdaftar;
@@ -135,9 +135,9 @@ void ledAnimation(int interval)
 }
 unsigned long int lastTimeActivated_Retred = 0;
 unsigned long int prev = 0;
-int fastTime;
 void MANUAL()
 {
+static int fastTime;
   if (kondisi_mesin == CARD_NOT_REGISTER)
   {
     digitalWrite(led, LOW);
@@ -244,7 +244,6 @@ void Retret()
     break;
   }
 }
-void registerCard() {}
 void auto_start()
 {
   if (!otomatis)
@@ -315,4 +314,5 @@ void waktu(int count, const int value)
   }
 }
 // KTP 5 131 31 150 139 209 0
+// 24, 130, 53, 166, 242, 66, 40
 //  CARD 51 159 195 254
