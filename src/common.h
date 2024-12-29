@@ -15,14 +15,23 @@ struct card
 {
     byte IdCard[sizeCard];
     statusCard RoleCard;
+    uint16_t Administrator[totalCard];
 };
 
 enum access_card
 {
     Read,
-    Lock,
+    Equal,
     Addcard,
     removeCard,
+};
+
+struct systemCardProgram
+{
+    access_card access;
+    card mycard[totalCard];
+    void ReadCard(MFRC522::Uid IncomingCard, HardwareSerial *serial);
+    bool checkIncomingCard(MFRC522::Uid *IncomingCard);
 };
 
 enum actionLED
@@ -33,21 +42,8 @@ enum actionLED
 };
 struct LED
 {
-
-    uint8_t delayLED;
-    void animationLED(uint8_t indexbutton_LED, actionLED action);
+    void animationLED(uint8_t indexbutton_LED, actionLED action, uint8_t delayLED);
 };
-struct systemCardProgram
-{
-
-    access_card access;
-    uint8_t CardTotal;
-    card mycard;
-    void ReadCard(MFRC522::Uid IncomingCard, HardwareSerial *serial);
-    bool checkIncomingCard(MFRC522::Uid *IncomingCard, card *myCard,
-                           uint8_t Admin[totalCardAdministor][sizeCard]);
-};
-
 enum statusCar
 {
     ON,
@@ -56,12 +52,14 @@ enum statusCar
 };
 struct CAR
 {
-    void begin();
-    statusCar statusEngine;
     LED led;
+    void begin(uint8_t pin_Start, uint8_t pinRelay_Kontak, uint8_t pinRelay_Start);
+    uint8_t indexbutton_Start, indexRelay_Kontak, indexRelay_Start;
+    statusCar statusEngine;
     systemCardProgram cardSystem;
-    uint8_t delayPress_Start;
+    int delayPress_Start;
     bool RelayStart, RelayDinamoAmper, RelayKontak;
-    void startManual(uint8_t indexbutton_Start);
+    void startManual();
 };
+
 #endif
