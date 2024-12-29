@@ -1,7 +1,7 @@
 #ifndef common_h
-#include <Arduino.h>
+#include <HardwareSerial.h>
 #include <MFRC522.h>
-#define totalCard 50
+#define totalCard 5
 #define totalCardAdministor 4
 #define sizeCard 10 // 10 bit
 
@@ -11,16 +11,20 @@ enum statusCard
     Member,
 };
 
-struct card
+struct cardAdmin
+{
+    uint16_t Administrator[totalCard];
+};
+
+struct cardMember
 {
     byte IdCard[sizeCard];
     statusCard RoleCard;
-    uint16_t Administrator[totalCard];
 };
 
 enum access_card
 {
-    Read,
+    Lock,
     Equal,
     Addcard,
     removeCard,
@@ -28,9 +32,12 @@ enum access_card
 
 struct systemCardProgram
 {
+    HardwareSerial *Msg;
     access_card access;
-    card mycard[totalCard];
-    void ReadCard(MFRC522::Uid IncomingCard, HardwareSerial *serial);
+    cardAdmin Admin[totalCard];
+    cardMember mycard[totalCard];
+    void ReadCard(MFRC522::Uid *IncomingCard);
+    void printTrue(uint8_t index_card);
     bool checkIncomingCard(MFRC522::Uid *IncomingCard);
 };
 

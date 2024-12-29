@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <common.h>
 #include <SPI.h>
 #define RST_PIN 9
@@ -13,14 +14,14 @@ CAR carState;
 #define delay_LED 500
 
 systemCardProgram manageCard;
-card Card[totalCard];
+cardMember Card[totalCard];
 MFRC522 mfrc(SS_PIN, RST_PIN);
 
 uint8_t idCard_Admistor[totalCard][sizeCard] = {
     {51, 159, 195, 254},
     {208, 116, 56, 88},
     {5, 131, 31, 150, 139, 209, 0},
-    // {24, 130, 53, 166, 242, 66, 40},
+    {24, 130, 53, 166, 242, 66, 40},
 };
 
 void initmyPins()
@@ -39,17 +40,20 @@ void cardBegin()
     {
         for (size_t xy = 0; xy < sizeCard; xy++)
         {
-            manageCard.mycard[x].Administrator[xy] = idCard_Admistor[x][xy];
+            manageCard.Admin[x].Administrator[xy] = idCard_Admistor[x][xy];
+            Serial.print(" " + String(manageCard.Admin[x].Administrator[xy]));
+            manageCard.mycard[x].RoleCard = Administrator;
         }
+        Serial.println("");
     }
-
-    manageCard.access = Read;
+    manageCard.Msg = &Serial;
+    manageCard.access = Equal;
 }
 void setup()
 {
-    cardBegin();
     Serial.begin(9600);
-    Serial.println("loading component");
+    cardBegin();
+    Serial.println("\nloading component");
     mfrc.PCD_Init();
     SPI.begin();
     carState.begin(pin_startManual, pin_RelayKontak, pin_RelayStart);
@@ -64,10 +68,10 @@ void loop()
     {
         return;
     }
-    manageCard.ReadCard(mfrc.uid, &Serial);
+    manageCard.ReadCard(&mfrc.uid);
     if (manageCard.checkIncomingCard(&mfrc.uid))
     {
-        manageCard.access = Read;
+        manageCard.access = Lock;
         Serial.println("Acces card only Read");
         Serial.println("Engine executed ");
         carState.statusEngine = ON;

@@ -1,9 +1,18 @@
 #include <common.h>
+
+void systemCardProgram::printTrue(uint8_t index)
+{
+    for (size_t i = 0; i < sizeCard; i++)
+    {
+        Msg->print(" " + String());
+    }
+    Msg->println();
+}
 bool systemCardProgram::checkIncomingCard(MFRC522::Uid *IncomingCard)
 {
     if (access != Equal)
     {
-        Serial.println(" access is not Equal ");
+        Msg->println(" access is not Equal ");
         return false;
     }
 
@@ -11,26 +20,29 @@ bool systemCardProgram::checkIncomingCard(MFRC522::Uid *IncomingCard)
     {
         for (size_t x = 0; x < sizeCard; x++)
         {
-            if (IncomingCard->uidByte[x] != mycard[y].Administrator[x] ||
+            if (IncomingCard->uidByte[x] != ||
                 IncomingCard->uidByte[x] != mycard[y].IdCard[x])
             {
                 break;
             }
+            Msg->println("True..!, Index card " + String(y));
+            printTrue(y);
             return true;
         }
     }
+    Msg->println("ndak cocok");
     return false;
 }
-void systemCardProgram::ReadCard(MFRC522::Uid IncomingCard, HardwareSerial *serial)
+void systemCardProgram::ReadCard(MFRC522::Uid *IncomingCard)
 {
     uint8_t totalbitCard = 0;
-    serial->print("Read Card :");
-    for (size_t index = 0; index < IncomingCard.size; index++)
+    Msg->print("Read Card :");
+    for (size_t index = 0; index < IncomingCard->size; index++)
     {
-        serial->print(" " + String(IncomingCard.uidByte[index]));
+        Msg->print(" " + String(IncomingCard->uidByte[index]));
         totalbitCard++;
     }
-    serial->println(" total bit: " + String(totalbitCard));
+    Msg->println(" total bit: " + String(totalbitCard));
 }
 
 void LED::animationLED(uint8_t indexbutton_LED, actionLED action, uint8_t delayLED)
@@ -92,7 +104,7 @@ void LED::animationLED(uint8_t indexbutton_LED, actionLED action, uint8_t delayL
 void CAR::startManual()
 {
     static long int timePriviouse = 0;
-    if (cardSystem.access != Read || statusEngine == OFF)
+    if (cardSystem.access != Lock || statusEngine == OFF)
     {
         return;
     }
@@ -107,6 +119,7 @@ void CAR::startManual()
         timePriviouse = millis();
         digitalWrite(indexRelay_Start, LOW);
     }
+    // led.animationLED
     digitalWrite(indexRelay_Kontak, HIGH);
 }
 
