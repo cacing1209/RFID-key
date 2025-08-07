@@ -1,22 +1,60 @@
 #include <commond.h>
 
-void DB_STATE::save_data(const char *filename)
+void Data_state::save_data(const char *filename)
 {
-
-
-    
+    action = idle;
     String payload;
+
     file = sd->open(filename, O_WRONLY | O_CREAT | O_TRUNC);
     if (!file)
-        Serial.println("gagal buka file");
+    {
+        Serial.println("Gagal membuka file untuk menulis");
+        return;
+    }
 
+    JsonArray dataArray = doc.to<JsonArray>();
+    for (size_t i = 0; i < total_card_rfid; i++)
+    {
+        JsonObject obj = dataArray.createNestedObject();
+        obj["mahasiswa"] = String(i);
+
+        JsonArray uidArray = obj.createNestedArray("uid");
+        for (size_t x = 0; x < size_rfid; x++)
+        {
+            uidArray.add(rfid.card[i][x]);
+        }
+    }
+
+    if (serializeJsonPretty(doc, file) == 0)
+        Serial.println("Gagal menulis JSON");
+    else
+        Serial.println("JSON berhasil disimpan");
+
+    file.close();
 }
-bool DB_STATE::load_data(const char *filename)
+void Data_state::load_data(const char *filename)
 {
     file = sd->open(filename, O_RDONLY);
     if (!file)
-        Serial.println("gagal buka file");
+    {
+        Serial.println("gagal Buka file");
+        return;
+    }
+
+    for (size_t i = 0; i < total_card_rfid; i++)
+    {
+        if (doc["mahasiswa"] == String(i))
+        {
+            for (size_t x = 0; x < size_rfid; x++)
+            {
+                doc["uid"][i] = rfid.card[i][x];
+                Serial.print(rfid.card[i][x]);
+            }
+        }
+        Serial.println("card" + String(i));
+    }
 }
+
 void Aksesoris_state::on(int Ringetone)
 {
     unsigned long currentTime = millis();

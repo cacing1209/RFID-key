@@ -24,10 +24,10 @@
 Relay_state locker[sizeRelay];
 MFRC522 mfrc(SS_RFID, RSTPIN_RFID);
 rfid_state rfid;
-DB_STATE data;
 SdFat32 sdcard;
 Aksesoris_state buzzer;
 Aksesoris_state led;
+Data_state data(&sdcard, rfid);
 
 void erorCheck()
 {
@@ -43,7 +43,9 @@ void erorCheck()
 	{
 		Serial.print("sdcard Abnormal : ");
 		Serial.println(sdcard.sdErrorCode() + '\n');
+		sdcard.errorPrint(&Serial);
 	}
+	Serial.print(" ");
 	mfrc.PCD_DumpVersionToSerial();
 }
 
@@ -62,6 +64,7 @@ void init_mypin()
 	buzzer.pin = PIN_buzzer;
 	led.Interval = 1000;
 	buzzer.Interval = 1000;
+	rfid.action = None;
 	pinMode(led.pin, OUTPUT);
 	pinMode(buzzer.pin, OUTPUT);
 	digitalWrite(RSTPIN_RFID, HIGH);
@@ -70,8 +73,6 @@ void init_mypin()
 }
 void loadFile()
 {
-	data.sd = &sdcard;
-	data.rfid = &rfid;
 	data.load_data();
 }
 void setup()
@@ -147,16 +148,13 @@ void convert_bigEndian(String input, byte *uid)
 
 	uint32_t value = strtoul(input.c_str(), NULL, 10);
 
-	Serial.print("Decimal value: ");
-	Serial.println(value);
-
 	// byte uid[4];
 	uid[0] = (value) & 0xFF;	   // 0x53 = 83
 	uid[1] = (value >> 8) & 0xFF;  // 0x3A = 58
 	uid[2] = (value >> 16) & 0xFF; // 0x81 = 129
 	uid[3] = (value >> 24) & 0xFF; // 0x29 = 41
 
-	Serial.print("UID bytes (from value): ");
+	// Serial.print("UID bytes (from value): ");
 	for (int i = 0; i < 4; i++)
 	{
 		Serial.print(uid[i]);
@@ -166,77 +164,80 @@ void convert_bigEndian(String input, byte *uid)
 	Serial.println();
 }
 
-String incomingData;
 String uidMahasiswa[sizeRelay];
-bool receiving = false;
-int index = 0;
-
-void saveUid()
+void convert_uitbyt()
 {
-	for (size_t i = 0; i < sizeRelay; i++)
+	static unsigned long lastProcessTime = 0;
+	const unsigned long interval = 500;
+	static size_t i_rfid = 0;
+	unsigned long currentMillis = millis();
+	if (i_rfid >= total_card_rfid)
 	{
-		uidMahasiswa[i - 1] = "";
-		if (uidMahasiswa[i].length() <= 0 || uidMahasiswa[i].length() < size_rfid)
+		Serial.print("i_rfid:");
+		Serial.println(i_rfid);
+		i_rfid = 0;
+		rfid.action = None;
+		mfrc.PCD_DumpVersionToSerial();
+		data.action = sv_data;
+		if (sdcard.begin(CS_SD))
+			Serial.println("sdcard Normal");
+		else
 		{
-			Serial.print("no data");
-			Serial.println(i);
-			continue;
+			Serial.print("sdcard Abnormal : ");
+			Serial.println(sdcard.sdErrorCode() + '\n');
 		}
-		Serial.print("data ready");
-		Serial.println(i);
-		convert_bigEndian(uidMahasiswa[i], rfid.card[i]);
+		return;
 	}
-	for (size_t x = 0; x < total_card_rfid; x++)
+
+	if (currentMillis - lastProcessTime >= interval && i_rfid < total_card_rfid)
 	{
-		for (size_t y = 0; y < size_rfid; y++)
-			Serial.print(rfid.card[x][y]);
-		Serial.println("<- card " + String(x));
+		lastProcessTime = currentMillis;
+
+		if (uidMahasiswa[i_rfid].length() < size_rfid)
+		{
+			uidMahasiswa[i_rfid] = "";
+		}
+		else
+		{
+			convert_bigEndian(uidMahasiswa[i_rfid], rfid.card[i_rfid]);
+		}
+		i_rfid++;
 	}
-	Serial.println();
 }
+
+String incomingData;
+bool receiving = false;
 void readSerial()
 {
-	while (Serial3.available())
+	while (Serial3.available() && rfid.action == None)
 	{
 		char incomingByte = Serial3.read();
 		incomingData += incomingByte;
-
 		if (incomingByte == '\n')
 		{
 			incomingData.trim();
-
-			// Debug info
-			// Serial.print(incomingData.length());
-			// Serial.println(" <- total character msg");
-			// Serial.println(incomingData);
-
-			// Cek awal & akhir transfer
+			Serial.print(receiving);
+			Serial.print("<- receiving ");
+			Serial.println(incomingData);
 
 			if (incomingData == "send_1")
 			{
 				receiving = true;
-				index = 0;
 			}
 			else if (incomingData == "send_0")
 			{
+				if (!receiving)
+					break;
 				receiving = false;
-				// for (int i = 0; i < 30; i++)
-				// {
-				// 	Serial.print("UID Mahasiswa ");
-				// 	Serial.print(i + 1);
-				// 	Serial.print(": ");
-				// 	Serial.print(uidMahasiswa[i]);
-				// 	Serial.println("x");
-				// }
-				saveUid();
+				rfid.action = Register;
 			}
-			else if (receiving && incomingData.startsWith("UID Mahasiswa"))
+			else if (receiving && incomingData.startsWith("A"))
 			{
-				int separatorIndex = incomingData.indexOf(':');
+				long separatorIndex = incomingData.indexOf(':');
 				if (separatorIndex != -1)
 				{
-					// Ambil nomor mahasiswa dari string
-					int nomorMahasiswa = incomingData.substring(14, separatorIndex).toInt(); 
+					String nomorStr = incomingData.substring(1, separatorIndex);
+					long nomorMahasiswa = nomorStr.toInt();
 					if (nomorMahasiswa >= 1 && nomorMahasiswa <= sizeRelay)
 					{
 						String uid = incomingData.substring(separatorIndex + 1);
@@ -245,7 +246,6 @@ void readSerial()
 					}
 				}
 			}
-
 			incomingData = "";
 		}
 	}
@@ -258,17 +258,14 @@ bool checkAction()
 	switch (rfid.action)
 	{
 	case Register:
-		if (rfid.action == Register)
-		{
-			// for (size_t i = 0; i < mfrc.uid.size; i++)
-			// rfid.card[i] = mfrc.uid.uidByte[i];
-		}
+		convert_uitbyt();
 		return false;
 		break;
 	case Remove:
 		return false;
 		break;
 	case Equal:
+		rfid.action = None;
 		return true;
 		break;
 	default:
@@ -343,22 +340,36 @@ void openedLocker()
 }
 void clear_byte()
 {
+	if (rfid.action != Equal)
+		return;
 	for (size_t i = 0; i < mfrc.uid.size; i++)
 	{
 		mfrc.uid.uidByte[i] = 0;
 	}
 	rfid.action = None;
 }
+void mainSDcard()
+{
+	switch (data.action)
+	{
+	case sv_data:
+		data.save_data();
+		break;
+	default:
+		break;
+	}
+}
 void setup();
 void loop()
 {
+	readSerial();
 	buzzer.on(Tone01);
 	led.on();
 	readCard();
-	readSerial();
 	getStatusLocker();
 	openedLocker();
 	clear_byte();
+	mainSDcard();
 }
 
 // https://script.google.com/macros/s/AKfycbw4EX3g8YpEofbsHSQY5viLKQP5gg2l4ssEIlLt9dOo1yy8zfRhED4wzeStfxKmnJXj/exec

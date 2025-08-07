@@ -42,6 +42,16 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
 #define flopflopLed04 4
 #define flopflopLed05 5
 
+#define total_card_rfid 30
+#define size_rfid 10
+enum action_Card
+{
+    Register,
+    Remove,
+    Equal,
+    None
+};
+
 enum status
 {
     state_ON = 0x121,
@@ -73,31 +83,11 @@ struct data_local
 {
     String payload;
 };
-struct rfid_state;
-
-struct DB_STATE
-
+enum action_sdCard
 {
-    JsonDocument doc;
-    SdFat32 *sd;
-    File32 file;
-    rfid_state *rfid;
-    bool check_Openedfile(const char *filename);
-    void save_data(const char *filename);
-    bool load_data(const char *filename = "/mahasiswa.json");
-    void new_file();
-    void Remove_file();
-    void Replace_file();
-};
-
-#define total_card_rfid 20
-#define size_rfid 10
-enum action_Card
-{
-    Register,
-    Remove,
-    Equal,
-    None
+    sv_data,
+    ch_data,
+    idle
 };
 struct rfid_state
 {
@@ -106,8 +96,17 @@ struct rfid_state
     String CardRegister;
 };
 
-// struct Serial_state
-// {
-// };
+struct Data_state
+{
+    action_sdCard action;
+    JsonDocument doc;
+    File32 file;
+    SdFat32 *sd;
+    rfid_state &rfid;
+
+    void save_data(const char *filename = "/mahasiswa.json");
+    void load_data(const char *filename = "/mahasiswa.json");
+    Data_state::Data_state(SdFat32 *sdf, rfid_state &rfidf) : sd(sdf), rfid(rfidf) {}
+};
 
 #endif
