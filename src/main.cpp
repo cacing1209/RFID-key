@@ -1,13 +1,14 @@
 /**
- * | Pin Arduino Mega | Fungsi | Sambung ke SD Card | Sambung ke mfrc |
- * | ---------------- | ------ | ------------------ | --------------- |
- * | 50               | MISO   | MISO               | MISO            |
- * | 51               | MOSI   | MOSI               | MOSI            |
- * | 52               | SCK    | SCK                | SCK             |
- * | 2                | CS     | CS                 |                 |
- * | 3                | CS     |                    | CS              |
- * | 4                | RST    |                    | RST             |
- * | GND              | GND    | GND                | GND             |
+ * | Pin Arduino Mega | Fungsi | Sambung ke SD Card | Sambung ke PN532 |
+ * | ---------------- | ------ | ------------------ | ---------------- |
+ * | 50               | MISO   | MISO               |                  |
+ * | 51               | MOSI   | MOSI               |                  |
+ * | 52               | SCK    | SCK                |                  |
+ * | 2                | CS     | CS                 |                  |
+ * | 20               | SDA    |                    | SDA              |
+ * | 21               | SCL    |                    | SCL              |
+ * | GND              | GND    | GND                | GND              |
+ * | 5V/3.3V          | VCC    |                    | VCC              |
  *
  *
  * ambil data mahasiswa dari website local ketika ada perubahan saja
@@ -17,17 +18,24 @@
  */
 
 #include <commond.h>
+#include <Wire.h>
+#include <Adafruit_PN532.h>
 
 #define baudRate_PC 9600
-#define baudRate_ESP 115200
+#define baudRate_ESP 9600
 
 Relay_state locker[sizeRelay];
-MFRC522 mfrc(SS_RFID, RSTPIN_RFID);
+// MFRC522 mfrc(SS_RFID, RSTPIN_RFID); // Hapus ini
+Adafruit_PN532 nfc(-1, -1); // Tambah PN532 dengan I2C
 rfid_state rfid;
 SdFat32 sdcard;
 Aksesoris_state buzzer;
 Aksesoris_state led;
 Data_state data(&sdcard, rfid);
+
+// Variabel untuk menyimpan UID dari PN532
+uint8_t uid[7];
+uint8_t uidLength;
 
 void erorCheck()
 {
@@ -46,7 +54,18 @@ void erorCheck()
 		sdcard.errorPrint(&Serial);
 	}
 	Serial.print(" ");
-	mfrc.PCD_DumpVersionToSerial();
+	
+	// Ganti pengecekan MFRC522 dengan PN532
+	uint32_t versiondata = nfc.getFirmwareVersion();
+	if (!versiondata) {
+		Serial.println("PN532 tidak ditemukan!");
+		led.Status = state_ON; // Error indicator
+	} else {
+		Serial.print("PN532 Firmware ver: ");
+		Serial.print((versiondata>>16) & 0xFF, DEC); 
+		Serial.print('.'); Serial.println((versiondata>>8) & 0xFF, DEC);
+		led.Status = state_OFF; // Normal
+	}
 }
 
 void init_mypin()
@@ -65,31 +84,35 @@ void init_mypin()
 	led.Interval = 1000;
 	buzzer.Interval = 1000;
 	rfid.action = None;
+	data.action = idle;
+	buzzer.Status = state_OFF;
+	led.Status = state_OFF;
+
 	pinMode(led.pin, OUTPUT);
 	pinMode(buzzer.pin, OUTPUT);
-	digitalWrite(RSTPIN_RFID, HIGH);
-	delay(100);
-	digitalWrite(RSTPIN_RFID, LOW);
 }
-void loadFile()
-{
-	data.load_data();
-}
+
 void setup()
 {
 	Serial.begin(baudRate_PC);
 	Serial3.begin(baudRate_ESP);
 	SPI.begin();
-	mfrc.PCD_Init();
+	
+	// Ganti inisialisasi MFRC522 dengan PN532
+	nfc.begin();
+	nfc.SAMConfig(); // Konfigurasi untuk membaca ISO14443A cards
+	
 	init_mypin();
 	erorCheck();
-	loadFile();
+	data.load_data();
+	// data.load_data();
 	// int ex[size_rfid] = {83, 58, 129, 41};
 	// for (size_t i = 0; i < size_rfid; i++)
 	// {
 	// 	rfid.card[3][i] = ex[i];
 	// }
 }
+
 #define maxbyte 5
 bool chat_open(byte *xp)
 {
@@ -104,12 +127,14 @@ bool chat_open(byte *xp)
 	}
 	return true;
 }
+
 String litle_end()
 {
 	uint32_t val = 0;
-	for (int i = 0; i < mfrc.uid.size; i++)
+	// Ganti mfrc.uid dengan uid dari PN532
+	for (int i = 0; i < uidLength; i++)
 	{
-		val |= ((uint32_t)mfrc.uid.uidByte[i]) << (8 * i);
+		val |= ((uint32_t)uid[i]) << (8 * i);
 	}
 
 	char buffer[11];
@@ -119,27 +144,25 @@ String litle_end()
 
 void readCard()
 {
-	if (!mfrc.PICC_IsNewCardPresent() || !mfrc.PICC_ReadCardSerial())
+	// Ganti logika pembacaan MFRC522 dengan PN532
+	if (rfid.action != None)
 		return;
+		
+	uint8_t success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength, 100);
+	
+	if (!success) return; // Tidak ada kartu
+	
 	Serial.print("UID bytes: ");
-	for (byte i = 0; i < mfrc.uid.size; i++)
+	for (byte i = 0; i < uidLength; i++)
 	{
-		Serial.print(mfrc.uid.uidByte[i]);
+		Serial.print(uid[i]);
 		Serial.print(",");
 	}
 	Serial.println();
-
-	Serial.print("UID HEX : ");
-	for (byte i = 0; i < mfrc.uid.size; i++)
-	{
-		if (mfrc.uid.uidByte[i] < 0x10)
-			Serial.print("0");
-		Serial.print(mfrc.uid.uidByte[i], HEX);
-	}
+	led.Status = state_ON_fastloop;
 	buzzer.Status = state_ON;
 	Serial.println();
-	mfrc.PICC_HaltA();
-	mfrc.PCD_StopCrypto1();
+	
 	rfid.action = Equal;
 }
 
@@ -177,7 +200,15 @@ void convert_uitbyt()
 		Serial.println(i_rfid);
 		i_rfid = 0;
 		rfid.action = None;
-		mfrc.PCD_DumpVersionToSerial();
+		
+		// Ganti dump version MFRC522 dengan PN532
+		uint32_t versiondata = nfc.getFirmwareVersion();
+		if (versiondata) {
+			Serial.print("PN532 Firmware: ");
+			Serial.print((versiondata>>16) & 0xFF, DEC); 
+			Serial.print('.'); Serial.println((versiondata>>8) & 0xFF, DEC);
+		}
+		
 		data.action = sv_data;
 		if (sdcard.begin(CS_SD))
 			Serial.println("sdcard Normal");
@@ -274,6 +305,7 @@ bool checkAction()
 	}
 	return false;
 }
+
 signed char getNumberlocker()
 {
 	if (checkAction())
@@ -281,9 +313,10 @@ signed char getNumberlocker()
 		for (size_t i = 0; i < total_card_rfid; i++)
 		{
 			bool xp = true;
+			// Ganti mfrc.uid.uidByte dengan uid dari PN532
 			for (size_t x = 0; x < size_rfid; x++)
 			{
-				if (rfid.card[i][x] != mfrc.uid.uidByte[x])
+				if (rfid.card[i][x] != uid[x])
 				{
 					xp = false;
 					break;
@@ -338,16 +371,20 @@ void openedLocker()
 		locker[i].TimeON = millis() - locker[i].Last_ON;
 	}
 }
+
 void clear_byte()
 {
 	if (rfid.action != Equal)
 		return;
-	for (size_t i = 0; i < mfrc.uid.size; i++)
+	// Ganti clearing mfrc.uid dengan uid PN532
+	for (size_t i = 0; i < uidLength; i++)
 	{
-		mfrc.uid.uidByte[i] = 0;
+		uid[i] = 0;
 	}
+	uidLength = 0;
 	rfid.action = None;
 }
+
 void mainSDcard()
 {
 	switch (data.action)
@@ -359,6 +396,7 @@ void mainSDcard()
 		break;
 	}
 }
+
 void setup();
 void loop()
 {
@@ -371,5 +409,3 @@ void loop()
 	clear_byte();
 	mainSDcard();
 }
-
-// https://script.google.com/macros/s/AKfycbw4EX3g8YpEofbsHSQY5viLKQP5gg2l4ssEIlLt9dOo1yy8zfRhED4wzeStfxKmnJXj/exec
