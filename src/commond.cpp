@@ -3,7 +3,6 @@
 void Data_state::save_data(const char *filename)
 {
     action = idle;
-
     file = sd->open(filename, O_WRONLY | O_CREAT | O_TRUNC);
     if (!file)
     {
@@ -46,8 +45,7 @@ void Aksesoris_state::on(int Ringetone)
     {
         if (Status == state_ON_fastloop)
         {
-
-            if (currentTime - LastOn > Interval / 2)
+            if (currentTime - LastOn > flipflopinterval01)
             {
                 digitalWrite(pin, !(digitalRead(pin) == HIGH));
                 LastOn = currentTime;
@@ -71,7 +69,29 @@ void Aksesoris_state::on(int Ringetone)
     else
     {
         static bool ONX;
-        if (Status == state_ON)
+        static byte count;
+        if (Status == state_ON_fastloop)
+        {
+            if (count >= 3)
+            {
+                digitalWrite(pin, LOW);
+                // analogWrite(pin, Tone00);
+                count = 0;
+                Status = state_OFF;
+            }
+            if (currentTime - LastOn > flipflopinterval02)
+            {
+                ONX = !ONX;
+                LastOn = currentTime;
+                digitalWrite(pin, LOW);
+                // analogWrite(pin, Tone00);
+                count++;
+            }
+            else
+                digitalWrite(pin, HIGH);
+            // analogWrite(pin, Ringetone);
+        }
+        else if (Status == state_ON)
         {
             if (currentTime - LastOn > Interval)
             {
@@ -80,11 +100,14 @@ void Aksesoris_state::on(int Ringetone)
                 Status = state_OFF;
             }
             else
-                analogWrite(pin, Ringetone);
+                digitalWrite(pin, HIGH);
+            // analogWrite(pin, Ringetone);
         }
         else
         {
-            analogWrite(pin, Tone00);
+            digitalWrite(pin, LOW);
+            // analogWrite(pin, Tone00);
+            count = 0;
             ONX = false;
             LastOn = currentTime;
         }
@@ -120,7 +143,6 @@ void Data_state::load_data(const char *filename)
 
         if (!insideArray)
         {
-            // Skip the opening '['
             if (c == '[')
             {
                 file.read();
@@ -159,16 +181,15 @@ void Data_state::load_data(const char *filename)
         {
             rfid.card[i][x] = uidArray[x];
         }
-
-        Serial.print("Mahasiswa ");
-        Serial.print(obj["mahasiswa"].as<const char *>());
-        Serial.print(": ");
-        for (size_t x = 0; x < size_rfid; x++)
-        {
-            Serial.print(rfid.card[i][x]);
-            Serial.print(" ");
-        }
-        Serial.println();
+        // Serial.print("Mahasiswa ");
+        // Serial.print(obj["mahasiswa"].as<const char *>());
+        // Serial.print(": ");
+        // for (size_t x = 0; x < size_rfid; x++)
+        // {
+        //     Serial.print(rfid.card[i][x]);
+        //     Serial.print(" ");
+        // }
+        // Serial.println();
 
         i++;
 
@@ -197,5 +218,5 @@ void Data_state::load_data(const char *filename)
     }
 
     file.close();
-    Serial.println("Data UID berhasil dimuat (streaming).");
+    Serial.println("Data UID berhasil dimuat (sd card).");
 }

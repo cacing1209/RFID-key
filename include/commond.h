@@ -27,8 +27,8 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
 #define CS_SD 2
 
 // Pin definitions untuk aksesori
-#define PIN_led 13
-#define PIN_buzzer 12
+#define PIN_led 12
+#define PIN_buzzer 13
 
 // Tone definitions
 #define Tone00 0
@@ -41,16 +41,16 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
 #define Tone07 900
 #define Tone08 1000
 
-// LED flash definitions
-#define flopflopLed01 1
-#define flopflopLed02 2
-#define flopflopLed03 3
-#define flopflopLed04 4
-#define flopflopLed05 5
+#define flipflopinterval01 200
+#define flipflopinterval02 250
+#define flipflopinterval03 350
+#define flipflopinterval04 450
+#define flipflopinterval05 550
+#define flipflopinterval05 1000
 
 // RFID card definitions
 #define total_card_rfid 30
-#define size_rfid 10
+#define size_rfid 4
 
 enum action_Card
 {
@@ -63,6 +63,7 @@ enum action_Card
 enum status
 {
     state_ON = 0x121,
+    state_ON_fastloop4X,
     state_ON_fastloop,
     state_OFF
 };
