@@ -1,0 +1,66 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "d:/Coding/arduino/locker v2 rfid/include",
+                "d:/Coding/arduino/locker v2 rfid/src",
+                "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/Adafruit PN532",
+                "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/Adafruit BusIO",
+                "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
+                "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/ArduinoJson/src",
+                "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/SdFat - Adafruit Fork/src",
+                "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/MFRC522/src",
+                "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
+                "C:/Users/n5747/.platformio/packages/framework-arduino-avr/cores/arduino",
+                "C:/Users/n5747/.platformio/packages/framework-arduino-avr/variants/mega",
+                "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
+                "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/HID/src",
+                "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "d:/Coding/arduino/locker v2 rfid/include",
+                    "d:/Coding/arduino/locker v2 rfid/src",
+                    "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/Adafruit PN532",
+                    "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/Adafruit BusIO",
+                    "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
+                    "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/ArduinoJson/src",
+                    "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/SdFat - Adafruit Fork/src",
+                    "d:/Coding/arduino/locker v2 rfid/.pio/libdeps/megaatmega2560/MFRC522/src",
+                    "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
+                    "C:/Users/n5747/.platformio/packages/framework-arduino-avr/cores/arduino",
+                    "C:/Users/n5747/.platformio/packages/framework-arduino-avr/variants/mega",
+                    "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
+                    "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/HID/src",
+                    "C:/Users/n5747/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=60118",
+                "ARDUINO_AVR_MEGA2560",
+                "F_CPU=16000000L",
+                "ARDUINO_ARCH_AVR",
+                "ARDUINO=10808",
+                "__AVR_ATmega2560__",
+                ""
+            ],
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "compilerPath": "C:/Users/n5747/.platformio/packages/toolchain-atmelavr/bin/avr-gcc.exe",
+            "compilerArgs": [
+                "-mmcu=atmega2560",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}

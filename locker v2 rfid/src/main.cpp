@@ -107,8 +107,6 @@ void setup()
 	init_mypin();
 	erorCheck();
 	data.load_data();
-	// data.load_data();
-	// int ex[size_rfid] = {83, 58, 129, 41};
 	for (size_t i = 0; i < total_card_rfid; i++)
 	{
 		for (size_t x = 0; x < size_rfid; x++)
