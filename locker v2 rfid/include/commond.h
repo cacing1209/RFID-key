@@ -41,10 +41,10 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
 #define Tone07 900
 #define Tone08 1000
 
-#define flipflopinterval01 200
-#define flipflopinterval02 250
-#define flipflopinterval03 350
-#define flipflopinterval04 450
+#define flipflopinterval01 50
+#define flipflopinterval02 75
+#define flipflopinterval03 150
+#define flipflopinterval04 250
 #define flipflopinterval05 550
 #define flipflopinterval05 1000
 

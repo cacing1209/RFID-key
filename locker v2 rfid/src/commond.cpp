@@ -45,70 +45,61 @@ void Aksesoris_state::on(int Ringetone)
     {
         if (Status == state_ON_fastloop)
         {
-            if (currentTime - LastOn > flipflopinterval01)
+            if (currentTime - LastOn >= flipflopinterval01)
             {
-                digitalWrite(pin, !(digitalRead(pin) == HIGH));
+                digitalWrite(pin, !digitalRead(pin));
                 LastOn = currentTime;
             }
         }
         else if (Status == state_ON)
         {
-
-            if (currentTime - LastOn > Interval)
+            if (currentTime - LastOn >= Interval)
             {
-                digitalWrite(pin, !(digitalRead(pin) == HIGH));
+                digitalWrite(pin, !digitalRead(pin));
                 LastOn = currentTime;
             }
         }
         else
         {
-            LastOn = currentTime;
             digitalWrite(pin, LOW);
+            LastOn = currentTime;
         }
     }
     else
     {
-        static bool ONX;
-        static byte count;
+        static byte count = 0;
+        const byte bitfalse = 4;
         if (Status == state_ON_fastloop)
         {
-            if (count >= 3)
+            if (count >= bitfalse)
             {
-                digitalWrite(pin, LOW);
-                // analogWrite(pin, Tone00);
                 count = 0;
                 Status = state_OFF;
             }
-            if (currentTime - LastOn > flipflopinterval02)
+            else if (currentTime - LastOn >= flipflopinterval02)
             {
-                ONX = !ONX;
                 LastOn = currentTime;
-                digitalWrite(pin, LOW);
-                // analogWrite(pin, Tone00);
-                count++;
+                if (digitalRead(pin) == HIGH)
+                    count++;
+                digitalWrite(pin, !digitalRead(pin) == HIGH);
             }
-            else
-                digitalWrite(pin, HIGH);
-            // analogWrite(pin, Ringetone);
         }
         else if (Status == state_ON)
         {
-            if (currentTime - LastOn > Interval)
+            if (currentTime - LastOn >= Interval)
             {
-                ONX = !ONX;
                 LastOn = currentTime;
                 Status = state_OFF;
             }
             else
+            {
                 digitalWrite(pin, HIGH);
-            // analogWrite(pin, Ringetone);
+            }
         }
         else
         {
             digitalWrite(pin, LOW);
-            // analogWrite(pin, Tone00);
             count = 0;
-            ONX = false;
             LastOn = currentTime;
         }
     }
@@ -132,7 +123,6 @@ void Data_state::load_data(const char *filename)
     {
         char c = file.peek();
 
-        // Skip whitespace
         while (isspace(c))
         {
             file.read(); // discard
@@ -162,7 +152,6 @@ void Data_state::load_data(const char *filename)
             break;
         }
 
-        // Deserialize satu object
         DeserializationError error = deserializeJson(doc, file);
 
         if (error)

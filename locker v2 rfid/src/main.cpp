@@ -85,7 +85,7 @@ void init_mypin()
 	led.pin = PIN_led;
 	buzzer.pin = PIN_buzzer;
 	led.Interval = 1000;
-	buzzer.Interval = 3000;
+	buzzer.Interval = 2000;
 	rfid.action = None;
 	data.action = idle;
 	buzzer.Status = state_OFF;
@@ -169,13 +169,12 @@ void readCard()
 	static bool lastRead = false;
 	static unsigned long lastReadTime = 0;
 	static unsigned long lastSuccessTime = 0;
-	const unsigned long READ_INTERVAL = 200; 
-	const unsigned long CARD_TIMEOUT = 1000; 
-	const unsigned long DEBOUNCE_TIME = 500; 
+	const unsigned long READ_INTERVAL = 200;
+	const unsigned long CARD_TIMEOUT = 1000;
+	const unsigned long DEBOUNCE_TIME = 500;
 
 	unsigned long currentTime = millis();
 
-	// Skip jika masih dalam proses action lain
 	if (rfid.action != None)
 		return;
 
@@ -382,29 +381,19 @@ signed char getNumberlocker()
 				if (rfid.card[i][x] != uid[x])
 				{
 					xp = false;
-					// Serial.print("kolom:");
-					// Serial.print(i);
-					// Serial.print("baris:");
-					// Serial.println(x);
-					// Serial.print(" db:");
-					// Serial.print(rfid.card[i][x]);
-					// Serial.print(" incoming:");
-					// Serial.println(uid[x]);
 					break;
 				}
 			}
 			if (xp)
 			{
-				// Serial.print("cocok locker :");
-				// Serial.print(i);
-				// Serial.print(",decimal :");
-				// Serial.println(litle_end());
+				Serial.print("cocok locker :");
+				Serial.print(i);
 				led.Status = state_ON_fastloop;
 				buzzer.Status = state_ON_fastloop;
 				return i;
 			}
-			buzzer.Status = state_ON;
 		}
+		buzzer.Status = state_ON;
 		return -1;
 	}
 	return -1;
@@ -413,6 +402,7 @@ signed char getNumberlocker()
 void getStatusLocker()
 {
 	signed char nb = getNumberlocker();
+
 	if (nb == -1)
 	{
 		return;
