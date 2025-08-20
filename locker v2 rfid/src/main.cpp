@@ -169,9 +169,9 @@ void readCard()
 	static bool lastRead = false;
 	static unsigned long lastReadTime = 0;
 	static unsigned long lastSuccessTime = 0;
-	const unsigned long READ_INTERVAL = 200; // Interval antar pembacaan
-	const unsigned long CARD_TIMEOUT = 1000; // Timeout jika kartu sudah tidak ada
-	const unsigned long DEBOUNCE_TIME = 500; // Debounce time untuk kartu yang sama
+	const unsigned long READ_INTERVAL = 200; 
+	const unsigned long CARD_TIMEOUT = 1000; 
+	const unsigned long DEBOUNCE_TIME = 500; 
 
 	unsigned long currentTime = millis();
 
