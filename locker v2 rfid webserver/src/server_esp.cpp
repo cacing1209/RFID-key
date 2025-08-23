@@ -259,11 +259,18 @@ String generateFormHTML()
             <div class='form-grid'>
     )=====";
 
+    // for (int i = 0; i < appConfig.maxStudents; i++)
+    // {
+    //     html += "<div class='form-item'>";
+    //     html += "<label>Mahasiswa " + String(i + 1) + ":</label>";
+    //     html += "<input type='text' id='uid" + String(i) + "' placeholder='Masukkan UID'>";
+    //     html += "</div>";
+    // }
     for (int i = 0; i < appConfig.maxStudents; i++)
     {
         html += "<div class='form-item'>";
         html += "<label>Mahasiswa " + String(i + 1) + ":</label>";
-        html += "<input type='text' id='uid" + String(i) + "' placeholder='Masukkan UID'>";
+        html += "<input type='number' id='uid" + String(i) + "' placeholder='Masukkan UID' min='0' step='1'>";
         html += "</div>";
     }
 

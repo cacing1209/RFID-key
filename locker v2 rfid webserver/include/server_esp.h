@@ -5,7 +5,7 @@
 #include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
 
-#define MAX_MAHASISWA 30
+#define MAX_MAHASISWA 4
 #define Indicator_led 5
 #define RESET_BTN_PIN 4
 
