@@ -135,7 +135,6 @@ bool ethernet_state::parse_json(String json_data, database_s *db)
         current_index++;
         pos = obj_end + 1;
     }
-
     return true;
 }
 
