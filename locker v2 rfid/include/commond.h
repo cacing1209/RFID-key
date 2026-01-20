@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 
 #define sizeRelay 32
-const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
+const int pin_IO[sizeRelay] = {9, 23, 24, 25, 26, 27,
                                28, 29, 30, 31, 32, 33,
                                34, 35, 36, 37, 38, 39,
                                40, 41, 42, 43, 44, 45,
@@ -30,7 +30,7 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
 
 // Pin definitions untuk aksesori
 #define PIN_led 12
-#define PIN_buzzer 13
+#define PIN_buzzer 22
 
 // Tone definitions
 #define Tone00 0
@@ -54,7 +54,8 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
 #define total_card_rfid 30
 #define size_mahasiswa 30
 #define size_uid 12
-enum class action_Card
+
+enum class action_Card : uint8_t
 {
     Register = 0x01,
     Remove,
@@ -63,27 +64,33 @@ enum class action_Card
     Write,
     None
 };
-enum class Status_db
+enum class Status_db : uint8_t
 {
-    Available = 0x01,
+    Available = 0x64,
     Not_Available
 };
 
-enum class ac_status
+enum class acc_mode : uint8_t
 {
-    state_ON = 0x121,
-    state_ON_fastloop4X,
-    state_ON_fastloop,
-    state_OFF
+    mode_fastloop2X = 0xCC,
+    mode_fastloop4X,
+    mode_fastloop8X,
 };
 
-struct Aksesoris_state
+enum class acc_action : uint8_t
 {
+    acc_on = 0x28,
+    acc_off
+};
+struct acc_state
+{
+    acc_mode mode;
     byte pin;
+    byte flip_flop;
+    acc_action act;
     unsigned long Interval;
     unsigned long LastOn;
-    ac_status status;
-    void on(int Ringetone = 3000);
+    void main();
 };
 
 enum class Status_RL
@@ -105,6 +112,7 @@ struct Relay_state
     Status_RL status;
     byte pin;
     unsigned long last_t;
+    bool shoow_rl;
 };
 
 #include <Adafruit_PN532.h>
@@ -114,9 +122,11 @@ struct rfid_state
     action_Card action = action_Card::None;
     char read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl);
     signed char registered(const database_s *db);
-    void open_doors(Relay_state *rl);
+    bool open_doors(Relay_state *rl);
+    long interval;
     uint8_t size_uid_incoming = size_uid;
     uint8_t uid_incoming[size_uid];
+    rfid_state::rfid_state(const long interval_read);
 };
 struct storage_state
 {
@@ -126,10 +136,29 @@ struct storage_state
     bool save_data(database_s *db);
     void factory_reset(database_s *db);
 };
+
 struct ethernet_state
 {
     void loop_ethernet(database_s *main_data);
+    void get_data(database_s *db);
+    void process_response(database_s *db);
+    bool parse_json(String json_data, database_s *db);
     bool enable_debug;
+    
+    EthernetClient client;
+    char server[50] = "192.168.1.100";
+    int port = 80;
+    String endpoint = "/api/locker";
+    unsigned long last_fetch = 0;
+    unsigned long fetch_interval = 60000;
+    bool initialized = false;
+    
+    bool request_sent = false;
+    unsigned long timeout_start = 0;
+    bool headers_ended = false;
+    String response = "";
+    char last_char = 0;
+    int newline_count = 0;
 };
 
 #endif

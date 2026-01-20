@@ -29,32 +29,56 @@
 
 //     return true;
 // }
-void rfid_state::open_doors(Relay_state *rl)
+rfid_state::rfid_state(const long interval_read) : interval(interval_read)
 {
+    if (interval_read < 25)
+        interval = 27;
+    if (interval_read > 3000)
+        interval = 3000;
+}
+bool rfid_state::open_doors(Relay_state *rl)
+{
+    unsigned long current_t = millis();
     for (size_t i = 0; i < size_mahasiswa; i++)
     {
         if (rl[i].status == Status_RL::ON)
         {
-            if (millis() - rl[i].last_t >= rl[i].interval)
+            if (rl[i].shoow_rl && enable_debug)
             {
+                rl[i].shoow_rl = false;
+                Serial.println("locker on=>" + String(i));
+            }
+
+            if (current_t - rl[i].last_t >= rl[i].interval)
+            {
+                if (enable_debug)
+                {
+                    Serial.println("relay off T=>" + String(current_t - rl[i].last_t));
+                }
                 rl[i].status = Status_RL::OFF;
-                digitalWrite(rl[i].pin, LOW);
+                rl[i].last_t = current_t;
+                digitalWrite(rl[i].pin, HIGH);
+                return true;
             }
             else
             {
-                digitalWrite(rl[i].pin, HIGH);
+                if (enable_debug)
+                    Serial.println("interval=>" + String(current_t - rl[i].last_t));
+                digitalWrite(rl[i].pin, LOW);
             }
         }
         else
         {
-            digitalWrite(rl[i].pin, LOW);
+            digitalWrite(rl[i].pin, HIGH);
+            rl[i].last_t = current_t;
         }
     }
+    return false;
 }
 signed char rfid_state::registered(const database_s *db)
 {
     bool match = false;
-    signed char number_locker = -1;
+    signed char number_locker = 126;
     for (size_t x = 0; x < size_mahasiswa; x++)
     {
         match = true;
@@ -65,15 +89,15 @@ signed char rfid_state::registered(const database_s *db)
                 if (enable_debug)
                 {
                     Serial.println("::not match =>" + String(db[x].card[xp]) + ":incoming:" +
-                                   String(uid_incoming[xp]) + " :i:" + String(xp));
+                                   String(uid_incoming[xp]) + " :C_Arr:" + String(xp) + ":C_idx:" + String(xp));
                 }
                 match = false;
                 break;
             }
-            number_locker = xp;
         }
         if (match)
         {
+            number_locker = x;
             if (enable_debug)
             {
                 Serial.println("match=> index" + String(x));
@@ -85,24 +109,30 @@ signed char rfid_state::registered(const database_s *db)
             return number_locker;
         }
     }
-    return 126;
+    return 126; // invalid number locker
 }
 
 char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl)
 {
     static bool last_read_c = false;
+    static unsigned long last_t = 0;
+    unsigned long current_t = millis();
 
-    bool read_c = nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid_incoming, &size_uid_incoming, 1000);
+    bool read_c = false;
+    if (current_t - last_t < interval)
+        return -1;
+    read_c = nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid_incoming, &size_uid_incoming, 25);
     if (read_c && !last_read_c)
     {
-        Serial.print("Card detected => ");
+        if (enable_debug)
+            Serial.print("Card detected => ");
         for (size_t i = 0; i < size_uid_incoming; i++)
         {
             if (enable_debug)
             {
                 // if (uid[i] < 0x10)
                 //     Serial.print("0");
-                Serial.print(uid_incoming[i], HEX);
+                Serial.print(uid_incoming[i]);
                 Serial.print(" ");
             }
         }
@@ -112,9 +142,18 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
             Serial.println("Length => " + String(size_uid_incoming));
         }
         last_read_c = true;
+        last_t = current_t;
         byte number_locker = registered(data);
         if (number_locker != 126)
+        {
             rl[number_locker].status = Status_RL::ON;
+            rl[number_locker].shoow_rl = true;
+            rl[number_locker].last_t = millis();
+            if (enable_debug)
+            {
+                Serial.println("created_at=>" + String(data[number_locker].created_at));
+            }
+        }
 
         return 1;
     }

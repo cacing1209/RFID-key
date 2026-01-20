@@ -25,7 +25,21 @@ bool storage_state::load_data(database_s *db)
         }
     }
     if (enable_debug)
+    {
+        for (size_t x = 0; x < size_mahasiswa; x++)
+        {
+            Serial.print("card =>" + String(x) + "=>");
+            for (size_t y = 0; y < size_uid; y++)
+            {
+                if (y != 0)
+                    Serial.print(',');
+                Serial.print(db[x].card[y]);
+            }
+            Serial.println();
+        }
+
         Serial.println("load succes!!!");
+    }
     return true;
 }
 bool storage_state::save_data(database_s *db)
