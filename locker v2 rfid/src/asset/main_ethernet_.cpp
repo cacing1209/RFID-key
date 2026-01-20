@@ -115,13 +115,13 @@ void ethernet_state::process_response(database_s *db)
     if (!client.connected() || millis() - timeout_start > 5000)
     {
         client.stop();
-        
+
         if (enable_debug)
         {
             Serial.println("Response:");
             Serial.println(response);
         }
-        
+
         parse_json(response, db);
         request_sent = false;
         return;
@@ -163,16 +163,16 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         if (Ethernet.begin(mac) == 0)
         {
             if (enable_debug)
-                Serial.println("DHCP failed, using static IP");
+                Serial.println("::DHCP failed, now using static IP");
+            // if static
+            // IPAddress ip(192, 168, 0, 177);
+            // IPAddress dns_server(192, 168, 0, 1);
+            // IPAddress gateway(192, 168, 0, 1);
+            // IPAddress subnet(255, 255, 255, 0);
+            // Ethernet.begin(mac,ip,dns_server,gateway);
 
-            IPAddress ip(192, 168, 0, 177);
-            IPAddress dns_server(192, 168, 0, 1);
-            IPAddress gateway(192, 168, 0, 1);
-            IPAddress subnet(255, 255, 255, 0);
-            Ethernet.begin(mac, ip, dns_server, gateway, subnet);
+            // Ethernet.begin(mac);
         }
-
-        delay(1000);
 
         if (enable_debug)
         {
@@ -181,15 +181,15 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         }
 
         initialized = true;
-        get_data(main_data);
+        // get_data(main_data);
         last_fetch = millis();
     }
 
-    process_response(main_data);
+    // process_response(main_data);
 
     if (!request_sent && millis() - last_fetch >= fetch_interval)
     {
-        get_data(main_data);
+        // get_data(main_data);
         last_fetch = millis();
     }
 
