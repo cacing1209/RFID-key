@@ -1,7 +1,9 @@
 #ifndef COMMOND_H
 #define COMMOND_H
+
 #include <Arduino.h>
 #include <SdFat.h>
+#include <../lib/Ethernet-2.0.2/src/Ethernet.h>
 #include <ArduinoJson.h>
 
 #define sizeRelay 32
@@ -9,13 +11,13 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
                                28, 29, 30, 31, 32, 33,
                                34, 35, 36, 37, 38, 39,
                                40, 41, 42, 43, 44, 45,
-                               46, 47, 48, 49, 8, 9, 10, 11};
+                               46, 47, 48, 49, 50, 51, 52, 53};
 
 /* #pinout#
  * PN532 RFID menggunakan I2C:
  * SDA = Pin 20 (Arduino Mega)
  * SCL = Pin 21 (Arduino Mega)
- * 
+ *
  * SD Card menggunakan SPI:
  * SPI MOSI    MOSI         51
  * SPI MISO    MISO         50
@@ -50,17 +52,24 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
 
 // RFID card definitions
 #define total_card_rfid 30
-#define size_rfid 4
-
-enum action_Card
+#define size_mahasiswa 30
+#define size_uid 12
+enum class action_Card
 {
-    Register,
+    Register = 0x01,
     Remove,
     Equal,
+    Read,
+    Write,
     None
 };
+enum class Status_db
+{
+    Available = 0x01,
+    Not_Available
+};
 
-enum status
+enum class ac_status
 {
     state_ON = 0x121,
     state_ON_fastloop4X,
@@ -73,53 +82,54 @@ struct Aksesoris_state
     byte pin;
     unsigned long Interval;
     unsigned long LastOn;
-    status Status;
+    ac_status status;
     void on(int Ringetone = 3000);
 };
 
-enum Status_RL
+enum class Status_RL
 {
     ON = 0x13,
     OFF
 };
 
+struct database_s
+{
+    Status_db statusdb = Status_db::Not_Available;
+    uint8_t card[size_uid];
+    byte number_locker;
+    char created_at[25];
+};
 struct Relay_state
 {
+    int interval;
     Status_RL status;
     byte pin;
-    unsigned long Last_ON;
-    unsigned long TimeON;
+    unsigned long last_t;
 };
 
-struct data_local
-{
-    String payload;
-};
-
-enum action_sdCard
-{
-    sv_data,
-    ch_data,
-    idle
-};
-
+#include <Adafruit_PN532.h>
 struct rfid_state
 {
-    byte card[total_card_rfid][size_rfid];
-    action_Card action = None;
-    String CardRegister;
+    bool enable_debug = false;
+    action_Card action = action_Card::None;
+    char read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl);
+    signed char registered(const database_s *db);
+    void open_doors(Relay_state *rl);
+    uint8_t size_uid_incoming = size_uid;
+    uint8_t uid_incoming[size_uid];
 };
-
-struct Data_state
+struct storage_state
 {
-    action_sdCard action;
-    File32 file;
-    SdFat32 *sd;
-    rfid_state &rfid;
-
-    void save_data(const char *filename = "/siswa.json");
-    void load_data(const char *filename = "/siswa.json");
-    Data_state::Data_state(SdFat32 *sdf, rfid_state &rfidf) : sd(sdf), rfid(rfidf) {}
+    int SIZE_MEMORY;
+    bool enable_debug = false;
+    bool load_data(database_s *db);
+    bool save_data(database_s *db);
+    void factory_reset(database_s *db);
+};
+struct ethernet_state
+{
+    void loop_ethernet(database_s *main_data);
+    bool enable_debug;
 };
 
 #endif
