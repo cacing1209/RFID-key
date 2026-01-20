@@ -112,12 +112,12 @@ void debug_sys(bool db_rfid, bool db_memory, bool db_eth)
 }
 void setup()
 {
+	delay(5000);
 	Serial.begin(baudRate_PC);
 	debug_sys(true, true, true);
 
 	init_mypin();
 	uint32_t versiondata = nfc.getFirmwareVersion();
-	delay(5000);
 	if (!versiondata)
 	{
 
