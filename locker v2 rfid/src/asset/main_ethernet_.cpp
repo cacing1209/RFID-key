@@ -5,14 +5,14 @@ void ethernet_state::get_data(database_s *db)
     if (client.connect(server, port))
     {
         if (enable_debug)
-            Serial.println("Connected to server");
+            Serial.println(":eth:Connected to server");
 
-        client.print("GET ");
+        client.print(":eth:GET ");
         client.print(endpoint);
         client.println(" HTTP/1.1");
-        client.print("Host: ");
+        client.print(":eth:Host: ");
         client.println(server);
-        client.println("Connection: close");
+        client.println(":eth:Connection: close");
         client.println();
 
         request_sent = true;
@@ -23,7 +23,7 @@ void ethernet_state::get_data(database_s *db)
     else
     {
         if (enable_debug)
-            Serial.println("Connection failed");
+            Serial.println(":eth:Connection failed");
     }
 }
 
@@ -163,7 +163,7 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         if (Ethernet.begin(mac) == 0)
         {
             if (enable_debug)
-                Serial.println("::DHCP failed, now using static IP");
+                Serial.println("::eth:DHCP failed, now using static IP");
             // if static
             // IPAddress ip(192, 168, 0, 177);
             // IPAddress dns_server(192, 168, 0, 1);
@@ -176,12 +176,12 @@ void ethernet_state::loop_ethernet(database_s *main_data)
 
         if (enable_debug)
         {
-            Serial.print("IP=> ");
+            Serial.print(":eth:IP=> ");
             Serial.println(Ethernet.localIP());
         }
 
         initialized = true;
-        // get_data(main_data);
+        get_data(main_data);
         last_fetch = millis();
     }
 
