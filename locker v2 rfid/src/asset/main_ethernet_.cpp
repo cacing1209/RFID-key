@@ -176,7 +176,7 @@ void ethernet_state::loop_ethernet(database_s *main_data)
 
         if (enable_debug)
         {
-            Serial.print("IP: ");
+            Serial.print("IP=> ");
             Serial.println(Ethernet.localIP());
         }
 
