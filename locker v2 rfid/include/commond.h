@@ -140,7 +140,7 @@ struct storage_state
 struct ethernet_state
 {
     void loop_ethernet(database_s *main_data);
-    void get_data(database_s *db);
+    bool get_data(database_s *db);
     void process_response(database_s *db);
     bool parse_json(String json_data, database_s *db);
     bool enable_debug;

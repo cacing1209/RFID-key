@@ -1,6 +1,6 @@
 #include "commond.h"
 
-void ethernet_state::get_data(database_s *db)
+bool ethernet_state::get_data(database_s *db)
 {
     if (enable_debug)
     {
@@ -45,6 +45,7 @@ void ethernet_state::get_data(database_s *db)
             Serial.println(":eth:Waiting response...");
             Serial.println(":eth:------------------------------");
         }
+        return true;
     }
     else
     {
@@ -54,9 +55,9 @@ void ethernet_state::get_data(database_s *db)
             Serial.println(":eth:GET DATA ABORTED");
             Serial.println(":eth:------------------------------");
         }
+        return false;
     }
 }
-
 
 bool ethernet_state::parse_json(String json_data, database_s *db)
 {
@@ -187,6 +188,7 @@ void ethernet_state::process_response(database_s *db)
 
 void ethernet_state::loop_ethernet(database_s *main_data)
 {
+    static bool connection = false;
     if (!initialized)
     {
         uint8_t mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
@@ -212,9 +214,11 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         }
 
         initialized = true;
-        get_data(main_data);
+        connection = get_data(main_data);
         last_fetch = millis();
     }
+    if (!connection)
+        return;
 
     // process_response(main_data);
 
