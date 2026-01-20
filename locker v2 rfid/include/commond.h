@@ -144,7 +144,7 @@ struct ethernet_state
     void process_response(database_s *db);
     bool parse_json(String json_data, database_s *db);
     bool enable_debug;
-    
+
     EthernetClient client;
     char server[50] = "192.168.77.93";
     int port = 8000;
@@ -152,7 +152,7 @@ struct ethernet_state
     unsigned long last_fetch = 0;
     unsigned long fetch_interval = 60000;
     bool initialized = false;
-    
+
     bool request_sent = false;
     unsigned long timeout_start = 0;
     bool headers_ended = false;
