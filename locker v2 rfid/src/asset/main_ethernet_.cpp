@@ -2,30 +2,61 @@
 
 void ethernet_state::get_data(database_s *db)
 {
+    if (enable_debug)
+    {
+        Serial.println();
+        Serial.println(":eth:------------------------------");
+        Serial.println(":eth:GET DATA START");
+        Serial.print(":eth:Server = ");
+        Serial.println(server);
+        Serial.print(":eth:Port   = ");
+        Serial.println(port);
+        Serial.print(":eth:Endpoint = ");
+        Serial.println(endpoint);
+    }
+
     if (client.connect(server, port))
     {
         if (enable_debug)
-            Serial.println(":eth:Connected to server");
+            Serial.println(":eth:TCP connected");
 
-        client.print(":eth:GET ");
+        client.print("GET ");
         client.print(endpoint);
         client.println(" HTTP/1.1");
-        client.print(":eth:Host: ");
+
+        client.print("Host: ");
         client.println(server);
-        client.println(":eth:Connection: close");
+
+        client.println("Connection: close");
         client.println();
 
         request_sent = true;
         timeout_start = millis();
         headers_ended = false;
         response = "";
+        last_char = 0;
+        newline_count = 0;
+
+        if (enable_debug)
+        {
+            Serial.println(":eth:HTTP request sent");
+            Serial.print(":eth:Timeout start = ");
+            Serial.println(timeout_start);
+            Serial.println(":eth:Waiting response...");
+            Serial.println(":eth:------------------------------");
+        }
     }
     else
     {
         if (enable_debug)
-            Serial.println(":eth:Connection failed");
+        {
+            Serial.println(":eth:TCP connection FAILED");
+            Serial.println(":eth:GET DATA ABORTED");
+            Serial.println(":eth:------------------------------");
+        }
     }
 }
+
 
 bool ethernet_state::parse_json(String json_data, database_s *db)
 {
