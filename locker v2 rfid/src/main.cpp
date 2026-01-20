@@ -148,7 +148,7 @@ void loop()
 	static unsigned long last_t = 0;
 	last_t = millis();
 	// write to eeprom,handle relay,sync db
-	// eth.loop_ethernet(data);
+	eth.loop_ethernet(data);
 	rfid.read_crd(data, &nfc, locker);
 	if (rfid.open_doors(locker))
 	{
