@@ -21,7 +21,6 @@ bool ethernet_state::get_data(database_s *db)
         if (enable_debug)
             Serial.println(":eth:TCP connected successfully");
 
-        // Send HTTP GET request
         client.print("GET ");
         client.print(endpoint);
         client.println(" HTTP/1.1");
@@ -61,11 +60,8 @@ bool ethernet_state::get_data(database_s *db)
     }
 }
 
-// This function is now integrated into process_response()
-// Keeping it here for backward compatibility if needed elsewhere
 bool ethernet_state::parse_json(String json_data, database_s *db)
 {
-    // Function body moved to process_response() for better memory management
     return false;
 }
 
@@ -81,7 +77,6 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // Skip HTTP headers
     if (!headers_ended)
     {
         while (client.available())
@@ -108,7 +103,6 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // === HEADER SELESAI, LANGSUNG PARSE STREAM ===
     DynamicJsonDocument doc(8192);
 
     DeserializationError error = deserializeJson(doc, client);
@@ -125,7 +119,6 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // === DATA MASUK ===
     JsonArray array = doc.as<JsonArray>();
     int idx = 0;
 
@@ -172,13 +165,6 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         {
             if (enable_debug)
                 Serial.println(":eth:DHCP failed, trying again...");
-
-            // Uncomment for static IP fallback
-            // IPAddress ip(192, 168, 0, 177);
-            // IPAddress dns_server(192, 168, 0, 1);
-            // IPAddress gateway(192, 168, 0, 1);
-            // IPAddress subnet(255, 255, 255, 0);
-            // Ethernet.begin(mac, ip, dns_server, gateway, subnet);
         }
 
         if (enable_debug)
@@ -200,10 +186,8 @@ void ethernet_state::loop_ethernet(database_s *main_data)
     if (!connection)
         return;
 
-    // Process incoming response
     process_response(main_data);
 
-    // Periodic fetch
     if (!request_sent && millis() - last_fetch >= fetch_interval)
     {
         if (enable_debug)
@@ -218,6 +202,5 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         last_fetch = millis();
     }
 
-    // Maintain DHCP lease
     Ethernet.maintain();
 }
