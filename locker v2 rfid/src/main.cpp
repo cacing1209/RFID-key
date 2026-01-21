@@ -164,11 +164,10 @@ void loop()
 	// 	eth.last_fetch = millis();
 	// }
 
-	if (millis() > 20000)
-		eth.loop_ethernet(data);
-	
-	
-		// acc_main();
+	eth.loop_ethernet(data);
+	eth.process_response(data, &memory);
+
+	// acc_main();
 	// latency = millis() - last_t;
 	// if (rfid.enable_debug)
 	// 	Serial.println("latency processing=>" + String(latency));

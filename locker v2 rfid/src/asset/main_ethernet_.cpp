@@ -58,7 +58,7 @@ bool ethernet_state::get_data(database_s *db)
     }
 }
 
-void ethernet_state::process_response(database_s *db)
+void ethernet_state::process_response(database_s *db, storage_state *memory)
 {
     if (!request_sent)
         return;
@@ -155,7 +155,19 @@ void ethernet_state::process_response(database_s *db)
 
     Serial.print(":eth:DATA OK = ");
     Serial.println(idx);
-
+    if (enable_debug)
+    {
+        Serial.println(":eth:check database=>");
+        for (size_t i = 0; i < size_mahasiswa; i++)
+        {
+            Serial.println("\n:eth:card index=>" + String(i) + "card=>");
+            for (size_t xp = 0; xp < size_uid; xp++)
+            {
+                Serial.print(db[i].card[xp]);
+            }
+        }
+    }
+    memory->save_data(db); // save data
     client.stop();
     request_sent = false;
 }
@@ -208,7 +220,7 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         request_sent = get_data(main_data);
         last_fetch = millis();
     }
-    process_response(main_data);
+    // process_response(main_data);
 
     Ethernet.maintain(); // guna dhcp renewww
 }

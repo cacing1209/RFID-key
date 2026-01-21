@@ -140,7 +140,7 @@ struct ethernet_state
 {
     void loop_ethernet(database_s *main_data);
     bool get_data(database_s *db);
-    void process_response(database_s *db);
+    void process_response(database_s *db, storage_state *memory);
     bool enable_debug;
 
     EthernetClient client;

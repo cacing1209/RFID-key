@@ -44,20 +44,20 @@ bool storage_state::load_data(database_s *db)
 }
 bool storage_state::save_data(database_s *db)
 {
-    int addr = flags_load;
+    // int addr = flags_load;
 
-    for (size_t i = 0; i < size_mahasiswa; i++)
-    {
-        epr.put(addr, db[i]);
-        addr += sizeof(database_s);
-        if (addr >= epr.length())
-        {
-            if (enable_debug)
-                Serial.println("::Memory need size =>" + String(addr - epr.length()));
+    // for (size_t i = 0; i < size_mahasiswa; i++)
+    // {
+    //     epr.put(addr, db[i]);
+    //     addr += sizeof(database_s);
+    //     if (addr >= epr.length())
+    //     {
+    //         if (enable_debug)
+    //             Serial.println("::Memory need size =>" + String(addr - epr.length()));
 
-            return false;
-        }
-    }
+    //         return false;
+    //     }
+    // }
 
     if (enable_debug)
         Serial.println("save succes!!!");
