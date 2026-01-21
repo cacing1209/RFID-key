@@ -71,8 +71,9 @@ bool ethernet_state::parse_json(String json_data, database_s *db)
         Serial.println(json_data.length());
     }
 
-    // Allocate JsonDocument
-    JsonDocument doc;
+    // Allocate JsonDocument with explicit size
+    // Calculate: 16 entries * ~150 bytes per entry = ~2400 bytes + overhead
+    StaticJsonDocument<4096> doc;
     
     DeserializationError error = deserializeJson(doc, json_data);
 
