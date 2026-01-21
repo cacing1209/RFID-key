@@ -60,7 +60,6 @@ bool ethernet_state::get_data(database_s *db)
 
 void ethernet_state::process_response(database_s *db, storage_state *memory)
 {
-
     if (!request_sent)
         return;
 
@@ -71,6 +70,11 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         return;
     }
 
+    static bool headers_ended = false;
+    static char last_char = 0;
+    static int newline_count = 0;
+
+    // ===== 1. skip HTTP header =====
     if (!headers_ended)
     {
         while (client.available())
@@ -93,97 +97,86 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         }
         return;
     }
-    const int limit_get = 580;
-    static int get_buffer = 0;
-    if (get_buffer == limit_get)
-    {
-        request_sent = false;
-        get_buffer = 0;
-        client.stop();
-    }
+
+    // ===== 2. read JSON sampai 15 object =====
     static char jsonBuffer[1200];
-    if (enable_debug)
-        Serial.println(":eth:json buffer" + String((int)sizeof(jsonBuffer)));
+    static int len = 0;
+    static int objCount = 0;
+    static int braceLevel = 0;
 
-    int len = get_buffer;
-
-    while ((client.available() && len < (int)(sizeof(jsonBuffer) - 1)) && get_buffer < limit_get)
+    while (client.available() && len < (int)sizeof(jsonBuffer) - 1)
     {
-        jsonBuffer[len++] = client.read();
-        get_buffer = len;
+        char c = client.read();
+        jsonBuffer[len++] = c;
+
+        // hitung object level pertama
+        if (c == '{')
+        {
+            braceLevel++;
+            if (braceLevel == 1)
+                objCount++;
+        }
+        else if (c == '}')
+        {
+            braceLevel--;
+        }
+
+        // stop setelah 15 data
+        if (objCount >= 15)
+            break;
     }
+
     jsonBuffer[len] = '\0';
 
-    if (len == 0)
-        return;
+    if (objCount < 15)
+        return; // belum cukup data
 
-    DynamicJsonDocument doc(6128);
+    if (enable_debug)
+    {
+        Serial.println("buffer now=>" + String(jsonBuffer));
+    }
+    DynamicJsonDocument doc(6144);
     DeserializationError error = deserializeJson(doc, jsonBuffer);
 
     if (error)
     {
         Serial.print(":eth:JSON FAILED: ");
         Serial.println(error.c_str());
-        client.stop();
-        request_sent = false;
-        // return;
     }
-    if (enable_debug)
+    else
     {
-        Serial.println(String("limit") + String(limit_get));
-        Serial.println(String("index=>") + String(get_buffer));
-        Serial.print(String("jsonBuffer=>"));
-        Serial.println(String(jsonBuffer));
+        JsonArray array = doc.as<JsonArray>();
+        int idx = 0;
+
+        for (JsonObject item : array)
+        {
+            db[idx].number_locker = item["no"] | 0;
+
+            JsonArray uid = item["id"];
+            for (int i = 0; i < size_uid; i++)
+                db[idx].card[i] = i < uid.size() ? uid[i] : 0;
+
+            db[idx].created_at[0] = '\0';
+            db[idx].statusdb = Status_db::Available;
+
+            if (++idx >= 15)
+                break;
+        }
+
+        memory->save_data(db);
+        Serial.println(":eth:15 DATA SAVED");
     }
-    get_buffer = limit_get;
-    timeout_start = millis();
 
-    // // simpan data ke struct
-    // JsonArray array = doc.as<JsonArray>();
-    // int idx = 0;
+    // ===== 4. reset state untuk session berikutnya =====
+    len = 0;
+    objCount = 0;
+    braceLevel = 0;
+    headers_ended = false;
+    newline_count = 0;
+    last_char = 0;
 
-    // for (JsonObject item : array)
-    // {
-    //     if (idx >= size_mahasiswa)
-    //         break;
-
-    //     db[idx].number_locker = item["no"] | 0;
-
-    //     JsonArray uid = item["id"];
-    //     for (int i = 0; i < size_uid; i++)
-    //     {
-    //         if (i < uid.size())
-    //             db[idx].card[i] = uid[i];
-    //         else
-    //             db[idx].card[i] = 0;
-    //     }
-
-    //     db[idx].created_at[0] = '\0';
-
-    //     db[idx].statusdb = Status_db::Available;
-    //     idx++;
-    // }
-
-    // Serial.print(":eth:DATA OK = ");
-    // Serial.println(idx);
-    // Serial.println(":eth:json buffer size=>" + String(len));
-    // if (enable_debug)
-    // {
-    //     Serial.println(":eth:check database=>");
-    //     for (size_t i = 0; i < size_mahasiswa; i++)
-    //     {
-    //         Serial.print("\n:eth:card index=>" + String(i) + "card=>");
-    //         for (size_t xp = 0; xp < size_uid; xp++)
-    //         {
-    //             if (xp != 0)
-    //                 Serial.print(',');
-    //             Serial.print(db[i].card[xp]);
-    //         }
-    //     }
-    // }
-    // memory->save_data(db); // save data
-    // client.stop();
-    // request_sent = false;
+    client.stop(); // atau biarin kalau mau lanjut session 2
+    request_sent = false;
 }
 
 void ethernet_state::loop_ethernet(database_s *main_data)
