@@ -72,7 +72,6 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // ===== SKIP HEADER HTTP =====
     if (!headers_ended)
     {
         while (client.available())
@@ -96,8 +95,7 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // ===== BACA BODY KE BUFFER =====
-    static char jsonBuffer[1200]; // <<< DIPERKECIL
+    static char jsonBuffer[1200];
     int len = 0;
 
     while (client.available() && len < (int)(sizeof(jsonBuffer) - 1))
@@ -109,10 +107,9 @@ void ethernet_state::process_response(database_s *db)
     if (len == 0)
         return;
 
-    // ===== FILTER JSON (ARRAY) =====
-    StaticJsonDocument<256> filter;
-    filter["*"]["nomor_absen"] = true;
-    filter["*"]["uid_card"] = true;
+    JsonDocument filter;
+    filter["nomor_absen"] = true;
+    filter["uid_card"] = true;
 
     DynamicJsonDocument doc(1024);
 
@@ -130,7 +127,7 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // ===== SIMPAN KE STRUCT =====
+    // simpan data ke struct
     JsonArray array = doc.as<JsonArray>();
     int idx = 0;
 
@@ -150,7 +147,6 @@ void ethernet_state::process_response(database_s *db)
                 db[idx].card[i] = 0;
         }
 
-        // created_at tidak ada → kosongkan saja
         db[idx].created_at[0] = '\0';
 
         db[idx].statusdb = Status_db::Available;
@@ -181,7 +177,7 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         if (Ethernet.begin(mac) == 0)
         {
             if (enable_debug)
-                Serial.println(":eth:DHCP failed, trying again...");
+                Serial.println("::eth:DHCP gagal");
         }
 
         if (enable_debug)
@@ -189,8 +185,8 @@ void ethernet_state::loop_ethernet(database_s *main_data)
             Serial.print(":eth:IP Address = ");
             Serial.println(Ethernet.localIP());
             Serial.print(":eth:Fetch interval = ");
-            Serial.print(fetch_interval);
-            Serial.println(" ms");
+            Serial.print(fetch_interval / 1000);
+            Serial.println(" second");
             Serial.println(":eth:ETHERNET INITIALIZED");
             Serial.println(":eth:------------------------------");
         }
