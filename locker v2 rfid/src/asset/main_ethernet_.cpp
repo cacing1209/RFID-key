@@ -102,8 +102,16 @@ void ethernet_state::process_response(database_s *db)
         }
         return;
     }
-    DynamicJsonDocument doc(20480);
-    DeserializationError error = deserializeJson(doc, client);
+    DynamicJsonDocument doc(8192);
+
+    StaticJsonDocument<256> filter;
+    filter[0]["nomor_absen"] = true;
+    filter[0]["uid_card"] = true;
+
+    DeserializationError error = deserializeJson(
+        doc,
+        client,
+        DeserializationOption::Filter(filter));
 
     if (error)
     {
