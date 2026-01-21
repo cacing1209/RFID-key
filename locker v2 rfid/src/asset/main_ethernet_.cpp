@@ -60,6 +60,7 @@ bool ethernet_state::get_data(database_s *db)
 
 void ethernet_state::process_response(database_s *db, storage_state *memory)
 {
+
     if (!request_sent)
         return;
 
@@ -70,11 +71,6 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         return;
     }
 
-    static bool headers_ended = false;
-    static char last_char = 0;
-    static int newline_count = 0;
-
-    // ===== 1. skip HTTP header =====
     if (!headers_ended)
     {
         while (client.available())
@@ -97,85 +93,76 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         }
         return;
     }
-
-    // ===== 2. read JSON sampai 15 object =====
     static char jsonBuffer[1200];
-    static int len = 0;
-    static int objCount = 0;
-    static int braceLevel = 0;
+    if (enable_debug)
+        Serial.println(":eth:json buffer" + String((int)sizeof(jsonBuffer)));
+    int len = 0;
 
-    while (client.available() && len < (int)sizeof(jsonBuffer) - 1)
+    while (client.available() && len < (int)(sizeof(jsonBuffer) - 1))
     {
-        char c = client.read();
-        jsonBuffer[len++] = c;
-
-        // hitung object level pertama
-        if (c == '{')
-        {
-            braceLevel++;
-            if (braceLevel == 1)
-                objCount++;
-        }
-        else if (c == '}')
-        {
-            braceLevel--;
-        }
-
-        // stop setelah 15 data
-        if (objCount >= 15)
-            break;
+        jsonBuffer[len++] = client.read();
     }
-
     jsonBuffer[len] = '\0';
 
-    if (objCount < 15)
-        return; // belum cukup data
+    if (len == 0)
+        return;
 
-    if (enable_debug)
-    {
-        Serial.println("buffer now=>" + String(jsonBuffer));
-    }
-    DynamicJsonDocument doc(6144);
+    DynamicJsonDocument doc(6128);
     DeserializationError error = deserializeJson(doc, jsonBuffer);
 
     if (error)
     {
         Serial.print(":eth:JSON FAILED: ");
         Serial.println(error.c_str());
+        client.stop();
+        request_sent = false;
+        return;
     }
-    else
+
+    // simpan data ke struct
+    JsonArray array = doc.as<JsonArray>();
+    int idx = 0;
+
+    for (JsonObject item : array)
     {
-        JsonArray array = doc.as<JsonArray>();
-        int idx = 0;
+        if (idx >= size_mahasiswa)
+            break;
 
-        for (JsonObject item : array)
+        db[idx].number_locker = item["no"] | 0;
+
+        JsonArray uid = item["id"];
+        for (int i = 0; i < size_uid; i++)
         {
-            db[idx].number_locker = item["no"] | 0;
-
-            JsonArray uid = item["id"];
-            for (int i = 0; i < size_uid; i++)
-                db[idx].card[i] = i < uid.size() ? uid[i] : 0;
-
-            db[idx].created_at[0] = '\0';
-            db[idx].statusdb = Status_db::Available;
-
-            if (++idx >= 15)
-                break;
+            if (i < uid.size())
+                db[idx].card[i] = uid[i];
+            else
+                db[idx].card[i] = 0;
         }
 
-        memory->save_data(db);
-        Serial.println(":eth:15 DATA SAVED");
+        db[idx].created_at[0] = '\0';
+
+        db[idx].statusdb = Status_db::Available;
+        idx++;
     }
 
-    // ===== 4. reset state untuk session berikutnya =====
-    len = 0;
-    objCount = 0;
-    braceLevel = 0;
-    headers_ended = false;
-    newline_count = 0;
-    last_char = 0;
-
-    client.stop(); // atau biarin kalau mau lanjut session 2
+    Serial.print(":eth:DATA OK = ");
+    Serial.println(idx);
+    if (enable_debug)
+    {
+        Serial.println(":eth:check database=>");
+        for (size_t i = 0; i < size_mahasiswa; i++)
+        {
+            Serial.print("\n:eth:card index=>" + String(i) + "card=>");
+            for (size_t xp = 0; xp < size_uid; xp++)
+            {
+                if (xp != 0)
+                    Serial.print(',');
+                Serial.print(db[i].card[xp]);
+            }
+        }
+    }
+    memory->save_data(db); // save data
+    client.stop();
     request_sent = false;
 }
 
