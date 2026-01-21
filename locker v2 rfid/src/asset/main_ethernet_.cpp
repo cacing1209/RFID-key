@@ -108,8 +108,8 @@ void ethernet_state::process_response(database_s *db)
         return;
 
     JsonDocument filter;
-    filter["nomor_absen"] = true;
-    filter["uid_card"] = true;
+    filter["no"] = true;
+    filter["id"] = true;
 
     DynamicJsonDocument doc(1024);
 
@@ -136,9 +136,9 @@ void ethernet_state::process_response(database_s *db)
         if (idx >= size_mahasiswa)
             break;
 
-        db[idx].number_locker = item["nomor_absen"] | 0;
+        db[idx].number_locker = item["no"] | 0;
 
-        JsonArray uid = item["uid_card"];
+        JsonArray uid = item["id"];
         for (int i = 0; i < size_uid; i++)
         {
             if (i < uid.size())

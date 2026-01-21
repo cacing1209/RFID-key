@@ -152,7 +152,7 @@ struct ethernet_state
     unsigned long last_fetch = 0;
     unsigned long fetch_interval = 60000;
     bool initialized = false;
-
+    bool get_new_data = false, last_get_data = false;
     bool request_sent = false;
     unsigned long timeout_start = 0;
     bool headers_ended = false;
@@ -162,4 +162,3 @@ struct ethernet_state
 };
 
 #endif
-
