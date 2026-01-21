@@ -31,23 +31,6 @@ const int pin_IO[sizeRelay] = {9, 23, 24, 25, 26, 27,
 #define PIN_led 12
 #define PIN_buzzer 22
 
-// Tone definitions
-#define Tone00 0
-#define Tone01 300
-#define Tone02 400
-#define Tone03 500
-#define Tone04 600
-#define Tone05 700
-#define Tone06 800
-#define Tone07 900
-#define Tone08 1000
-
-#define flipflopinterval01 50
-#define flipflopinterval02 75
-#define flipflopinterval03 150
-#define flipflopinterval04 250
-#define flipflopinterval05 550
-#define flipflopinterval05 1000
 
 // RFID card definitions
 #define total_card_rfid 30

@@ -60,6 +60,7 @@ bool ethernet_state::get_data(database_s *db)
 
 void ethernet_state::process_response(database_s *db, storage_state *memory)
 {
+
     if (!request_sent)
         return;
 
@@ -92,13 +93,14 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         }
         return;
     }
-
+    const int limit_get = 15;
+    static int get_buffer = 0;
     static char jsonBuffer[1200];
     if (enable_debug)
         Serial.println(":eth:json buffer" + String((int)sizeof(jsonBuffer)));
     int len = 0;
 
-    while (client.available() && len < (int)(sizeof(jsonBuffer) - 1))
+    while (client.available() && len < (int)(sizeof(jsonBuffer) - 1) && get_buffer < limit_get)
     {
         jsonBuffer[len++] = client.read();
     }
@@ -107,12 +109,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     if (len == 0)
         return;
 
-    // JsonDocument filter;
-    // filter["*"]["no"] = true;
-    // filter[]["id"] = true;
-
     DynamicJsonDocument doc(6128);
-
     DeserializationError error = deserializeJson(doc, jsonBuffer);
 
     if (error)
@@ -152,6 +149,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
 
     Serial.print(":eth:DATA OK = ");
     Serial.println(idx);
+    Serial.println(":eth:json buffer size=>" + String(len));
     if (enable_debug)
     {
         Serial.println(":eth:check database=>");
@@ -160,6 +158,8 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
             Serial.print("\n:eth:card index=>" + String(i) + "card=>");
             for (size_t xp = 0; xp < size_uid; xp++)
             {
+                if (xp != 0)
+                    Serial.print(',');
                 Serial.print(db[i].card[xp]);
             }
         }
