@@ -133,7 +133,7 @@ struct ethernet_state
     // int port = 5000;
     String endpoint = "/siswa.json";
     unsigned long last_fetch = 0;
-    unsigned long fetch_interval = 60000;
+    unsigned long fetch_interval = 5000;
     bool initialized = false;
     bool get_new_data = false, last_get_data = false;
     bool request_sent = false;

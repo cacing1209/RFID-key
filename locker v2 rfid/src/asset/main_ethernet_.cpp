@@ -64,7 +64,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     if (!request_sent)
         return;
 
-    if (!client.connected() || millis() - timeout_start > 5000)
+    if (!client.connected() || millis() - timeout_start > 3000)
     {
         client.stop();
         request_sent = false;
