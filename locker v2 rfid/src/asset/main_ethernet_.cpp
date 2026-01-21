@@ -111,7 +111,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     // filter["*"]["no"] = true;
     // filter[]["id"] = true;
 
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(6128);
 
     DeserializationError error = deserializeJson(doc, jsonBuffer);
 
