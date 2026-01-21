@@ -93,16 +93,24 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         }
         return;
     }
-    const int limit_get = 15;
+    const int limit_get = 580;
     static int get_buffer = 0;
+    if (get_buffer == limit_get)
+    {
+        request_sent = false;
+        get_buffer = 0;
+        client.stop();
+    }
     static char jsonBuffer[1200];
     if (enable_debug)
         Serial.println(":eth:json buffer" + String((int)sizeof(jsonBuffer)));
-    int len = 0;
 
-    while (client.available() && len < (int)(sizeof(jsonBuffer) - 1) && get_buffer < limit_get)
+    int len = get_buffer;
+
+    while ((client.available() && len < (int)(sizeof(jsonBuffer) - 1)) && get_buffer < limit_get)
     {
         jsonBuffer[len++] = client.read();
+        get_buffer = len;
     }
     jsonBuffer[len] = '\0';
 
@@ -118,55 +126,64 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         Serial.println(error.c_str());
         client.stop();
         request_sent = false;
-        return;
+        // return;
     }
-
-    // simpan data ke struct
-    JsonArray array = doc.as<JsonArray>();
-    int idx = 0;
-
-    for (JsonObject item : array)
-    {
-        if (idx >= size_mahasiswa)
-            break;
-
-        db[idx].number_locker = item["no"] | 0;
-
-        JsonArray uid = item["id"];
-        for (int i = 0; i < size_uid; i++)
-        {
-            if (i < uid.size())
-                db[idx].card[i] = uid[i];
-            else
-                db[idx].card[i] = 0;
-        }
-
-        db[idx].created_at[0] = '\0';
-
-        db[idx].statusdb = Status_db::Available;
-        idx++;
-    }
-
-    Serial.print(":eth:DATA OK = ");
-    Serial.println(idx);
-    Serial.println(":eth:json buffer size=>" + String(len));
     if (enable_debug)
     {
-        Serial.println(":eth:check database=>");
-        for (size_t i = 0; i < size_mahasiswa; i++)
-        {
-            Serial.print("\n:eth:card index=>" + String(i) + "card=>");
-            for (size_t xp = 0; xp < size_uid; xp++)
-            {
-                if (xp != 0)
-                    Serial.print(',');
-                Serial.print(db[i].card[xp]);
-            }
-        }
+        Serial.println(String("limit") + String(limit_get));
+        Serial.println(String("index=>") + String(get_buffer));
+        Serial.print(String("jsonBuffer=>"));
+        Serial.println(String(jsonBuffer));
     }
-    memory->save_data(db); // save data
-    client.stop();
-    request_sent = false;
+    get_buffer = limit_get;
+    timeout_start = millis();
+
+    // // simpan data ke struct
+    // JsonArray array = doc.as<JsonArray>();
+    // int idx = 0;
+
+    // for (JsonObject item : array)
+    // {
+    //     if (idx >= size_mahasiswa)
+    //         break;
+
+    //     db[idx].number_locker = item["no"] | 0;
+
+    //     JsonArray uid = item["id"];
+    //     for (int i = 0; i < size_uid; i++)
+    //     {
+    //         if (i < uid.size())
+    //             db[idx].card[i] = uid[i];
+    //         else
+    //             db[idx].card[i] = 0;
+    //     }
+
+    //     db[idx].created_at[0] = '\0';
+
+    //     db[idx].statusdb = Status_db::Available;
+    //     idx++;
+    // }
+
+    // Serial.print(":eth:DATA OK = ");
+    // Serial.println(idx);
+    // Serial.println(":eth:json buffer size=>" + String(len));
+    // if (enable_debug)
+    // {
+    //     Serial.println(":eth:check database=>");
+    //     for (size_t i = 0; i < size_mahasiswa; i++)
+    //     {
+    //         Serial.print("\n:eth:card index=>" + String(i) + "card=>");
+    //         for (size_t xp = 0; xp < size_uid; xp++)
+    //         {
+    //             if (xp != 0)
+    //                 Serial.print(',');
+    //             Serial.print(db[i].card[xp]);
+    //         }
+    //     }
+    // }
+    // memory->save_data(db); // save data
+    // client.stop();
+    // request_sent = false;
 }
 
 void ethernet_state::loop_ethernet(database_s *main_data)
