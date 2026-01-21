@@ -140,7 +140,6 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         }
 
         db[idx].created_at[0] = '\0';
-
         db[idx].statusdb = Status_db::Available;
         idx++;
     }
@@ -152,7 +151,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         Serial.println(":eth:check database=>");
         for (size_t i = 0; i < size_mahasiswa; i++)
         {
-            Serial.print("\n:eth:card index=>" + String(i) + "card=>");
+            Serial.print("\n:eth:card index=>" + String(i) + "number locker" + String(db[i].number_locker) + +"card=>");
             for (size_t xp = 0; xp < size_uid; xp++)
             {
                 if (xp != 0)
