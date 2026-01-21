@@ -122,30 +122,37 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     // simpan data ke struct
     JsonArray array = doc.as<JsonArray>();
     int idx = 0;
-
     for (JsonObject item : array)
     {
-        if (idx >= size_mahasiswa)
-            break;
+        int locker = item["no"] | 0;
 
-        db[idx].number_locker = item["no"] | 0;
+        if (locker < 0 || locker >= size_mahasiswa)
+            continue;
 
+        db[locker].number_locker = locker;
+        idx++;
         JsonArray uid = item["id"];
+
+        Serial.println("\nindex locker => " + String(locker));
         for (int i = 0; i < size_uid; i++)
         {
             if (i < uid.size())
-                db[idx].card[i] = uid[i];
+            {
+                db[locker].card[i] = uid[i];
+                Serial.print(db[locker].card[i]);
+            }
             else
-                db[idx].card[i] = 0;
+            {
+                db[locker].card[i] = 0;
+            }
         }
 
-        db[idx].created_at[0] = '\0';
-        db[idx].statusdb = Status_db::Available;
-        idx++;
+        db[locker].created_at[0] = '\0';
+        db[locker].statusdb = Status_db::Available;
     }
-
     Serial.print(":eth:DATA OK = ");
     Serial.println(idx);
+
     if (enable_debug)
     {
         Serial.println(":eth:check database=>");
