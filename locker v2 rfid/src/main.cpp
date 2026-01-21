@@ -162,7 +162,8 @@ void loop()
 		led.act = acc_action::acc_on;
 		eth.last_fetch = millis();
 	}
-	eth.loop_ethernet(data);
+	if (millis() > 20000)
+		eth.loop_ethernet(data);
 	acc_main();
 	latency = millis() - last_t;
 	// if (rfid.enable_debug)
