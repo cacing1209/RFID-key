@@ -103,8 +103,7 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    DynamicJsonDocument doc(12000);
-
+    DynamicJsonDocument doc(16384);
     DeserializationError error = deserializeJson(doc, client);
 
     if (error)
