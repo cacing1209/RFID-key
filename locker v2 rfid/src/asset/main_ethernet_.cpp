@@ -60,11 +60,6 @@ bool ethernet_state::get_data(database_s *db)
     }
 }
 
-bool ethernet_state::parse_json(String json_data, database_s *db)
-{
-    return false;
-}
-
 void ethernet_state::process_response(database_s *db)
 {
     if (!request_sent)
@@ -102,16 +97,10 @@ void ethernet_state::process_response(database_s *db)
         }
         return;
     }
+
     DynamicJsonDocument doc(8192);
 
-    StaticJsonDocument<256> filter;
-    filter[0]["nomor_absen"] = true;
-    filter[0]["uid_card"] = true;
-
-    DeserializationError error = deserializeJson(
-        doc,
-        client,
-        DeserializationOption::Filter(filter));
+    DeserializationError error = deserializeJson(doc, client);
 
     if (error)
     {

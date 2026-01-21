@@ -26,7 +26,7 @@
   { "nama": "Nabila Azzahra", "kelas": "12E", "nomor_absen": 21, "uid_card": [0,0,0,0], "created_at": "2025-01-21 09:40:00" },
   { "nama": "Rizky Maulana", "kelas": "12E", "nomor_absen": 22, "uid_card": [0,0,0,0], "created_at": "2025-01-21 09:45:00" },
   { "nama": "Tania Putri", "kelas": "12E", "nomor_absen": 23, "uid_card": [0,0,0,0], "created_at": "2025-01-21 09:50:00" },
-  { "nama": "Ilham Fauzi", "kelas": "12E"               , "nomor_absen": 24, "uid_card": [0,0,0,0], "created_at": "2025-01-21 09:55:00" },
+  { "nama": "Ilham Fauzi", "kelas": "12E", "nomor_absen": 24, "uid_card": [0,0,0,0], "created_at": "2025-01-21 09:55:00" },
   { "nama": "Putri Lestari", "kelas": "12E", "nomor_absen": 25, "uid_card": [0,0,0,0], "created_at": "2025-01-21 10:00:00" },
 
   { "nama": "Bagas Aditya", "kelas": "12F", "nomor_absen": 26, "uid_card": [0,0,0,0], "created_at": "2025-01-21 10:05:00" },

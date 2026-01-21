@@ -141,12 +141,13 @@ struct ethernet_state
     void loop_ethernet(database_s *main_data);
     bool get_data(database_s *db);
     void process_response(database_s *db);
-    bool parse_json(String json_data, database_s *db);
     bool enable_debug;
 
     EthernetClient client;
-    char server[50] = "192.168.100.11";
-    int port = 8000;
+    // char server[50] = "192.168.100.11";
+    char server[50] = "192.168.100.9";
+    // int port = 8000;
+    int port = 5000;
     String endpoint = "/siswa.json";
     unsigned long last_fetch = 0;
     unsigned long fetch_interval = 60000;
