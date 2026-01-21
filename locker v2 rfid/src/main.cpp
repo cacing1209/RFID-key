@@ -46,7 +46,13 @@ void init_mypin()
 
 	for (size_t i = 0; i < size_mahasiswa; i++)
 	{
-		strcpy(data[i].created_at, "2026-01-15 12:56:45");
+		for (size_t xp = 0; xp < size_uid; xp++)
+		{
+			data[i].card[xp] = 0;
+		}
+		strcpy(data[i].created_at, "");
+		data[i].number_locker = 0;
+		data[i].statusdb = Status_db::Available;
 	}
 
 	led.pin = PIN_led;
@@ -131,9 +137,9 @@ void setup()
 			Serial.println("rfid already use");
 	}
 	// test_databased();
-	// if (!memory.load_data(data))
-	// {
-	// }
+	if (!memory.load_data(data))
+	{
+	}
 	Serial.println("Device Start");
 }
 
