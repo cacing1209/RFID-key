@@ -1,0 +1,365 @@
+[
+    {
+        "nama": "Ahmad Rizki",
+        "kelas": "12A",
+        "nomor_absen": 1,
+        "uid_card": [
+            61,
+            208,
+            182,
+            1
+        ],
+        "created_at": "2025-01-21 08:00:00"
+    },
+    {
+        "nama": "Siti Nurhaliza",
+        "kelas": "12A",
+        "nomor_absen": 2,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:05:00"
+    },
+    {
+        "nama": "Budi Santoso",
+        "kelas": "12A",
+        "nomor_absen": 3,
+        "uid_card": [
+            23,
+            239,
+            206,
+            5
+        ],
+        "created_at": "2025-01-21 08:10:00"
+    },
+    {
+        "nama": "Dewi Lestari",
+        "kelas": "12A",
+        "nomor_absen": 4,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:15:00"
+    },
+    {
+        "nama": "Eko Prasetyo",
+        "kelas": "12A",
+        "nomor_absen": 5,
+        "uid_card": [
+            51,
+            61,
+            200,
+            5
+        ],
+        "created_at": "2025-01-21 08:20:00"
+    },
+    {
+        "nama": "Fitri Handayani",
+        "kelas": "12B",
+        "nomor_absen": 6,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:25:00"
+    },
+    {
+        "nama": "Gilang Ramadhan",
+        "kelas": "12B",
+        "nomor_absen": 7,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:30:00"
+    },
+    {
+        "nama": "Hani Wijaya",
+        "kelas": "12B",
+        "nomor_absen": 8,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:35:00"
+    },
+    {
+        "nama": "Indra Gunawan",
+        "kelas": "12B",
+        "nomor_absen": 9,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:40:00"
+    },
+    {
+        "nama": "Joko Widodo",
+        "kelas": "12B",
+        "nomor_absen": 10,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:45:00"
+    },
+    {
+        "nama": "Kartika Sari",
+        "kelas": "12C",
+        "nomor_absen": 11,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:50:00"
+    },
+    {
+        "nama": "Lukman Hakim",
+        "kelas": "12C",
+        "nomor_absen": 12,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 08:55:00"
+    },
+    {
+        "nama": "Maya Angelina",
+        "kelas": "12C",
+        "nomor_absen": 13,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:00:00"
+    },
+    {
+        "nama": "Nugroho Susanto",
+        "kelas": "12C",
+        "nomor_absen": 14,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:05:00"
+    },
+    {
+        "nama": "Olivia Tania",
+        "kelas": "12C",
+        "nomor_absen": 15,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:10:00"
+    },
+    {
+        "nama": "Raka Pratama",
+        "kelas": "12D",
+        "nomor_absen": 16,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:15:00"
+    },
+    {
+        "nama": "Salsa Putri",
+        "kelas": "12D",
+        "nomor_absen": 17,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:20:00"
+    },
+    {
+        "nama": "Andi Saputra",
+        "kelas": "12D",
+        "nomor_absen": 18,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:25:00"
+    },
+    {
+        "nama": "Dina Rahma",
+        "kelas": "12D",
+        "nomor_absen": 19,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:30:00"
+    },
+    {
+        "nama": "Fajar Hidayat",
+        "kelas": "12D",
+        "nomor_absen": 20,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:35:00"
+    },
+    {
+        "nama": "Nabila Azzahra",
+        "kelas": "12E",
+        "nomor_absen": 21,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:40:00"
+    },
+    {
+        "nama": "Rizky Maulana",
+        "kelas": "12E",
+        "nomor_absen": 22,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:45:00"
+    },
+    {
+        "nama": "Tania Putri",
+        "kelas": "12E",
+        "nomor_absen": 23,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:50:00"
+    },
+    {
+        "nama": "Ilham Fauzi",
+        "kelas": "12E",
+        "nomor_absen": 24,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 09:55:00"
+    },
+    {
+        "nama": "Putri Lestari",
+        "kelas": "12E",
+        "nomor_absen": 25,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 10:00:00"
+    },
+    {
+        "nama": "Bagas Aditya",
+        "kelas": "12F",
+        "nomor_absen": 26,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 10:05:00"
+    },
+    {
+        "nama": "Citra Anggraini",
+        "kelas": "12F",
+        "nomor_absen": 27,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 10:10:00"
+    },
+    {
+        "nama": "Yoga Prasetyo",
+        "kelas": "12F",
+        "nomor_absen": 28,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 10:15:00"
+    },
+    {
+        "nama": "Sinta Maharani",
+        "kelas": "12F",
+        "nomor_absen": 29,
+        "uid_card": [
+            0,
+            0,
+            0,
+            0
+        ],
+        "created_at": "2025-01-21 10:20:00"
+    },
+    {
+        "nama": "Putra Mahendra",
+        "kelas": "12F",
+        "nomor_absen": 30,
+        "uid_card": [
+            2,
+            15,
+            144,
+            33,
+            151,
+            224,
+            0
+        ],
+        "created_at": "2025-01-21 10:25:00"
+    }
+]
