@@ -96,6 +96,8 @@ void ethernet_state::process_response(database_s *db)
     }
 
     static char jsonBuffer[1200];
+    if (enable_debug)
+        Serial.println(":eth:json buffer" + String((int)sizeof(jsonBuffer)));
     int len = 0;
 
     while (client.available() && len < (int)(sizeof(jsonBuffer) - 1))
