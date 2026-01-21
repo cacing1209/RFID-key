@@ -145,7 +145,7 @@ struct ethernet_state
     bool enable_debug;
 
     EthernetClient client;
-    char server[50] = "192.168.0.112";
+    char server[50] = "192.168.100.11";
     int port = 8000;
     String endpoint = "/siswa.json";
     unsigned long last_fetch = 0;
