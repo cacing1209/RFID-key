@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <SdFat.h>
 #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
-#include <ArduinoJson.h>
 
 #define sizeRelay 32
 const int pin_IO[sizeRelay] = {9, 23, 24, 25, 26, 27,
@@ -150,7 +149,7 @@ struct ethernet_state
     int port = 8000;
     String endpoint = "/siswa.json";
     unsigned long last_fetch = 0;
-    unsigned long fetch_interval = 60000;
+    unsigned long fetch_interval = 6000;
     bool initialized = false;
 
     bool request_sent = false;
@@ -162,3 +161,4 @@ struct ethernet_state
 };
 
 #endif
+

@@ -1,4 +1,5 @@
 #include "commond.h"
+#include <ArduinoJson.h>
 
 bool ethernet_state::get_data(database_s *db)
 {
@@ -9,7 +10,7 @@ bool ethernet_state::get_data(database_s *db)
         Serial.println(":eth:GET DATA START");
         Serial.print(":eth:Server = ");
         Serial.println(server);
-        Serial.print(":eth:Port   = ");
+        Serial.print(":eth:Port = ");
         Serial.println(port);
         Serial.print(":eth:Endpoint = ");
         Serial.println(endpoint);
@@ -18,8 +19,9 @@ bool ethernet_state::get_data(database_s *db)
     if (client.connect(server, port))
     {
         if (enable_debug)
-            Serial.println(":eth:TCP connected");
+            Serial.println(":eth:TCP connected successfully");
 
+        // Send HTTP GET request
         client.print("GET ");
         client.print(endpoint);
         client.println(" HTTP/1.1");
@@ -42,7 +44,7 @@ bool ethernet_state::get_data(database_s *db)
             Serial.println(":eth:HTTP request sent");
             Serial.print(":eth:Timeout start = ");
             Serial.println(timeout_start);
-            Serial.println(":eth:Waiting response...");
+            Serial.println(":eth:Waiting for response...");
             Serial.println(":eth:------------------------------");
         }
         return true;
@@ -61,81 +63,134 @@ bool ethernet_state::get_data(database_s *db)
 
 bool ethernet_state::parse_json(String json_data, database_s *db)
 {
-    int start_idx = json_data.indexOf('[');
-    int end_idx = json_data.lastIndexOf(']');
-
-    if (start_idx == -1 || end_idx == -1)
-        return false;
-
-    String data = json_data.substring(start_idx + 1, end_idx);
-    int current_index = 0;
-    int pos = 0;
-
-    while (pos < (int)data.length() && current_index < size_mahasiswa)
+    if (enable_debug)
     {
-        int obj_start = data.indexOf('{', pos);
-        int obj_end = data.indexOf('}', pos);
+        Serial.println(":eth:------------------------------");
+        Serial.println(":eth:PARSING JSON START");
+        Serial.print(":eth:JSON Length = ");
+        Serial.println(json_data.length());
+    }
 
-        if (obj_start == -1 || obj_end == -1)
-            break;
+    // Allocate JsonDocument
+    JsonDocument doc;
+    
+    DeserializationError error = deserializeJson(doc, json_data);
 
-        String obj = data.substring(obj_start, obj_end + 1);
-
-        int locker_start = obj.indexOf("\"locker\":") + 9;
-        int locker_end = obj.indexOf(",", locker_start);
-        if (locker_end == -1)
-            locker_end = obj.indexOf("}", locker_start);
-        String locker = obj.substring(locker_start, locker_end);
-        locker.trim();
-        db[current_index].number_locker = (byte)locker.toInt();
-
-        int card_start = obj.indexOf("\"card\":[") + 8;
-        int card_end = obj.indexOf("]", card_start);
-        String card_data = obj.substring(card_start, card_end);
-
-        int card_idx = 0;
-        int card_pos = 0;
-        while (card_pos < (int)card_data.length() && card_idx < size_uid)
+    if (error)
+    {
+        if (enable_debug)
         {
-            int comma = card_data.indexOf(',', card_pos);
-            if (comma == -1)
-                comma = card_data.length();
+            Serial.print(":eth:JSON parsing FAILED: ");
+            Serial.println(error.c_str());
+            Serial.println(":eth:------------------------------");
+        }
+        return false;
+    }
 
-            String byte_val = card_data.substring(card_pos, comma);
-            byte_val.trim();
-            db[current_index].card[card_idx] = (uint8_t)byte_val.toInt();
+    if (enable_debug)
+        Serial.println(":eth:JSON parsing SUCCESS");
 
-            card_idx++;
-            card_pos = comma + 1;
+    JsonArray array = doc.as<JsonArray>();
+    int loaded_count = 0;
+
+    for (JsonObject item : array)
+    {
+        if (loaded_count >= size_mahasiswa)
+        {
+            if (enable_debug)
+                Serial.println(":eth:Database full, stopping parse");
+            break;
         }
 
-        int created_start = obj.indexOf("\"created_at\":\"") + 14;
-        int created_end = obj.indexOf("\"", created_start);
-        String created = obj.substring(created_start, created_end);
-        created.toCharArray(db[current_index].created_at, sizeof(db[current_index].created_at));
+        // Get nomor_absen (akan jadi number_locker)
+        if (item.containsKey("nomor_absen"))
+        {
+            db[loaded_count].number_locker = item["nomor_absen"];
+        }
+        else
+        {
+            if (enable_debug)
+                Serial.println(":eth:Missing nomor_absen field, skipping");
+            continue;
+        }
 
-        db[current_index].statusdb = Status_db::Available;
+        // Get uid_card array
+        if (item.containsKey("uid_card"))
+        {
+            JsonArray card_array = item["uid_card"];
+            int card_idx = 0;
+            
+            for (JsonVariant value : card_array)
+            {
+                if (card_idx >= size_uid)
+                    break;
+                    
+                db[loaded_count].card[card_idx] = value.as<uint8_t>();
+                card_idx++;
+            }
+
+            // Fill remaining with zeros if card array is smaller
+            while (card_idx < size_uid)
+            {
+                db[loaded_count].card[card_idx] = 0;
+                card_idx++;
+            }
+        }
+        else
+        {
+            if (enable_debug)
+                Serial.println(":eth:Missing uid_card field, skipping");
+            continue;
+        }
+
+        // Get created_at (optional)
+        if (item.containsKey("created_at"))
+        {
+            const char* created = item["created_at"];
+            strncpy(db[loaded_count].created_at, created, sizeof(db[loaded_count].created_at) - 1);
+            db[loaded_count].created_at[sizeof(db[loaded_count].created_at) - 1] = '\0';
+        }
+        else
+        {
+            strcpy(db[loaded_count].created_at, "N/A");
+        }
+
+        // Set status as available
+        db[loaded_count].statusdb = Status_db::Available;
 
         if (enable_debug)
         {
-            Serial.print("Loaded locker: ");
-            Serial.print(db[current_index].number_locker);
-            Serial.print(" Card: ");
+            Serial.println(":eth:------------------------------");
+            Serial.print(":eth:Loaded Entry #");
+            Serial.println(loaded_count + 1);
+            Serial.print(":eth:Locker Number = ");
+            Serial.println(db[loaded_count].number_locker);
+            Serial.print(":eth:Card UID = ");
             for (int i = 0; i < size_uid; i++)
             {
-                if (db[current_index].card[i] < 0x10)
+                if (db[loaded_count].card[i] < 0x10)
                     Serial.print("0");
-                Serial.print(db[current_index].card[i], HEX);
+                Serial.print(db[loaded_count].card[i], HEX);
                 Serial.print(" ");
             }
-            Serial.print(" Created: ");
-            Serial.println(db[current_index].created_at);
+            Serial.println();
+            Serial.print(":eth:Created At = ");
+            Serial.println(db[loaded_count].created_at);
         }
 
-        current_index++;
-        pos = obj_end + 1;
+        loaded_count++;
     }
-    return true;
+
+    if (enable_debug)
+    {
+        Serial.println(":eth:------------------------------");
+        Serial.print(":eth:Total entries loaded = ");
+        Serial.println(loaded_count);
+        Serial.println(":eth:PARSING JSON COMPLETE");
+        Serial.println(":eth:------------------------------");
+    }
+
+    return loaded_count > 0;
 }
 
 void ethernet_state::process_response(database_s *db)
@@ -143,33 +198,53 @@ void ethernet_state::process_response(database_s *db)
     if (!request_sent)
         return;
 
+    // Check timeout or connection closed
     if (!client.connected() || millis() - timeout_start > 5000)
     {
         client.stop();
 
         if (enable_debug)
         {
-            Serial.println(":eth:Response:");
+            Serial.println(":eth:------------------------------");
+            Serial.println(":eth:RESPONSE RECEIVED");
+            Serial.print(":eth:Response time = ");
+            Serial.print(millis() - timeout_start);
+            Serial.println(" ms");
+            Serial.println(":eth:Raw Response:");
             Serial.println(response);
+            Serial.println(":eth:------------------------------");
         }
 
-        // parse_json(response, db);
+        if (response.length() > 0)
+        {
+            parse_json(response, db);
+        }
+        else
+        {
+            if (enable_debug)
+                Serial.println(":eth:Empty response received");
+        }
+
         request_sent = false;
         return;
     }
 
-    if (client.available())
+    // Read incoming data
+    while (client.available())
     {
         char c = client.read();
 
         if (!headers_ended)
         {
+            // Skip HTTP headers
             if (c == '\n' && last_char == '\r')
             {
                 newline_count++;
                 if (newline_count >= 2)
                 {
                     headers_ended = true;
+                    if (enable_debug)
+                        Serial.println(":eth:Headers ended, reading body...");
                 }
             }
             else if (c != '\r' && c != '\n')
@@ -180,6 +255,7 @@ void ethernet_state::process_response(database_s *db)
         }
         else
         {
+            // Append body content
             response += c;
         }
     }
@@ -188,44 +264,67 @@ void ethernet_state::process_response(database_s *db)
 void ethernet_state::loop_ethernet(database_s *main_data)
 {
     static bool connection = false;
+    
     if (!initialized)
     {
+        if (enable_debug)
+        {
+            Serial.println(":eth:------------------------------");
+            Serial.println(":eth:INITIALIZING ETHERNET");
+        }
+
         uint8_t mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 
         if (Ethernet.begin(mac) == 0)
         {
             if (enable_debug)
-                Serial.println("::eth:DHCP failed, now using static IP");
-            // if static
+                Serial.println(":eth:DHCP failed, trying again...");
+            
+            // Uncomment for static IP fallback
             // IPAddress ip(192, 168, 0, 177);
             // IPAddress dns_server(192, 168, 0, 1);
             // IPAddress gateway(192, 168, 0, 1);
             // IPAddress subnet(255, 255, 255, 0);
-            // Ethernet.begin(mac,ip,dns_server,gateway);
-
-            // Ethernet.begin(mac);
+            // Ethernet.begin(mac, ip, dns_server, gateway, subnet);
         }
 
         if (enable_debug)
         {
-            Serial.print(":eth:IP=> ");
+            Serial.print(":eth:IP Address = ");
             Serial.println(Ethernet.localIP());
+            Serial.print(":eth:Fetch interval = ");
+            Serial.print(fetch_interval);
+            Serial.println(" ms");
+            Serial.println(":eth:ETHERNET INITIALIZED");
+            Serial.println(":eth:------------------------------");
         }
 
         initialized = true;
         connection = get_data(main_data);
         last_fetch = millis();
     }
+
     if (!connection)
         return;
 
+    // Process incoming response
     process_response(main_data);
 
+    // Periodic fetch
     if (!request_sent && millis() - last_fetch >= fetch_interval)
     {
-        get_data(main_data);
+        if (enable_debug)
+        {
+            Serial.println(":eth:Fetch interval reached");
+            Serial.print(":eth:Time elapsed = ");
+            Serial.print(millis() - last_fetch);
+            Serial.println(" ms");
+        }
+        
+        connection = get_data(main_data);
         last_fetch = millis();
     }
 
+    // Maintain DHCP lease
     Ethernet.maintain();
 }

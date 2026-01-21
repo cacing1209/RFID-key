@@ -102,6 +102,7 @@ storage_state memory;
 // 	// data[15].card[4] = 151;
 // 	// data[15].card[5] = 224;
 // 	// data[15].card[6] = 0;
+
 // 	memory.save_data(data);
 // }
 void debug_sys(bool db_rfid, bool db_memory, bool db_eth)
