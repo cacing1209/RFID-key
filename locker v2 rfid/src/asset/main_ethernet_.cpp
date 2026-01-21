@@ -107,16 +107,13 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     if (len == 0)
         return;
 
-    JsonDocument filter;
-    filter["no"] = true;
-    filter["id"] = true;
+    // JsonDocument filter;
+    // filter["*"]["no"] = true;
+    // filter[]["id"] = true;
 
     DynamicJsonDocument doc(1024);
 
-    DeserializationError error = deserializeJson(
-        doc,
-        jsonBuffer,
-        DeserializationOption::Filter(filter));
+    DeserializationError error = deserializeJson(doc, jsonBuffer);
 
     if (error)
     {
@@ -160,7 +157,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         Serial.println(":eth:check database=>");
         for (size_t i = 0; i < size_mahasiswa; i++)
         {
-            Serial.println("\n:eth:card index=>" + String(i) + "card=>");
+            Serial.print("\n:eth:card index=>" + String(i) + "card=>");
             for (size_t xp = 0; xp < size_uid; xp++)
             {
                 Serial.print(db[i].card[xp]);
