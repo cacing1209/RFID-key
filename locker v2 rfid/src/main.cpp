@@ -156,17 +156,20 @@ void loop()
 	static unsigned long last_t = 0;
 	last_t = millis();
 	// write to eeprom,handle relay,sync db
-	rfid.read_crd(data, &nfc, locker);
-	if (rfid.open_doors(locker))
-	{
-		buzzer.act = acc_action::acc_on;
-		led.act = acc_action::acc_on;
-		eth.last_fetch = millis();
-	}
+	// rfid.read_crd(data, &nfc, locker);
+	// if (rfid.open_doors(locker))
+	// {
+	// 	buzzer.act = acc_action::acc_on;
+	// 	led.act = acc_action::acc_on;
+	// 	eth.last_fetch = millis();
+	// }
+
 	if (millis() > 20000)
 		eth.loop_ethernet(data);
-	acc_main();
-	latency = millis() - last_t;
+	
+	
+		// acc_main();
+	// latency = millis() - last_t;
 	// if (rfid.enable_debug)
 	// 	Serial.println("latency processing=>" + String(latency));
 }
