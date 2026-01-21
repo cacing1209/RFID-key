@@ -72,20 +72,18 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
+    // ===== skip HTTP header =====
     if (!headers_ended)
     {
         while (client.available())
         {
             char c = client.read();
-
             if (c == '\n' && last_char == '\r')
             {
                 newline_count++;
                 if (newline_count >= 2)
                 {
                     headers_ended = true;
-                    if (enable_debug)
-                        Serial.println(":eth:Headers ended, start JSON parse");
                     break;
                 }
             }
@@ -98,22 +96,28 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    DynamicJsonDocument doc(8192);
+    // ===== JSON FILTER (BIAR RAM AMAN) =====
+    StaticJsonDocument<256> filter;
+    filter[0]["nomor_absen"] = true;
+    filter[0]["uid_card"] = true;
 
-    DeserializationError error = deserializeJson(doc, client);
+    DynamicJsonDocument doc(2048);
+
+    DeserializationError error = deserializeJson(
+        doc,
+        client,
+        DeserializationOption::Filter(filter));
 
     if (error)
     {
-        if (enable_debug)
-        {
-            Serial.print(":eth:JSON parsing FAILED: ");
-            Serial.println(error.c_str());
-        }
+        Serial.print(":eth:JSON FAILED: ");
+        Serial.println(error.c_str());
         client.stop();
         request_sent = false;
         return;
     }
 
+    // ===== SIMPAN KE DATABASE =====
     JsonArray array = doc.as<JsonArray>();
     int idx = 0;
 
@@ -126,17 +130,19 @@ void ethernet_state::process_response(database_s *db)
 
         JsonArray uid = item["uid_card"];
         for (int i = 0; i < size_uid; i++)
-            db[idx].card[i] = uid[i] | 0;
+        {
+            if (i < uid.size())
+                db[idx].card[i] = uid[i];
+            else
+                db[idx].card[i] = 0;
+        }
 
         db[idx].statusdb = Status_db::Available;
         idx++;
     }
 
-    if (enable_debug)
-    {
-        Serial.print(":eth:DATA LOADED = ");
-        Serial.println(idx);
-    }
+    Serial.print(":eth:DATA OK = ");
+    Serial.println(idx);
 
     client.stop();
     request_sent = false;
