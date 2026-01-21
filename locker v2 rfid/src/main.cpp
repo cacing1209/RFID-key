@@ -125,18 +125,18 @@ void setup()
 	debug_sys(true, true, true);
 
 	init_mypin();
-	uint32_t versiondata = nfc.getFirmwareVersion();
-	if (!versiondata)
-	{
+	// uint32_t versiondata = nfc.getFirmwareVersion();
+	// if (!versiondata)
+	// {
 
-		if (rfid.enable_debug)
-			Serial.println("PN532 board not found!");
-	}
-	else
-	{
-		if (rfid.enable_debug)
-			Serial.println("rfid already use");
-	}
+	// 	if (rfid.enable_debug)
+	// 		Serial.println("PN532 board not found!");
+	// }
+	// else
+	// {
+	// 	if (rfid.enable_debug)
+	// 		Serial.println("rfid already use");
+	// }
 	// test_databased();
 	if (!memory.load_data(data))
 	{
