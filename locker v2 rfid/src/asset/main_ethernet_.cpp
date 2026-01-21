@@ -98,8 +98,8 @@ void ethernet_state::process_response(database_s *db)
 
     // ===== JSON FILTER (BIAR RAM AMAN) =====
     StaticJsonDocument<256> filter;
-    filter[0]["nomor_absen"] = true;
-    filter[0]["uid_card"] = true;
+    filter[0]["abs"] = true;
+    filter[0]["uid"] = true;
 
     DynamicJsonDocument doc(2048);
 
@@ -126,9 +126,9 @@ void ethernet_state::process_response(database_s *db)
         if (idx >= size_mahasiswa)
             break;
 
-        db[idx].number_locker = item["nomor_absen"] | 0;
+        db[idx].number_locker = item["abs"] | 0;
 
-        JsonArray uid = item["uid_card"];
+        JsonArray uid = item["uid"];
         for (int i = 0; i < size_uid; i++)
         {
             if (i < uid.size())
