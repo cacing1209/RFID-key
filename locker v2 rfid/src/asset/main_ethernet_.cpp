@@ -31,13 +31,11 @@ bool ethernet_state::get_data(database_s *db)
         client.println("Connection: close");
         client.println();
 
-        request_sent = true;
         timeout_start = millis();
         headers_ended = false;
         response = "";
         last_char = 0;
         newline_count = 0;
-
         if (enable_debug)
         {
             Serial.println(":eth:HTTP request sent");
@@ -164,7 +162,6 @@ void ethernet_state::process_response(database_s *db)
 
 void ethernet_state::loop_ethernet(database_s *main_data)
 {
-    static bool connection = false;
 
     if (!initialized)
     {
@@ -194,16 +191,11 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         }
 
         initialized = true;
-        connection = get_data(main_data);
+        request_sent = get_data(main_data);
         last_fetch = millis();
     }
 
-    if (!connection)
-        return;
-
-    process_response(main_data);
-
-    if (!request_sent && millis() - last_fetch >= fetch_interval)
+    if ((!request_sent) && millis() - last_fetch >= fetch_interval)
     {
         if (enable_debug)
         {
@@ -213,9 +205,10 @@ void ethernet_state::loop_ethernet(database_s *main_data)
             Serial.println(" ms");
         }
 
-        connection = get_data(main_data);
+        request_sent = get_data(main_data);
         last_fetch = millis();
     }
+    process_response(main_data);
 
-    Ethernet.maintain();
+    Ethernet.maintain(); // guna dhcp renewww
 }
