@@ -72,7 +72,7 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // ===== skip HTTP header =====
+    // ===== SKIP HEADER HTTP =====
     if (!headers_ended)
     {
         while (client.available())
@@ -96,16 +96,29 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // ===== JSON FILTER (BIAR RAM AMAN) =====
-    StaticJsonDocument<256> filter;
-    filter[0]["abs"] = true;
-    filter[0]["uid"] = true;
+    // ===== BACA BODY KE BUFFER =====
+    static char jsonBuffer[1200]; // <<< DIPERKECIL
+    int len = 0;
 
-    DynamicJsonDocument doc(2048);
+    while (client.available() && len < (int)(sizeof(jsonBuffer) - 1))
+    {
+        jsonBuffer[len++] = client.read();
+    }
+    jsonBuffer[len] = '\0';
+
+    if (len == 0)
+        return;
+
+    // ===== FILTER JSON (ARRAY) =====
+    StaticJsonDocument<256> filter;
+    filter["*"]["nomor_absen"] = true;
+    filter["*"]["uid_card"] = true;
+
+    DynamicJsonDocument doc(1024);
 
     DeserializationError error = deserializeJson(
         doc,
-        client,
+        jsonBuffer,
         DeserializationOption::Filter(filter));
 
     if (error)
@@ -117,7 +130,7 @@ void ethernet_state::process_response(database_s *db)
         return;
     }
 
-    // ===== SIMPAN KE DATABASE =====
+    // ===== SIMPAN KE STRUCT =====
     JsonArray array = doc.as<JsonArray>();
     int idx = 0;
 
@@ -126,9 +139,9 @@ void ethernet_state::process_response(database_s *db)
         if (idx >= size_mahasiswa)
             break;
 
-        db[idx].number_locker = item["abs"] | 0;
+        db[idx].number_locker = item["nomor_absen"] | 0;
 
-        JsonArray uid = item["uid"];
+        JsonArray uid = item["uid_card"];
         for (int i = 0; i < size_uid; i++)
         {
             if (i < uid.size())
@@ -136,6 +149,9 @@ void ethernet_state::process_response(database_s *db)
             else
                 db[idx].card[i] = 0;
         }
+
+        // created_at tidak ada → kosongkan saja
+        db[idx].created_at[0] = '\0';
 
         db[idx].statusdb = Status_db::Available;
         idx++;
