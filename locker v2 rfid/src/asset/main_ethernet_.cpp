@@ -104,7 +104,10 @@ void ethernet_state::process_response(database_s *db)
                 Serial.println(response.length());
             }
 
-            StaticJsonDocument<4096> doc;
+            // Use DynamicJsonDocument for better memory handling
+            // Calculate needed capacity: use ArduinoJson Assistant or estimate
+            // https://arduinojson.org/v6/assistant/
+            DynamicJsonDocument doc(6144);  // 6KB should be enough for 16 entries
             DeserializationError error = deserializeJson(doc, response);
 
             if (error)
