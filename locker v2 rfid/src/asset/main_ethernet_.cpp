@@ -220,7 +220,6 @@ void ethernet_state::loop_ethernet(database_s *main_data)
         request_sent = get_data(main_data);
         last_fetch = millis();
     }
-    // process_response(main_data);
 
     Ethernet.maintain(); // guna dhcp renewww
 }
