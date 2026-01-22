@@ -130,8 +130,6 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         {
             if (enable_debug)
             {
-                // if (uid[i] < 0x10)
-                //     Serial.print("0");
                 Serial.print(uid_incoming[i]);
                 Serial.print(" ");
             }
