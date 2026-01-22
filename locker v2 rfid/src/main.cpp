@@ -167,7 +167,7 @@ void loop()
 	eth.loop_ethernet(data);
 	eth.process_response(data, &memory);
 
-	// acc_main();
+	acc_main();
 	// latency = millis() - last_t;
 	// if (rfid.enable_debug)
 	// 	Serial.println("latency processing=>" + String(latency));
