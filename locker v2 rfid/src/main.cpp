@@ -58,7 +58,7 @@ void init_mypin()
 	led.pin = PIN_led;
 	buzzer.pin = PIN_buzzer;
 	led.Interval = 1000;
-	buzzer.Interval = 250;
+	buzzer.Interval = 50;
 	rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = acc_mode::mode_fastloop4X;
@@ -160,7 +160,6 @@ void loop()
 	{
 		buzzer.act = acc_action::acc_on;
 		led.act = acc_action::acc_on;
-		eth.last_fetch = millis();
 	}
 
 	eth.loop_ethernet(data);

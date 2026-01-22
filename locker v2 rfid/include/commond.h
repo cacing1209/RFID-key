@@ -122,7 +122,7 @@ struct storage_state
 struct ethernet_state
 {
     void loop_ethernet(database_s *main_data);
-    bool get_data(database_s *db);
+    bool post_data(database_s *db);
     void process_response(database_s *db, storage_state *memory);
     bool enable_debug;
 
@@ -132,11 +132,8 @@ struct ethernet_state
     int port = 8000;
     // int port = 5000;
     String endpoint = "/siswa.json";
-    unsigned long last_fetch = 0;
-    unsigned long fetch_interval = 5000;
     bool initialized = false;
     bool get_new_data = false, last_get_data = false;
-    bool request_sent = false;
     unsigned long timeout_start = 0;
     bool headers_ended = false;
     String response = "";

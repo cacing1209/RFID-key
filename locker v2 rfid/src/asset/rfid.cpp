@@ -29,6 +29,7 @@
 
 //     return true;
 // }
+
 rfid_state::rfid_state(const long interval_read) : interval(interval_read)
 {
     if (interval_read < 25)

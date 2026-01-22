@@ -1,73 +1,64 @@
 #include "commond.h"
 #include <ArduinoJson.h>
 
-bool ethernet_state::get_data(database_s *db)
+bool ethernet_state::post_data(database_s *db)
 {
-    if (enable_debug)
-    {
-        Serial.println();
-        Serial.println(":eth:------------------------------");
-        Serial.println(":eth:GET DATA START");
-        Serial.print(":eth:Server = ");
-        Serial.println(server);
-        Serial.print(":eth:Port = ");
-        Serial.println(port);
-        Serial.print(":eth:Endpoint = ");
-        Serial.println(endpoint);
-    }
-
     if (client.connect(server, port))
     {
-        if (enable_debug)
-            Serial.println(":eth:TCP connected successfully");
-
-        client.print("GET ");
+        // ===== PAYLOAD =====
+        String payload;
+        JsonDocument js;
+        js["device"] = "arduino";
+        js["status"] = "request";
+        serializeJson(js, payload);
+        Serial.println(payload);
+        // ===== REQUEST LINE =====
+        client.print("POST ");
         client.print(endpoint);
         client.println(" HTTP/1.1");
 
+        // ===== HEADERS =====
         client.print("Host: ");
         client.println(server);
-
+        client.println("Content-Type: application/json");
+        client.print("Content-Length: ");
+        client.println(payload.length());
         client.println("Connection: close");
-        client.println();
+        client.println(); // WAJIB (akhir header)
 
+        // ===== BODY =====
+        client.print(payload);
+
+        // ===== STATE RESET =====
         timeout_start = millis();
         headers_ended = false;
         response = "";
         last_char = 0;
         newline_count = 0;
+
         if (enable_debug)
         {
-            Serial.println(":eth:HTTP request sent");
-            Serial.print(":eth:Timeout start = ");
-            Serial.println(timeout_start);
-            Serial.println(":eth:Waiting for response...");
-            Serial.println(":eth:------------------------------");
+            Serial.println(":eth:POST request sent");
+            Serial.println(payload);
         }
+
         return true;
     }
-    else
-    {
-        if (enable_debug)
-        {
-            Serial.println(":eth:TCP connection FAILED");
-            Serial.println(":eth:GET DATA ABORTED");
-            Serial.println(":eth:------------------------------");
-        }
-        return false;
-    }
+
+    if (enable_debug)
+        Serial.println(":eth:POST connection failed");
+
+    return false;
 }
 
 void ethernet_state::process_response(database_s *db, storage_state *memory)
 {
-
-    if (!request_sent)
+    if (!client.connected())
         return;
 
-    if (!client.connected() || millis() - timeout_start > 3000)
+    if (millis() - timeout_start > 3000)
     {
         client.stop();
-        request_sent = false;
         return;
     }
 
@@ -115,7 +106,6 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         Serial.print(":eth:JSON FAILED: ");
         Serial.println(error.c_str());
         client.stop();
-        request_sent = false;
         return;
     }
 
@@ -169,7 +159,6 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     }
     memory->save_data(db); // save data
     client.stop();
-    request_sent = false;
 }
 
 void ethernet_state::loop_ethernet(database_s *main_data)
@@ -190,36 +179,18 @@ void ethernet_state::loop_ethernet(database_s *main_data)
             if (enable_debug)
                 Serial.println("::eth:DHCP gagal");
         }
-
+        // 192.168.178.7
         if (enable_debug)
         {
             Serial.print(":eth:IP Address = ");
             Serial.println(Ethernet.localIP());
-            Serial.print(":eth:Fetch interval = ");
-            Serial.print(fetch_interval / 1000);
-            Serial.println(" second");
             Serial.println(":eth:ETHERNET INITIALIZED");
             Serial.println(":eth:------------------------------");
         }
 
         initialized = true;
-        request_sent = get_data(main_data);
-        last_fetch = millis();
+        post_data(main_data);
     }
 
-    if ((!request_sent) && millis() - last_fetch >= fetch_interval)
-    {
-        if (enable_debug)
-        {
-            Serial.println(":eth:Fetch interval reached");
-            Serial.print(":eth:Time elapsed = ");
-            Serial.print(millis() - last_fetch);
-            Serial.println(" ms");
-        }
-
-        request_sent = get_data(main_data);
-        last_fetch = millis();
-    }
-
-    Ethernet.maintain(); // guna dhcp renewww
+    Ethernet.maintain(); // dhcp ip
 }
