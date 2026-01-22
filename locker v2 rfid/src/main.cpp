@@ -66,21 +66,20 @@ void init_mypin()
 	led.mode = acc_mode::mode_fastloop2X;
 	SPI.begin();
 
-	// if (!nfc.begin() || !nfc.SAMConfig())
-	// {
-	// 	if (rfid.enable_debug)
-	// 	{
-	// 		Serial.println("::NFC not already");
-	// 	}
-	// }
-	// else
-	// {
-	// 	if (rfid.enable_debug)
-	// 	{
-	// 		Serial.println("NFC ALREADY");
-	// 	}
-	// }
-	Serial.println("skip rfid");
+	if (!nfc.begin() || !nfc.SAMConfig())
+	{
+		if (rfid.enable_debug)
+		{
+			Serial.println("::NFC not already");
+		}
+	}
+	else
+	{
+		if (rfid.enable_debug)
+		{
+			Serial.println("NFC ALREADY");
+		}
+	}
 	pinMode(led.pin, OUTPUT);
 	pinMode(buzzer.pin, OUTPUT);
 }
