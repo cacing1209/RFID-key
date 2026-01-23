@@ -121,7 +121,7 @@ void setup()
 {
 	delay(5000);
 	Serial.begin(baudRate_PC);
-	debug_sys(1, 1, 1);
+	debug_sys(false, false, true);
 
 	init_mypin();
 	uint32_t versiondata = nfc.getFirmwareVersion();
@@ -163,7 +163,7 @@ void loop()
 	}
 
 	eth.loop_ethernet(data);
-	// eth.process_response(data, &memory);
+	eth.process_response(data, &memory);
 
 	acc_main();
 	// latency = millis() - last_t;

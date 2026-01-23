@@ -31,7 +31,6 @@ const int pin_IO[sizeRelay] = {9, 23, 24, 25, 26, 27,
 #define PIN_led 12
 #define PIN_buzzer 22
 
-
 // RFID card definitions
 #define total_card_rfid 30
 #define size_mahasiswa 30
@@ -139,6 +138,7 @@ struct ethernet_state
     String response = "";
     char last_char = 0;
     int newline_count = 0;
+    bool request_active = false;
 };
 
 #endif

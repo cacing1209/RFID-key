@@ -31,6 +31,7 @@ bool ethernet_state::post_data(database_s *db)
 
         // ===== STATE RESET =====
         timeout_start = millis();
+        request_active = true;
         headers_ended = false;
         response = "";
         last_char = 0;
@@ -40,6 +41,7 @@ bool ethernet_state::post_data(database_s *db)
         {
             Serial.println(":eth:POST request sent");
             Serial.println(payload);
+            Serial.println(":eth:server" + String(server));
         }
 
         return true;
@@ -53,12 +55,13 @@ bool ethernet_state::post_data(database_s *db)
 
 void ethernet_state::process_response(database_s *db, storage_state *memory)
 {
-    if (!client.connected())
+    if (!client.connected() && !client.available() || !request_active)
         return;
 
     if (millis() - timeout_start > 3000)
     {
         client.stop();
+        request_active = false;
         return;
     }
 
@@ -106,6 +109,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         Serial.print(":eth:JSON FAILED: ");
         Serial.println(error.c_str());
         client.stop();
+        request_active = false;
         return;
     }
 
@@ -159,6 +163,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     }
     memory->save_data(db); // save data
     client.stop();
+    request_active = false;
 }
 
 void ethernet_state::loop_ethernet(database_s *main_data)
