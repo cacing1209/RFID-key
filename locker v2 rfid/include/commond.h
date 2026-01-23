@@ -130,7 +130,7 @@ struct ethernet_state
     // char server[50] = "192.168.100.9";
     int port = 8000;
     // int port = 5000;
-    String endpoint = "/get-data.json";
+    String endpoint = "/set-data.json";
     bool initialized = false;
     bool get_new_data = false, last_get_data = false;
     unsigned long timeout_start = 0;
