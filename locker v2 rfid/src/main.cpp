@@ -163,7 +163,7 @@ void loop()
 	}
 
 	eth.loop_ethernet(data);
-	eth.process_response(data, &memory);
+	// eth.process_response(data, &memory);
 
 	acc_main();
 	// latency = millis() - last_t;
