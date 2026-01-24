@@ -121,7 +121,7 @@ void setup()
 {
 	delay(5000);
 	Serial.begin(baudRate_PC);
-	debug_sys(1,1,1);
+	debug_sys(1, 1, 1);
 
 	init_mypin();
 	uint32_t versiondata = nfc.getFirmwareVersion();
