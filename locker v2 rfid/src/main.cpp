@@ -162,8 +162,8 @@ void loop()
 		led.act = acc_action::acc_on;
 	}
 
-	eth.loop_ethernet(data);
-	eth.process_response(data, &memory);
+	// eth.loop_ethernet(data);
+	// eth.process_response(data, &memory);
 
 	acc_main();
 	// latency = millis() - last_t;
