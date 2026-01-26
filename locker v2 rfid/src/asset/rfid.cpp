@@ -122,7 +122,7 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
     bool read_c = false;
     if (current_t - last_t < interval)
         return -1;
-    read_c = nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid_incoming, &size_uid_incoming, 25);
+    read_c = nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid_incoming, &size_uid_incoming, 50);
     if (read_c && !last_read_c)
     {
         if (enable_debug)
