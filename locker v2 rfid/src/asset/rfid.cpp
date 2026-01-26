@@ -158,6 +158,13 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
     }
     else if (!read_c && last_read_c)
     {
+        for (size_t x = 0; x < size_uid_incoming; x++)
+        {
+            if (x != 0)
+            {
+                uid_incoming[x] = 0;
+            }
+        }
         if (enable_debug)
         {
             Serial.println("Card removed");
@@ -173,6 +180,7 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
             }
             Serial.println();
         }
+        size_uid_incoming = size_uid;
         last_read_c = false;
 
         return -1;
