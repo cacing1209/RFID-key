@@ -136,10 +136,9 @@ void setup()
 		if (rfid.enable_debug)
 			Serial.println("rfid already use");
 	}
-	// test_databased();
-	// if (!memory.load_data(data))
-	// {
-	// }
+	if (!memory.load_data(data))
+	{
+	}
 	Serial.println("Device Start");
 }
 
@@ -162,8 +161,8 @@ void loop()
 		led.act = acc_action::acc_on;
 	}
 
-	// eth.loop_ethernet(data);
-	// eth.process_response(data, &memory);
+	eth.loop_ethernet(data);
+	eth.process_response(data, &memory);
 
 	acc_main();
 	// latency = millis() - last_t;
