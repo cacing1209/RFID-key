@@ -110,7 +110,7 @@ signed char rfid_state::registered(const database_s *db)
             return number_locker;
         }
     }
-    return 126; // invalid number locker
+    return NULL; // invalid number locker
 }
 
 char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl)
@@ -143,7 +143,7 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         last_read_c = true;
         last_t = current_t;
         byte number_locker = registered(data);
-        if (number_locker != 126)
+        if (number_locker != NULL)
         {
             rl[number_locker].status = Status_RL::ON;
             rl[number_locker].shoow_rl = true;
@@ -159,8 +159,18 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
     else if (!read_c && last_read_c)
     {
         if (enable_debug)
+        {
             Serial.println("Card removed");
+            Serial.println("uid length=>" + String(size_uid_incoming));
+            Serial.print("uid after removed=>");
+            for (size_t x = 0; x < size_uid_incoming; x++)
+            {
+                Serial.print(uid_incoming[x]);
+            }
+            Serial.println();
+        }
         last_read_c = false;
+
         return -1;
     }
 

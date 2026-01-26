@@ -5,7 +5,6 @@ bool ethernet_state::post_data(database_s *db)
 {
     if (client.connect(server, port))
     {
-        // ===== PAYLOAD =====
         String payload;
         JsonDocument js;
         js["device"] = "arduino";
@@ -17,19 +16,15 @@ bool ethernet_state::post_data(database_s *db)
         client.print(endpoint);
         client.println(" HTTP/1.1");
 
-        // ===== HEADERS =====
         client.print("Host: ");
         client.println(server);
         client.println("Content-Type: application/json");
         client.print("Content-Length: ");
         client.println(payload.length());
         client.println("Connection: close");
-        client.println(); // WAJIB (akhir header)
+        client.println(); 
 
-        // ===== BODY =====
         client.print(payload);
-
-        // ===== STATE RESET =====
         timeout_start = millis();
         request_active = true;
         headers_ended = false;
