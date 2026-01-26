@@ -45,6 +45,7 @@ bool storage_state::load_data(database_s *db)
 bool storage_state::save_data(database_s *db, database_s *new_db)
 {
     int addr = flags_load;
+    bool saved = false;
     for (size_t i = 0; i < size_mahasiswa; i++)
     {
         bool replace = false;
@@ -76,6 +77,7 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
             if (enable_debug)
                 Serial.println(":mem:card replace=>" + String(i));
             epr.put(addr, db[i]);
+            saved = true;
         }
         addr += sizeof(database_s);
 
@@ -89,7 +91,13 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
     }
 
     if (enable_debug)
-        Serial.println(":mem:save succes!!!");
+    {
+        if (saved)
+            Serial.println("\n:mem:saved new data!!!");
+        else
+            Serial.println("\n:mem:data alredy registered!!!");
+        Serial.println("\n:mem:sync succes!!!");
+    }
 
     return true;
 }

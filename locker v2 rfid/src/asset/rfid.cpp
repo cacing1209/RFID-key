@@ -79,7 +79,7 @@ bool rfid_state::open_doors(Relay_state *rl)
 signed char rfid_state::registered(const database_s *db)
 {
     bool match = false;
-    signed char number_locker = 126;
+    signed char number_locker = NULL;
     for (size_t x = 0; x < size_mahasiswa; x++)
     {
         match = true;
@@ -148,6 +148,11 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
             rl[number_locker].status = Status_RL::ON;
             rl[number_locker].shoow_rl = true;
             rl[number_locker].last_t = millis();
+        }
+        else
+        {
+            if (enable_debug)
+                Serial.println("is null");
         }
 
         return 1;
