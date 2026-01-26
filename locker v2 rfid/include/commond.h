@@ -36,15 +36,15 @@ const int pin_IO[sizeRelay] = {9, 23, 24, 25, 26, 27,
 #define size_mahasiswa 30
 #define size_uid 12
 
-enum class action_Card : uint8_t
-{
-    Register = 0x01,
-    Remove,
-    Equal,
-    Read,
-    Write,
-    None
-};
+// enum class action_Card : uint8_t
+// {
+//     Register = 0x01,
+//     Remove,
+//     Equal,
+//     Read,
+//     Write,
+//     None
+// };
 enum class Status_db : uint8_t
 {
     Available = 0x64,
@@ -100,7 +100,7 @@ struct Relay_state
 struct rfid_state
 {
     bool enable_debug = false;
-    action_Card action = action_Card::None;
+    // action_Card action = action_Card::None;
     char read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl);
     signed char registered(const database_s *db);
     bool open_doors(Relay_state *rl);

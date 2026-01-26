@@ -59,7 +59,7 @@ void init_mypin()
 	buzzer.pin = PIN_buzzer;
 	led.Interval = 1000;
 	buzzer.Interval = 50;
-	rfid.action = action_Card::None;
+	// rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = acc_mode::mode_fastloop4X;
 	led.act = acc_action::acc_off;
@@ -137,9 +137,9 @@ void setup()
 			Serial.println("rfid already use");
 	}
 	// test_databased();
-	if (!memory.load_data(data))
-	{
-	}
+	// if (!memory.load_data(data))
+	// {
+	// }
 	Serial.println("Device Start");
 }
 
@@ -151,9 +151,9 @@ void acc_main()
 void setup();
 void loop()
 {
-	static unsigned long latency = 0;
-	static unsigned long last_t = 0;
-	last_t = millis();
+	// static unsigned long latency = 0;
+	// static unsigned long last_t = 0;
+	// last_t = millis();
 	// write to eeprom,handle relay,sync db
 	rfid.read_crd(data, &nfc, locker);
 	if (rfid.open_doors(locker))

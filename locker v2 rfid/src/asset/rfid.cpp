@@ -165,7 +165,11 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
             Serial.print("uid after removed=>");
             for (size_t x = 0; x < size_uid_incoming; x++)
             {
-                Serial.print(uid_incoming[x]);
+                if (x != 0)
+                {
+                    Serial.print(',');
+                    Serial.print(uid_incoming[x]);
+                }
             }
             Serial.println();
         }
