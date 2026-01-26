@@ -53,10 +53,10 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
             if (db[i].card[idx] != new_db[i].card[idx])
             {
                 db[i].card[idx] = new_db[i].card[idx];
-                if (enable_debug)
-                {
-                    Serial.println(":mem:card replace=>" + String(i));
-                }
+                // if (enable_debug)
+                // {
+                //     Serial.println(":mem:card replace=>" + String(i));
+                // }
                 replace = true;
             }
         }
@@ -71,8 +71,12 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
             replace = true;
         }
 
-        // if (replace)
-        //     epr.put(addr, db[i]);
+        if (replace)
+        {
+            if (enable_debug)
+                Serial.println(":mem:card replace=>" + String(i));
+            // epr.put(addr, db[i]);
+        }
         addr += sizeof(database_s);
 
         if (addr >= epr.length())
