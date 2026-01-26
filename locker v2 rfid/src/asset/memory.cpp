@@ -19,7 +19,7 @@ bool storage_state::load_data(database_s *db)
         if (addr >= epr.length())
         {
             if (enable_debug)
-                Serial.println("::size>memory size =>" + String(addr - epr.length()));
+                Serial.println(":mem:size>memory size =>" + String(addr - epr.length()));
 
             return false;
         }
@@ -28,7 +28,7 @@ bool storage_state::load_data(database_s *db)
     {
         for (size_t x = 0; x < size_mahasiswa; x++)
         {
-            Serial.print("card =>" + String(x) + "=>");
+            Serial.print(":mem:card =>" + String(x) + "=>");
             for (size_t y = 0; y < size_uid; y++)
             {
                 if (y != 0)
@@ -38,29 +38,54 @@ bool storage_state::load_data(database_s *db)
             Serial.println();
         }
 
-        Serial.println("load succes!!!");
+        Serial.println(":mem:load succes!!!");
     }
     return true;
 }
-bool storage_state::save_data(database_s *db)
+bool storage_state::save_data(database_s *db, database_s *new_db)
 {
     int addr = flags_load;
-
     for (size_t i = 0; i < size_mahasiswa; i++)
     {
-        epr.put(addr, db[i]);
+        bool replace = false;
+        for (size_t idx = 0; idx < size_uid; idx++)
+        {
+            if (db[i].card[idx] != new_db[i].card[idx])
+            {
+                db[i].card[idx] = new_db[i].card[idx];
+                if (enable_debug)
+                {
+                    Serial.println(":mem:card replace=>" + String(i));
+                }
+                replace = true;
+            }
+        }
+
+        if (db[i].number_locker != new_db[i].number_locker)
+        {
+            db[i].number_locker = new_db[i].number_locker;
+            if (enable_debug)
+            {
+                Serial.println(":mem:number replace=>" + String(i));
+            }
+            replace = true;
+        }
+
+        // if (replace)
+        //     epr.put(addr, db[i]);
         addr += sizeof(database_s);
+
         if (addr >= epr.length())
         {
             if (enable_debug)
-                Serial.println("::Memory need size =>" + String(addr - epr.length()));
+                Serial.println(":mem:Memory need size =>" + String(addr - epr.length()));
 
             return false;
         }
     }
 
     if (enable_debug)
-        Serial.println("save succes!!!");
+        Serial.println(":mem:save succes!!!");
 
     return true;
 }
@@ -143,7 +168,7 @@ void storage_state::factory_reset(database_s *db)
         {
             db[i].card[x] = 0;
         }
-        strcpy(db[i].created_at, "");
+        // strcpy(db[i].created_at, "");
         db[i].number_locker = 0;
         epr.put(addr, db[i]);
         addr += sizeof(database_s);

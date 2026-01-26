@@ -22,7 +22,7 @@ bool ethernet_state::post_data(database_s *db)
         client.print("Content-Length: ");
         client.println(payload.length());
         client.println("Connection: close");
-        client.println(); 
+        client.println();
 
         client.print(payload);
         timeout_start = millis();
@@ -109,6 +109,17 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     }
 
     // simpan data ke struct
+    database_s new_db[size_mahasiswa];
+    for (size_t x = 0; x < size_mahasiswa; x++)
+    {
+        for (size_t y = 0; y < size_uid; y++)
+        {
+            new_db[x].card[y] = db[x].card[y];
+        }
+        new_db[x].number_locker = db[x].number_locker;
+        new_db[x].statusdb = db[x].statusdb;
+    }
+
     JsonArray array = doc.as<JsonArray>();
     int idx = 0;
     for (JsonObject item : array)
@@ -118,7 +129,7 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         if (locker < 0 || locker >= size_mahasiswa)
             continue;
 
-        db[locker].number_locker = locker;
+        new_db[locker].number_locker = locker;
         idx++;
         JsonArray uid = item["id"];
 
@@ -127,17 +138,16 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         {
             if (i < uid.size())
             {
-                db[locker].card[i] = uid[i];
-                Serial.print(db[locker].card[i]);
+                new_db[locker].card[i] = uid[i];
+                Serial.print(new_db[locker].card[i]);
             }
             else
             {
-                db[locker].card[i] = 0;
+                new_db[locker].card[i] = 0;
             }
         }
 
-        db[locker].created_at[0] = '\0';
-        db[locker].statusdb = Status_db::Available;
+        new_db[locker].statusdb = Status_db::Available;
     }
     Serial.print(":eth:DATA OK = ");
     Serial.println(idx);
@@ -147,16 +157,16 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
         Serial.println(":eth:check database=>");
         for (size_t i = 0; i < size_mahasiswa; i++)
         {
-            Serial.print("\n:eth:card index=>" + String(i) + "number locker" + String(db[i].number_locker) + +"card=>");
+            Serial.print("\n:eth:card index=>" + String(i) + "number locker" + String(new_db[i].number_locker) + +"card=>");
             for (size_t xp = 0; xp < size_uid; xp++)
             {
                 if (xp != 0)
                     Serial.print(',');
-                Serial.print(db[i].card[xp]);
+                Serial.print(new_db[i].card[xp]);
             }
         }
     }
-    memory->save_data(db); // save data
+    memory->save_data(db, new_db); // save data
     client.stop();
     request_active = false;
 }

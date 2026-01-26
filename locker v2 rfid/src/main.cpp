@@ -50,7 +50,7 @@ void init_mypin()
 		{
 			data[i].card[xp] = 0;
 		}
-		strcpy(data[i].created_at, "");
+		// strcpy(data[i].created_at, "");
 		data[i].number_locker = 0;
 		data[i].statusdb = Status_db::Available;
 	}

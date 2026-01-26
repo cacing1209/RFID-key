@@ -28,8 +28,8 @@ const int pin_IO[sizeRelay] = {9, 23, 24, 25, 26, 27,
 #define CS_SD 2
 
 // Pin definitions untuk aksesori
-#define PIN_led 12
-#define PIN_buzzer 22
+#define PIN_led 68
+#define PIN_buzzer 69
 
 // RFID card definitions
 #define total_card_rfid 30
@@ -85,7 +85,6 @@ struct database_s
     Status_db statusdb = Status_db::Not_Available;
     uint8_t card[size_uid];
     byte number_locker;
-    char created_at[25];
 };
 struct Relay_state
 {
@@ -114,7 +113,7 @@ struct storage_state
     int SIZE_MEMORY;
     bool enable_debug = false;
     bool load_data(database_s *db);
-    bool save_data(database_s *db);
+    bool save_data(database_s *db, database_s *new_db);
     void factory_reset(database_s *db);
 };
 
