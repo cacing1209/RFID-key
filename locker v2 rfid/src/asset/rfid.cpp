@@ -148,10 +148,6 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
             rl[number_locker].status = Status_RL::ON;
             rl[number_locker].shoow_rl = true;
             rl[number_locker].last_t = millis();
-            if (enable_debug)
-            {
-                Serial.println("created_at=>" + String(data[number_locker].created_at));
-            }
         }
 
         return 1;

@@ -125,7 +125,7 @@ struct ethernet_state
     bool enable_debug;
 
     EthernetClient client;
-    char server[50] = "93.144.178.53";
+    char server[50] = "192.168.100.11";
     // char server[50] = "192.168.100.9";
     int port = 8000;
     // int port = 5000;
