@@ -1,52 +1,52 @@
 #include "commond.h"
 #include <ArduinoJson.h>
 
-bool ethernet_state::post_data(database_s *db)
-{
-    if (client.connect(server, port))
-    {
-        String payload;
-        JsonDocument js;
-        js["device"] = "arduino";
-        js["status"] = "request";
-        serializeJson(js, payload);
-        Serial.println(payload);
-        // ===== REQUEST LINE =====
-        client.print("POST ");
-        client.print(endpoint);
-        client.println(" HTTP/1.1");
+// bool ethernet_state::post_data(database_s *db)
+// {
+//     if (client.connect(server, port))
+//     {
+//         String payload;
+//         JsonDocument js;
+//         js["device"] = "arduino";
+//         js["status"] = "request";
+//         serializeJson(js, payload);
+//         Serial.println(payload);
+//         // ===== REQUEST LINE =====
+//         client.print("POST ");
+//         client.print(endpoint);
+//         client.println(" HTTP/1.1");
 
-        client.print("Host: ");
-        client.println(server);
-        client.println("Content-Type: application/json");
-        client.print("Content-Length: ");
-        client.println(payload.length());
-        client.println("Connection: close");
-        client.println();
+//         client.print("Host: ");
+//         client.println(server);
+//         client.println("Content-Type: application/json");
+//         client.print("Content-Length: ");
+//         client.println(payload.length());
+//         client.println("Connection: close");
+//         client.println();
 
-        client.print(payload);
-        timeout_start = millis();
-        request_active = true;
-        headers_ended = false;
-        response = "";
-        last_char = 0;
-        newline_count = 0;
+//         client.print(payload);
+//         timeout_start = millis();
+//         request_active = true;
+//         headers_ended = false;
+//         response = "";
+//         last_char = 0;
+//         newline_count = 0;
 
-        if (enable_debug)
-        {
-            Serial.println(":eth:POST request sent");
-            Serial.println(payload);
-            Serial.println(":eth:server" + String(server));
-        }
+//         if (enable_debug)
+//         {
+//             Serial.println(":eth:POST request sent");
+//             Serial.println(payload);
+//             Serial.println(":eth:server" + String(server));
+//         }
 
-        return true;
-    }
+//         return true;
+//     }
 
-    if (enable_debug)
-        Serial.println(":eth:POST connection failed");
+//     if (enable_debug)
+//         Serial.println(":eth:POST connection failed");
 
-    return false;
-}
+//     return false;
+// }
 
 void ethernet_state::process_response(database_s *db, storage_state *memory)
 {
@@ -171,36 +171,36 @@ void ethernet_state::process_response(database_s *db, storage_state *memory)
     request_active = false;
 }
 
-void ethernet_state::loop_ethernet(database_s *main_data)
-{
+// void ethernet_state::loop_ethernet(database_s *main_data)
+// {
 
-    if (!initialized)
-    {
-        if (enable_debug)
-        {
-            Serial.println(":eth:------------------------------");
-            Serial.println(":eth:INITIALIZING ETHERNET");
-        }
+//     if (!initialized)
+//     {
+//         if (enable_debug)
+//         {
+//             Serial.println(":eth:------------------------------");
+//             Serial.println(":eth:INITIALIZING ETHERNET");
+//         }
 
-        uint8_t mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
+//         uint8_t mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 
-        if (Ethernet.begin(mac) == 0)
-        {
-            if (enable_debug)
-                Serial.println("::eth:DHCP gagal");
-        }
-        // 192.168.178.7
-        if (enable_debug)
-        {
-            Serial.print(":eth:IP Address = ");
-            Serial.println(Ethernet.localIP());
-            Serial.println(":eth:ETHERNET INITIALIZED");
-            Serial.println(":eth:------------------------------");
-        }
+//         if (Ethernet.begin(mac) == 0)
+//         {
+//             if (enable_debug)
+//                 Serial.println("::eth:DHCP gagal");
+//         }
+//         // 192.168.178.7
+//         if (enable_debug)
+//         {
+//             Serial.print(":eth:IP Address = ");
+//             Serial.println(Ethernet.localIP());
+//             Serial.println(":eth:ETHERNET INITIALIZED");
+//             Serial.println(":eth:------------------------------");
+//         }
 
-        initialized = true;
-        post_data(main_data);
-    }
+//         initialized = true;
+//         post_data(main_data);
+//     }
 
-    Ethernet.maintain(); // dhcp ip
-}
+//     Ethernet.maintain(); // dhcp ip
+// }
