@@ -1,6 +1,9 @@
 #ifndef COMMOND_H
 #define COMMOND_H
-
+#define DEBUG_MEM
+#define DEBUG_ETH
+#define DEBUG_RFID
+#define read_little_end
 #include <Arduino.h>
 #include <SdFat.h>
 #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
@@ -11,6 +14,10 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
                                34, 35, 36, 37, 38, 39,
                                40, 41, 42, 43, 44, 45,
                                46, 47, 48, 49, 50, 51, 52, 53};
+//    0028758077
+//    2788524568
+//    0563089154
+//    0038865439
 
 /* #pinout#
  * PN532 RFID menggunakan I2C:
@@ -56,6 +63,7 @@ enum class acc_mode : uint8_t
     mode_fastloop2X = 0xCC,
     mode_fastloop4X,
     mode_fastloop8X,
+    beep
 };
 
 enum class acc_action : uint8_t
@@ -98,46 +106,77 @@ struct Relay_state
 #include <Adafruit_PN532.h>
 struct rfid_state
 {
-    bool enable_debug = false;
-    // action_Card action = action_Card::None;
     char read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl);
-    signed char registered(const database_s *db);
+    signed char card_isregistered(const database_s *db);
     bool open_doors(Relay_state *rl);
     long interval;
     uint8_t size_uid_incoming = size_uid;
     uint8_t uid_incoming[size_uid];
+    void init_sensor(Adafruit_PN532 *nfc);
     rfid_state::rfid_state(const long interval_read);
+
+#ifdef little_endian
+
+#endif
 };
 struct storage_state
 {
     int SIZE_MEMORY;
-    bool enable_debug = false;
+
     bool load_data(database_s *db);
     bool save_data(database_s *db, database_s *new_db);
+
     void factory_reset(database_s *db);
 };
-
+#define S_MAC 6
 struct ethernet_state
 {
-    void loop_ethernet(database_s *main_data);
-    bool post_data(database_s *db);
-    void process_response(database_s *db, storage_state *memory);
-    bool enable_debug;
+    void begin(database_s *db);
+    void loop(database_s *db, storage_state *memory);
 
-    EthernetClient client;
-    char server[50] = "93.144.178.7";
-    // char server[50] = "192.168.100.9";
-    int port = 8000;
-    // int port = 5000;
-    String endpoint = "/set-data.json";
-    bool initialized = false;
-    bool get_new_data = false, last_get_data = false;
-    unsigned long timeout_start = 0;
-    bool headers_ended = false;
-    String response = "";
-    char last_char = 0;
-    int newline_count = 0;
-    bool request_active = false;
+    /* request handling */
+    void handle_client(EthernetClient &client,
+                       database_s *db,
+                       storage_state *memory);
+    bool parse_request(EthernetClient &client);
+    void reset_parser();
+
+    /* endpoint handlers */
+    void handle_info(EthernetClient &client); // tanpa parameter db
+    void handle_get_data(EthernetClient &client, database_s *db);
+    void handle_post_student(EthernetClient &client,
+                             database_s *db,
+                             storage_state *memory);
+    void handle_delete_student(EthernetClient &client,
+                               database_s *db,
+                               storage_state *memory);
+    void handle_reset(EthernetClient &client,
+                      database_s *db,
+                      storage_state *memory);
+
+    /* response helpers */
+    void send_ok(EthernetClient &client, const char *json = "{}");
+    void send_error(EthernetClient &client, int code, const char *msg);
+
+    const char *device_class = "A1";
+    const char *controller_name = "L0002";
+    const char *location = "Gedung A - Lantai 2";
+
+    EthernetServer server = EthernetServer(8000);
+
+    char method[8];
+    char path[32];
+    bool header_done;
+    char last_char;
+    byte mac_L0002[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5C};
+
+    int newline_count;
+    static const size_t BODY_SIZE = 2048;
+    char body[BODY_SIZE];
+    size_t body_len;
+    unsigned long start_time;
+
+    database_s *db_ptr = nullptr;
 };
 
 #endif

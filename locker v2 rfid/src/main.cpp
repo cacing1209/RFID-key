@@ -12,10 +12,12 @@
  *
  *
  * ambil data mahasiswa dari website local ketika ada perubahan saja
- * save sdcard
+ * save eeprom
  * load data mahasiswa dari sdcard ketika booting
  *
  */
+#define PN532DEBUG
+#define PN532DEBUGPRINT Serial
 
 #include <commond.h>
 #include <Wire.h>
@@ -25,7 +27,7 @@
 
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
-rfid_state rfid(3000);
+rfid_state rfid(2000);
 acc_state buzzer;
 acc_state led;
 ethernet_state eth;
@@ -65,21 +67,8 @@ void init_mypin()
 	led.act = acc_action::acc_off;
 	led.mode = acc_mode::mode_fastloop2X;
 	SPI.begin();
-
-	if (!nfc.begin() || !nfc.SAMConfig())
-	{
-		if (rfid.enable_debug)
-		{
-			Serial.println("::NFC not already");
-		}
-	}
-	else
-	{
-		if (rfid.enable_debug)
-		{
-			Serial.println("NFC ALREADY");
-		}
-	}
+	eth.begin(data);
+	rfid.init_sensor(&nfc);
 	pinMode(led.pin, OUTPUT);
 	pinMode(buzzer.pin, OUTPUT);
 }
@@ -111,34 +100,32 @@ storage_state memory;
 
 // 	memory.save_data(data);
 // }
-void debug_sys(bool db_rfid, bool db_memory, bool db_eth)
-{
-	rfid.enable_debug = db_rfid;
-	memory.enable_debug = db_memory;
-	eth.enable_debug = db_eth;
-}
 void setup()
 {
+#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
 	delay(5000);
+#endif
 	Serial.begin(baudRate_PC);
-	debug_sys(1, 1, 1);
 
 	init_mypin();
 	uint32_t versiondata = nfc.getFirmwareVersion();
 	if (!versiondata)
 	{
 
-		if (rfid.enable_debug)
-			Serial.println("PN532 board not found!");
+#ifdef DEBUG_RFID
+		Serial.println("PN532 board not found!");
+#endif
 	}
 	else
 	{
-		if (rfid.enable_debug)
-			Serial.println("rfid already use");
+#ifdef DEBUG_RFID
+		Serial.println("rfid already use");
+#endif
 	}
 	if (!memory.load_data(data))
 	{
 	}
+	// memory.save_data(data, data);
 	Serial.println("Device Start");
 }
 
@@ -154,16 +141,28 @@ void loop()
 	// static unsigned long last_t = 0;
 	// last_t = millis();
 	// write to eeprom,handle relay,sync db
-	rfid.read_crd(data, &nfc, locker);
-	if (rfid.open_doors(locker))
+	signed char card = rfid.read_crd(data, &nfc, locker);
+	switch (card)
 	{
+	case 1:
+		buzzer.mode = acc_mode::mode_fastloop4X;
+		led.mode = acc_mode::mode_fastloop4X;
 		buzzer.act = acc_action::acc_on;
 		led.act = acc_action::acc_on;
+		break;
+	case -4:
+		buzzer.mode = acc_mode::beep;
+		buzzer.act = acc_action::acc_on;
+		buzzer.LastOn = millis();
+
+		led.mode = acc_mode::beep;
+		led.act = acc_action::acc_on;
+		break;
+	default:
+		break;
 	}
-
-	eth.loop_ethernet(data);
-	eth.process_response(data, &memory);
-
+	eth.loop(data, &memory);
+	rfid.open_doors(locker);
 	acc_main();
 	// latency = millis() - last_t;
 	// if (rfid.enable_debug)

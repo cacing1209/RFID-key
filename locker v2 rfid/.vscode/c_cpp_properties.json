@@ -10,8 +10,8 @@
             "includePath": [
                 "/home/cacing/RFID-key/locker v2 rfid/include",
                 "/home/cacing/RFID-key/locker v2 rfid/src",
-                "/home/cacing/RFID-key/locker v2 rfid/lib/Ethernet-2.0.2/src",
                 "/home/cacing/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
+                "/home/cacing/RFID-key/locker v2 rfid/lib/Ethernet-2.0.2/src",
                 "/home/cacing/RFID-key/locker v2 rfid/.pio/libdeps/megaatmega2560/Adafruit PN532",
                 "/home/cacing/RFID-key/locker v2 rfid/.pio/libdeps/megaatmega2560/Adafruit BusIO",
                 "/home/cacing/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
@@ -29,8 +29,8 @@
                 "path": [
                     "/home/cacing/RFID-key/locker v2 rfid/include",
                     "/home/cacing/RFID-key/locker v2 rfid/src",
-                    "/home/cacing/RFID-key/locker v2 rfid/lib/Ethernet-2.0.2/src",
                     "/home/cacing/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
+                    "/home/cacing/RFID-key/locker v2 rfid/lib/Ethernet-2.0.2/src",
                     "/home/cacing/RFID-key/locker v2 rfid/.pio/libdeps/megaatmega2560/Adafruit PN532",
                     "/home/cacing/RFID-key/locker v2 rfid/.pio/libdeps/megaatmega2560/Adafruit BusIO",
                     "/home/cacing/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
