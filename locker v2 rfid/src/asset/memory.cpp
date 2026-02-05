@@ -98,7 +98,7 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
 #ifdef DEBUG_MEM
             Serial.println(":mem:card replace=>" + String(i));
 #endif
-            // epr.put(addr, db[i]);
+            epr.put(addr, db[i]);
             saved = true;
         }
         addr += sizeof(database_s);

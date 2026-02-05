@@ -2,55 +2,77 @@
 
 void acc_state::main()
 {
-    unsigned long current_t = millis();
+    unsigned long now = millis();
 
-    if (act == acc_action::acc_on)
+    if (act != acc_action::acc_on)
     {
-        switch (mode)
+        stopBuzzer();
+        resetState(now);
+        return;
+    }
+
+    if (mode == acc_mode::denide)
+    {
+        handleDenide(now);
+        return;
+    }
+
+    if (now - LastOn >= Interval)
+    {
+        LastOn = now;
+        toggleBuzzer();
+        flip_flop++;
+
+        if (flip_flop >= getMaxFlip())
         {
-        case acc_mode::mode_fastloop4X:
-            if (flip_flop >= 8)
-                act = acc_action::acc_off;
-            break;
-
-        case acc_mode::mode_fastloop2X:
-            if (flip_flop >= 4)
-                act = acc_action::acc_off;
-            break;
-
-        case acc_mode::mode_fastloop8X:
-            if (flip_flop >= 16)
-                act = acc_action::acc_off;
-            break;
-
-        case acc_mode::beep:
-            if (current_t - LastOn > Interval * 2)
-            {
-                act = acc_action::acc_off;
-            }
-            break;
-        default:
             act = acc_action::acc_off;
-            break;
         }
-        
-        if (act == acc_action::acc_on && current_t - LastOn >= Interval && mode != acc_mode::beep)
-        {
-            LastOn = current_t;
-            digitalWrite(pin, !digitalRead(pin));
-            flip_flop++;
-        }
-        else if (mode == acc_mode::beep)
-        {
-            if (current_t - LastOn >= Interval * 2)
-            {
-                digitalWrite(pin, HIGH);
-            }
-        }
+    }
+}
+void acc_state::stopBuzzer()
+{
+    noTone(pin);
+}
+void acc_state::resetState(unsigned long now)
+{
+    flip_flop = 0;
+    buzzerState = false;
+    LastOn = now;
+}
+void acc_state::handleDenide(unsigned long now)
+{
+    if (now - LastOn < 5000)
+    {
+        digitalWrite(pin, HIGH);
     }
     else
     {
-        digitalWrite(pin, LOW);
-        flip_flop = 0;
+        stopBuzzer();
+        act = acc_action::acc_off;
+        LastOn = now;
     }
+}
+uint8_t acc_state::getMaxFlip()
+{
+    switch (mode)
+    {
+    case acc_mode::mode_fastloop3X:
+        return 6;
+    case acc_mode::mode_fastloop4X:
+        return 8;
+    case acc_mode::mode_fastloop8X:
+        return 16;
+    default:
+        return 0;
+    }
+}
+
+void acc_state::toggleBuzzer()
+{
+    buzzerState = !buzzerState;
+
+    if (buzzerState)
+        digitalWrite(pin, HIGH);
+    else
+        digitalWrite(pin, LOW);
 }

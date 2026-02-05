@@ -1,20 +1,6 @@
 
 #include <commond.h>
 
-// String litle_end()
-// {
-//     uint32_t val = 0;
-//     for (int i = 0; i < uidLength; i++)
-//     {
-//         val |= ((uint32_t)uid[i]) << (8 * i);
-//     }
-
-//     char buffer[11];
-//     sprintf(buffer, "%010lu", val);
-//     return String(buffer);
-
-// }
-
 rfid_state::rfid_state(const long interval_read) : interval(interval_read)
 {
     if (interval_read < 25)
@@ -226,7 +212,7 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         last_read_c = true;
         last_t = now;
 
-        byte number_locker = card_isregistered(data);
+        signed char number_locker = card_isregistered(data);
         if (number_locker != -1)
         {
             rl[number_locker].status = Status_RL::ON;

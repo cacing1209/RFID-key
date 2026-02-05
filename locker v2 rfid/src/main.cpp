@@ -28,8 +28,7 @@
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(2000);
-acc_state buzzer;
-acc_state led;
+acc_state buzzer(1);
 ethernet_state eth;
 
 database_s data[size_mahasiswa];
@@ -57,19 +56,14 @@ void init_mypin()
 		data[i].statusdb = Status_db::Available;
 	}
 
-	led.pin = PIN_led;
 	buzzer.pin = PIN_buzzer;
-	led.Interval = 1000;
 	buzzer.Interval = 50;
 	// rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = acc_mode::mode_fastloop4X;
-	led.act = acc_action::acc_off;
-	led.mode = acc_mode::mode_fastloop2X;
 	SPI.begin();
 	eth.begin(data);
 	rfid.init_sensor(&nfc);
-	pinMode(led.pin, OUTPUT);
 	pinMode(buzzer.pin, OUTPUT);
 }
 storage_state memory;
@@ -132,7 +126,6 @@ void setup()
 void acc_main()
 {
 	buzzer.main();
-	led.main();
 }
 void setup();
 void loop()
@@ -145,18 +138,19 @@ void loop()
 	switch (card)
 	{
 	case 1:
-		buzzer.mode = acc_mode::mode_fastloop4X;
-		led.mode = acc_mode::mode_fastloop4X;
+		buzzer.mode = acc_mode::mode_fastloop3X;
 		buzzer.act = acc_action::acc_on;
-		led.act = acc_action::acc_on;
+#ifdef DEBUG_RFID
+		Serial.println(":bz:tone 1");
+#endif
 		break;
 	case -4:
-		buzzer.mode = acc_mode::beep;
+		buzzer.mode = acc_mode::mode_fastloop8X;
 		buzzer.act = acc_action::acc_on;
-		buzzer.LastOn = millis();
-
-		led.mode = acc_mode::beep;
-		led.act = acc_action::acc_on;
+		break;
+#ifdef DEBUG_RFID
+		Serial.println(":bz:tone 0");
+#endif
 		break;
 	default:
 		break;
@@ -168,3 +162,4 @@ void loop()
 	// if (rfid.enable_debug)
 	// 	Serial.println("latency processing=>" + String(latency));
 }
+

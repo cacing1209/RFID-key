@@ -69,13 +69,30 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
     }
 
 #ifdef DEBUG_ETH
-    {
-        Serial.print("Method: ");
-        Serial.println(method);
-        Serial.print("Path: ");
-        Serial.println(path);
-    }
+    Serial.print("Method: ");
+    Serial.println(method);
+    Serial.print("Path: ");
+    Serial.println(path);
+    Serial.print("Auth: ");
+    Serial.println(auth_header);
 #endif
+
+    // Check authentication for protected endpoints
+    bool needs_auth = false;
+
+    // Define which endpoints need authentication
+    if (strcmp(method, "POST") == 0 || strcmp(method, "DELETE") == 0)
+    {
+        needs_auth = true; // All POST and DELETE need auth
+    }
+
+    if (needs_auth && !auth.check_auth(auth_header))
+    {
+        send_error(client, 401, "Unauthorized");
+        return;
+    }
+
+    // Route to appropriate handler
     if (strcmp(path, "/info") == 0)
     {
         handle_info(client);
@@ -92,7 +109,6 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
     {
         handle_delete_student(client, db, memory);
     }
-
     else if (strcmp(path, "/reset") == 0 && strcmp(method, "POST") == 0)
     {
         handle_reset(client, db, memory);
@@ -107,6 +123,7 @@ bool ethernet_state::parse_request(EthernetClient &client)
 {
     bool first_line = true;
     String line = "";
+    String auth_header = ""; // Store authorization header
 
     while (client.connected())
     {
@@ -118,6 +135,7 @@ bool ethernet_state::parse_request(EthernetClient &client)
             {
                 if (first_line)
                 {
+                    // Parse request line: "METHOD /path HTTP/1.1"
                     int space1 = line.indexOf(' ');
                     int space2 = line.indexOf(' ', space1 + 1);
 
@@ -131,10 +149,18 @@ bool ethernet_state::parse_request(EthernetClient &client)
 
                     first_line = false;
                 }
+                else if (line.startsWith("Authorization:"))
+                {
+                    // Extract authorization header
+                    auth_header = line.substring(14); // Skip "Authorization:"
+                    auth_header.trim();
+                }
                 else if (line.length() == 0 || (line.length() == 1 && line[0] == '\r'))
                 {
+                    // Empty line signals end of headers
                     header_done = true;
 
+                    // Read body if present
                     body_len = 0;
                     while (client.available() && body_len < BODY_SIZE - 1)
                     {
@@ -153,6 +179,7 @@ bool ethernet_state::parse_request(EthernetClient &client)
             }
         }
 
+        // Timeout check
         if (millis() - start_time > 3000)
         {
             return false;
@@ -171,10 +198,32 @@ void ethernet_state::reset_parser()
     newline_count = 0;
     body[0] = '\0';
     body_len = 0;
+    auth_header = "";
     start_time = 0;
 }
 
-// Implementasi endpoint handlers
+void ethernet_state::handle_info(EthernetClient &client, database_s *db, storage_state *memory, bool update)
+{
+    if (!db || !memory)
+    {
+        send_error(client, 500, "Database not available");
+        return;
+    }
+    if (body_len == 0)
+    {
+        send_error(client, 400, "empty body");
+    }
+    JsonDocument doc;
+    DeserializationError file = deserializeJson(doc, body);
+    if (!file)
+    {
+        send_error(client, 500, "error parsing json");
+        return;
+    }
+    if (String(doc.containsKey("location")) != String(location))
+    {
+    }
+}
 void ethernet_state::handle_info(EthernetClient &client)
 {
     StaticJsonDocument<512> doc;
@@ -230,10 +279,9 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
         return;
     }
 
-    DynamicJsonDocument doc(4096);
+    JsonDocument doc;
     JsonArray students = doc.createNestedArray("students");
 
-    int count = 0;
     for (int i = 0; i < size_mahasiswa; i++)
     {
         if (db[i].statusdb == Status_db::Not_Available)
@@ -241,22 +289,21 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
             JsonObject student = students.createNestedObject();
             student["locker"] = db[i].number_locker;
 
-            String card_uid = "";
-            for (int j = 0; j < size_uid; j++)
-            {
-                if (db[i].card[j] < 0x10)
-                    card_uid += "0";
-                card_uid += String(db[i].card[j], HEX);
-            }
-            student["card_uid"] = card_uid;
+            // Convert 4 byte pertama ke decimal dengan leading zero
+            unsigned long uid_decimal =
+                ((unsigned long)db[i].card[0]) |
+                ((unsigned long)db[i].card[1] << 8) |
+                ((unsigned long)db[i].card[2] << 16) |
+                ((unsigned long)db[i].card[3] << 24);
+
+            // Format dengan leading zero (10 digit)
+            char dec[11];
+            sprintf(dec, "%010lu", uid_decimal);
+            student["card_uid"] = dec;
+
             student["status"] = "occupied";
-            count++;
         }
     }
-
-    doc["total"] = count;
-    doc["device_class"] = device_class;
-    doc["max_students"] = size_mahasiswa;
 
     String json;
     serializeJson(doc, json);
@@ -271,13 +318,13 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         send_error(client, 500, "Database not available");
         return;
     }
-    
+
     if (body_len == 0)
     {
         send_error(client, 400, "Empty body");
         return;
     }
-    
+
     StaticJsonDocument<512> doc;
     DeserializationError error = deserializeJson(doc, body);
     if (error)
@@ -285,32 +332,32 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         send_error(client, 400, "Invalid JSON");
         return;
     }
-    
+
     if (!doc.containsKey("no") || !doc.containsKey("id"))
     {
         send_error(client, 400, "Missing required fields");
         return;
     }
-    
+
     byte locker = doc["no"];
     const char *card_uid_str = doc["id"];
-    
+
     if (!card_uid_str || locker >= size_mahasiswa)
     {
         send_error(client, 400, "Invalid student data");
         return;
     }
-    
+
     // Check if locker is already occupied
     if (db[locker].statusdb == Status_db::Not_Available)
     {
         send_error(client, 409, "Locker already in use");
         return;
     }
-    
+
     String uid_str = String(card_uid_str);
-    
-    // NEW: Check if input is decimal number (like "0028758077") or hex (like "01B6C95D")
+
+    // Check if input is decimal number
     bool is_decimal = true;
     for (size_t i = 0; i < uid_str.length(); i++)
     {
@@ -321,72 +368,63 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
             break;
         }
     }
-    
+
+    if (!is_decimal)
+    {
+        send_error(client, 400, "Invalid format. Only decimal numbers accepted (e.g., 0028758077)");
+        return;
+    }
+
     database_s new_db[size_mahasiswa];
     for (int i = 0; i < size_mahasiswa; i++)
     {
         new_db[i] = db[i];
     }
-    
+
+    // Clear the card array first
     memset(new_db[locker].card, 0, size_uid);
-    
-    if (is_decimal)
-    {
-        unsigned long uid_decimal = strtoul(uid_str.c_str(), NULL, 10);
-        new_db[locker].card[0] = (uid_decimal) & 0xFF;
-        new_db[locker].card[1] = (uid_decimal >> 8) & 0xFF;
-        new_db[locker].card[2] = (uid_decimal >> 16) & 0xFF;
-        new_db[locker].card[3] = (uid_decimal >> 24) & 0xFF;
-        
+
+    // Convert decimal string to 4-byte UID (little-endian format)
+    unsigned long uid_decimal = strtoul(uid_str.c_str(), NULL, 10);
+
+    // Store in little-endian format (matches sensor output)
+    new_db[locker].card[0] = (uid_decimal) & 0xFF;
+    new_db[locker].card[1] = (uid_decimal >> 8) & 0xFF;
+    new_db[locker].card[2] = (uid_decimal >> 16) & 0xFF;
+    new_db[locker].card[3] = (uid_decimal >> 24) & 0xFF;
+
 #ifdef DEBUG_ETH
-        Serial.print("Stored decimal UID: ");
-        Serial.print(uid_decimal);
-        Serial.print(" as bytes: ");
-        for (int i = 0; i < 4; i++)
-        {
-            Serial.print(new_db[locker].card[i]);
-            Serial.print(" ");
-        }
-        Serial.println();
-#endif
-    }
-    else
+    Serial.print("Stored decimal UID: ");
+    char formatted_uid[11];
+    sprintf(formatted_uid, "%010lu", uid_decimal);
+    Serial.print(formatted_uid);
+    Serial.print(" as bytes: ");
+    for (int i = 0; i < 4; i++)
     {
-        if (uid_str.length() % 2 != 0)
-        {
-            send_error(client, 400, "Invalid card UID format (must be even number of hex chars)");
-            return;
-        }
-        
-        int uid_bytes = uid_str.length() / 2;
-        
-        if (uid_bytes < 4 || uid_bytes > size_uid)
-        {
-            send_error(client, 400, "Invalid card UID length (must be 4-12 bytes)");
-            return;
-        }
-        
-        for (int i = 0; i < uid_bytes; i++)
-        {
-            String byteStr = uid_str.substring(i * 2, i * 2 + 2);
-            new_db[locker].card[i] = (uint8_t)strtol(byteStr.c_str(), NULL, 16);
-        }
+        Serial.print(new_db[locker].card[i]);
+        Serial.print(" ");
     }
-    
+    Serial.println();
+#endif
+
     new_db[locker].number_locker = locker;
     new_db[locker].statusdb = Status_db::Not_Available;
-    
+
     if (!memory->save_data(db, new_db))
     {
         send_error(client, 500, "Failed to save data");
         return;
     }
-    
+
     StaticJsonDocument<128> response;
     response["status"] = "created";
     response["locker"] = locker;
-    response["card_uid"] = card_uid_str;
-    
+
+    // Format decimal dengan leading zero (10 digit)
+    char dec[11];
+    sprintf(dec, "%010lu", uid_decimal);
+    response["card_uid"] = dec;
+
     char json[128];
     serializeJson(response, json, sizeof(json));
     send_ok(client, json);

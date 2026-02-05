@@ -1,13 +1,13 @@
 #ifndef COMMOND_H
 #define COMMOND_H
-#define DEBUG_MEM
-#define DEBUG_ETH
-#define DEBUG_RFID
+// #define DEBUG_ETH
+// #define DEBUG_MEM
+// #define DEBUG_ACC
+// #define DEBUG_RFID
 #define read_little_end
 #include <Arduino.h>
 #include <SdFat.h>
 #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
-
 #define sizeRelay 32
 const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
                                28, 29, 30, 31, 32, 33,
@@ -31,27 +31,15 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
  * CS          CS_SD        2
  * */
 
-// Pin definitions yang masih digunakan untuk SD card
 #define CS_SD 2
 
-// Pin definitions untuk aksesori
 #define PIN_led 68
 #define PIN_buzzer 69
 
-// RFID card definitions
 #define total_card_rfid 30
 #define size_mahasiswa 30
 #define size_uid 12
 
-// enum class action_Card : uint8_t
-// {
-//     Register = 0x01,
-//     Remove,
-//     Equal,
-//     Read,
-//     Write,
-//     None
-// };
 enum class Status_db : uint8_t
 {
     Available = 0x64,
@@ -60,10 +48,10 @@ enum class Status_db : uint8_t
 
 enum class acc_mode : uint8_t
 {
-    mode_fastloop2X = 0xCC,
-    mode_fastloop4X,
-    mode_fastloop8X,
-    beep
+    mode_fastloop3X = 0x06,
+    mode_fastloop4X = 0x09,
+    mode_fastloop8X = 0x10,
+    denide
 };
 
 enum class acc_action : uint8_t
@@ -75,12 +63,24 @@ struct acc_state
 {
     acc_mode mode;
     byte pin;
-    byte flip_flop;
     acc_action act;
     unsigned long Interval;
+    unsigned int freq;
+
+    byte flip_flop;
+    bool buzzerState;
     unsigned long LastOn;
+
     void main();
+
+    uint8_t getMaxFlip();
+    void toggleBuzzer();
+    void stopBuzzer();
+    void resetState(unsigned long now);
+    void handleDenide(unsigned long now);
+    acc_state::acc_state(int feq) : freq(feq) {}
 };
+;
 
 enum class Status_RL
 {
@@ -129,8 +129,23 @@ struct storage_state
     void factory_reset(database_s *db);
 };
 #define S_MAC 6
+#include <auth.h>
 struct ethernet_state
 {
+private:
+    String auth_header;
+    char method[8];
+    char path[32];
+    bool header_done;
+    char last_char;
+    byte mac_L0002[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5C};
+    const char *device_class = "A1";
+    const char *controller_name = "L0002";
+    char *location = "not_set";
+    EthernetServer server = EthernetServer(8000);
+
+public:
+    auth_state auth;
     void begin(database_s *db);
     void loop(database_s *db, storage_state *memory);
 
@@ -142,7 +157,8 @@ struct ethernet_state
     void reset_parser();
 
     /* endpoint handlers */
-    void handle_info(EthernetClient &client); // tanpa parameter db
+    void handle_info(EthernetClient &client, database_s *db, storage_state *memory, bool update = false);
+    void handle_info(EthernetClient &client);
     void handle_get_data(EthernetClient &client, database_s *db);
     void handle_post_student(EthernetClient &client,
                              database_s *db,
@@ -158,18 +174,6 @@ struct ethernet_state
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
 
-    const char *device_class = "A1";
-    const char *controller_name = "L0002";
-    const char *location = "Gedung A - Lantai 2";
-
-    EthernetServer server = EthernetServer(8000);
-
-    char method[8];
-    char path[32];
-    bool header_done;
-    char last_char;
-    byte mac_L0002[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5C};
-
     int newline_count;
     static const size_t BODY_SIZE = 2048;
     char body[BODY_SIZE];
@@ -180,3 +184,8 @@ struct ethernet_state
 };
 
 #endif
+// #include <avr/wdt.h>
+// void software_Reset() {
+//   wdt_enable(WDTO_15MS); // Enable watchdog with 15ms timeout
+//   while(1); // Wait for reset
+// }
