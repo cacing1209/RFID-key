@@ -3,7 +3,7 @@
 // #define DEBUG_ETH
 // #define DEBUG_MEM
 // #define DEBUG_ACC
-// #define DEBUG_RFID
+#define DEBUG_RFID
 #define read_little_end
 #include <Arduino.h>
 #include <SdFat.h>
@@ -147,12 +147,10 @@ private:
 public:
     auth_state auth;
     void begin(database_s *db);
-    void loop(database_s *db, storage_state *memory);
+    void loop(database_s *db, storage_state *memory, Relay_state *locker);
 
     /* request handling */
-    void handle_client(EthernetClient &client,
-                       database_s *db,
-                       storage_state *memory);
+    void handle_client(EthernetClient &client, database_s *db, storage_state *memory, Relay_state *locker);
     bool parse_request(EthernetClient &client);
     void reset_parser();
 
@@ -165,11 +163,13 @@ public:
                              storage_state *memory);
     void handle_delete_student(EthernetClient &client,
                                database_s *db,
-                               storage_state *memory);
+                               storage_state *memory, byte id);
     void handle_reset(EthernetClient &client,
                       database_s *db,
                       storage_state *memory);
-
+    void handle_open_locker(EthernetClient &client, Relay_state *rl, byte locker);
+    void handle_get_student(EthernetClient &client, database_s *db, byte locker_no);
+    
     /* response helpers */
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);

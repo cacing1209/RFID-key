@@ -26,7 +26,7 @@ void ethernet_state::begin(database_s *db)
     reset_parser();
 }
 
-void ethernet_state::loop(database_s *db, storage_state *memory)
+void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     Ethernet.maintain();
 
@@ -38,7 +38,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory)
         Serial.println("New client connected");
 #endif
 
-        handle_client(client, db, memory);
+        handle_client(client, db, memory, locker);
 
         delay(1);
         client.stop();
@@ -51,7 +51,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory)
     }
 }
 
-void ethernet_state::handle_client(EthernetClient &client, database_s *db, storage_state *memory)
+void ethernet_state::handle_client(EthernetClient &client, database_s *db, storage_state *memory, Relay_state *locker)
 {
     reset_parser();
     start_time = millis();
@@ -80,10 +80,10 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
     // Check authentication for protected endpoints
     bool needs_auth = false;
 
-    // Define which endpoints need authentication
-    if (strcmp(method, "POST") == 0 || strcmp(method, "DELETE") == 0)
+    if (strcmp(method, "POST") == 0 ||
+        strcmp(method, "DELETE") == 0)
     {
-        needs_auth = true; // All POST and DELETE need auth
+        needs_auth = true;
     }
 
     if (needs_auth && !auth.check_auth(auth_header))
@@ -92,28 +92,60 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
         return;
     }
 
-    // Route to appropriate handler
-    if (strcmp(path, "/info") == 0)
+    bool route_found = false;
+
+    if (strncmp(path, "/students/", 10) == 0)
     {
+        int locker_num = atoi(path + 10);
+
+        if (locker_num >= 0 && locker_num < size_mahasiswa)
+        {
+            route_found = true;
+
+            if (strcmp(method, "DELETE") == 0)
+            {
+                handle_delete_student(client, db, memory, locker_num);
+            }
+            else if (strcmp(method, "POST") == 0)
+            {
+                handle_open_locker(client, locker, locker_num);
+            }
+            else if (strcmp(method, "GET") == 0)
+            {
+                handle_get_student(client, db, locker_num);
+            }
+            else
+            {
+                send_error(client, 405, "Method Not Allowed");
+            }
+        }
+        else
+        {
+            send_error(client, 400, "Invalid locker number");
+        }
+    }
+    else if (strcmp(path, "/info") == 0 && strcmp(method, "GET") == 0)
+    {
+        route_found = true;
         handle_info(client);
     }
-    else if (strcmp(path, "/data") == 0 && strcmp(method, "GET") == 0)
+    else if (strcmp(path, "/students") == 0 && strcmp(method, "GET") == 0)
     {
+        route_found = true;
         handle_get_data(client, db);
     }
     else if (strcmp(path, "/students") == 0 && strcmp(method, "POST") == 0)
     {
+        route_found = true;
         handle_post_student(client, db, memory);
-    }
-    else if (strcmp(path, "/students") == 0 && strcmp(method, "DELETE") == 0)
-    {
-        handle_delete_student(client, db, memory);
     }
     else if (strcmp(path, "/reset") == 0 && strcmp(method, "POST") == 0)
     {
+        route_found = true;
         handle_reset(client, db, memory);
     }
-    else
+
+    if (!route_found)
     {
         send_error(client, 404, "Not Found");
     }
@@ -123,7 +155,6 @@ bool ethernet_state::parse_request(EthernetClient &client)
 {
     bool first_line = true;
     String line = "";
-    String auth_header = ""; // Store authorization header
 
     while (client.connected())
     {
@@ -135,7 +166,6 @@ bool ethernet_state::parse_request(EthernetClient &client)
             {
                 if (first_line)
                 {
-                    // Parse request line: "METHOD /path HTTP/1.1"
                     int space1 = line.indexOf(' ');
                     int space2 = line.indexOf(' ', space1 + 1);
 
@@ -149,18 +179,15 @@ bool ethernet_state::parse_request(EthernetClient &client)
 
                     first_line = false;
                 }
-                else if (line.startsWith("Authorization:"))
+                else if (line.startsWith("Authorization:") || line.startsWith("authorization:"))
                 {
-                    // Extract authorization header
-                    auth_header = line.substring(14); // Skip "Authorization:"
+                    auth_header = line.substring(14);
                     auth_header.trim();
                 }
                 else if (line.length() == 0 || (line.length() == 1 && line[0] == '\r'))
                 {
-                    // Empty line signals end of headers
                     header_done = true;
 
-                    // Read body if present
                     body_len = 0;
                     while (client.available() && body_len < BODY_SIZE - 1)
                     {
@@ -171,6 +198,9 @@ bool ethernet_state::parse_request(EthernetClient &client)
                     return true;
                 }
 
+#ifdef DEBUG_ETH
+                Serial.println(line);
+#endif
                 line = "";
             }
             else if (c != '\r')
@@ -179,7 +209,6 @@ bool ethernet_state::parse_request(EthernetClient &client)
             }
         }
 
-        // Timeout check
         if (millis() - start_time > 3000)
         {
             return false;
@@ -429,10 +458,76 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
     serializeJson(response, json, sizeof(json));
     send_ok(client, json);
 }
+void ethernet_state::handle_open_locker(EthernetClient &client,
+                                        Relay_state *locker,
+                                        byte locker_num)
+{
+    if (!locker)
+    {
+        send_error(client, 500, "Locker system not available");
+        return;
+    }
 
+    // Activate relay to open locker
+    locker[locker_num].status = Status_RL::ON;
+    locker[locker_num].last_t = millis();
+    locker[locker_num].shoow_rl = true;
+
+#ifdef DEBUG_ETH
+    Serial.print("Opening locker: ");
+    Serial.println(locker_num);
+#endif
+
+    StaticJsonDocument<128> response;
+    response["status"] = "opened";
+    response["locker"] = locker_num;
+    response["message"] = "Locker opened";
+
+    char json[128];
+    serializeJson(response, json, sizeof(json));
+    send_ok(client, json);
+}
+void ethernet_state::handle_get_student(EthernetClient &client,
+                                        database_s *db,
+                                        byte locker_num)
+{
+    if (!db)
+    {
+        send_error(client, 500, "Database not available");
+        return;
+    }
+
+    StaticJsonDocument<256> response;
+    response["locker"] = locker_num;
+
+    if (db[locker_num].statusdb == Status_db::Not_Available)
+    {
+        response["status"] = "occupied";
+
+        unsigned long uid_decimal =
+            ((unsigned long)db[locker_num].card[0]) |
+            ((unsigned long)db[locker_num].card[1] << 8) |
+            ((unsigned long)db[locker_num].card[2] << 16) |
+            ((unsigned long)db[locker_num].card[3] << 24);
+
+        char formatted_uid[11];
+        sprintf(formatted_uid, "%010lu", uid_decimal);
+        response["card_uid"] = formatted_uid;
+    }
+    else
+    {
+        // Locker is available/free
+        response["status"] = "available";
+    }
+
+    char json[256];
+    serializeJson(response, json, sizeof(json));
+    send_ok(client, json);
+}
 void ethernet_state::handle_delete_student(EthernetClient &client,
                                            database_s *db,
-                                           storage_state *memory)
+                                           storage_state *memory,
+                                           byte locker_num)
 {
     if (!db || !memory)
     {
@@ -440,45 +535,23 @@ void ethernet_state::handle_delete_student(EthernetClient &client,
         return;
     }
 
-    if (body_len == 0)
-    {
-        send_error(client, 400, "Empty body");
-        return;
-    }
-
-    StaticJsonDocument<256> doc;
-    DeserializationError error = deserializeJson(doc, body);
-
-    if (error)
-    {
-        send_error(client, 400, "Invalid JSON");
-        return;
-    }
-
-    byte locker = doc["locker"];
-
-    if (locker >= size_mahasiswa)
-    {
-        send_error(client, 400, "Invalid locker number");
-        return;
-    }
-
-    if (db[locker].statusdb == Status_db::Available)
+    // Check if locker is Available (NOT occupied)
+    if (db[locker_num].statusdb == Status_db::Available)
     {
         send_error(client, 404, "Locker not occupied");
         return;
     }
 
     database_s new_db[size_mahasiswa];
-
     for (int i = 0; i < size_mahasiswa; i++)
     {
         new_db[i] = db[i];
     }
 
-    new_db[locker].statusdb = Status_db::Available;
-    memset(new_db[locker].card, 0, size_uid);
-    new_db[locker].number_locker = locker;
+    // Set to Available (free) when deleting
+    new_db[locker_num].statusdb = Status_db::Available;
+    memset(new_db[locker_num].card, 0, size_uid);
+    new_db[locker_num].number_locker = locker_num;
 
     if (!memory->save_data(db, new_db))
     {
@@ -486,13 +559,17 @@ void ethernet_state::handle_delete_student(EthernetClient &client,
         return;
     }
 
+#ifdef DEBUG_ETH
+    Serial.print("Deleted student from locker: ");
+    Serial.println(locker_num);
+#endif
+
     StaticJsonDocument<128> response;
     response["status"] = "deleted";
-    response["locker"] = locker;
+    response["locker"] = locker_num;
 
     char json[128];
     serializeJson(response, json, sizeof(json));
-
     send_ok(client, json);
 }
 
@@ -543,7 +620,7 @@ void ethernet_state::send_ok(EthernetClient &client, const char *json)
 
 void ethernet_state::send_error(EthernetClient &client, int code, const char *msg)
 {
-    StaticJsonDocument<128> doc;
+    JsonDocument doc;
     doc["error"] = msg;
     doc["code"] = code;
 
