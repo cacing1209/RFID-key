@@ -59,7 +59,7 @@ enum class acc_action : uint8_t
     acc_on = 0x28,
     acc_off
 };
-struct acc_state
+struct buzzer_state
 {
     acc_mode mode;
     byte pin;
@@ -78,7 +78,7 @@ struct acc_state
     void stopBuzzer();
     void resetState(unsigned long now);
     void handleDenide(unsigned long now);
-    acc_state::acc_state(int feq) : freq(feq) {}
+    buzzer_state::buzzer_state(int feq) : freq(feq) {}
 };
 ;
 

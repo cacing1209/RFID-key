@@ -377,14 +377,13 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         return;
     }
 
-    // Check if locker is already occupied
     if (db[locker].statusdb == Status_db::Not_Available)
     {
         send_error(client, 409, "Locker already in use");
         return;
     }
 
-    String uid_str = String(card_uid_str);
+    String uid_str = card_uid_str;
 
     // Check if input is decimal number
     bool is_decimal = true;

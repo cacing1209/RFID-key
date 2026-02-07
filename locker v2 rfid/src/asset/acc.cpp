@@ -1,6 +1,6 @@
 #include <commond.h>
 
-void acc_state::main()
+void buzzer_state::main()
 {
     unsigned long now = millis();
 
@@ -29,17 +29,17 @@ void acc_state::main()
         }
     }
 }
-void acc_state::stopBuzzer()
+void buzzer_state::stopBuzzer()
 {
     noTone(pin);
 }
-void acc_state::resetState(unsigned long now)
+void buzzer_state::resetState(unsigned long now)
 {
     flip_flop = 0;
     buzzerState = false;
     LastOn = now;
 }
-void acc_state::handleDenide(unsigned long now)
+void buzzer_state::handleDenide(unsigned long now)
 {
     if (now - LastOn < 5000)
     {
@@ -52,7 +52,7 @@ void acc_state::handleDenide(unsigned long now)
         LastOn = now;
     }
 }
-uint8_t acc_state::getMaxFlip()
+uint8_t buzzer_state::getMaxFlip()
 {
     switch (mode)
     {
@@ -67,7 +67,7 @@ uint8_t acc_state::getMaxFlip()
     }
 }
 
-void acc_state::toggleBuzzer()
+void buzzer_state::toggleBuzzer()
 {
     buzzerState = !buzzerState;
 
