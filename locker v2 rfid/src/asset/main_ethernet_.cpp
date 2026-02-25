@@ -6,13 +6,13 @@ void ethernet_state::begin(database_s *db)
 {
     db_ptr = db;
 
-    if (Ethernet.begin(mac_L0002) == 0)
+    if (Ethernet.begin(eth_mac) == 0)
     {
 #ifdef DEBUG_ETH
         Serial.println("Failed to configure Ethernet using DHCP");
 #endif
         IPAddress ip(192, 168, 1, 177);
-        Ethernet.begin(mac_L0002, ip);
+        Ethernet.begin(eth_mac, ip);
     }
 
     server.begin();
@@ -138,6 +138,13 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
     {
         route_found = true;
         handle_post_student(client, db, memory);
+    }
+    else if (strcmp(path, "/restart") == 0 && strcmp(method, "POST") == 0)
+    {
+        #ifdef DEBUG_ETH
+                Serial.println(":sys:restart");
+        #endif
+        sys.software_Reset();
     }
     else if (strcmp(path, "/reset") == 0 && strcmp(method, "POST") == 0)
     {
@@ -269,25 +276,25 @@ void ethernet_state::handle_info(EthernetClient &client)
     doc["ip_a"] = ip_str;
 
     // MAC address
-    Ethernet.MACAddress(mac_L0002);
+    Ethernet.MACAddress(eth_mac);
     char mac_str[18];
     sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
-            mac_L0002[0], mac_L0002[1], mac_L0002[2], mac_L0002[3], mac_L0002[4], mac_L0002[5]);
+            eth_mac[0], eth_mac[1], eth_mac[2], eth_mac[3], eth_mac[4], eth_mac[5]);
     doc["mac_addr"] = mac_str;
     doc["total_locker"] = size_mahasiswa;
 
-    int occupied = 0;
+    int use = 0;
     if (db_ptr)
     {
         for (int i = 0; i < size_mahasiswa; i++)
         {
             if (db_ptr[i].statusdb == Status_db::Not_Available)
             {
-                occupied++;
+                use++;
             }
         }
     }
-    doc["avail_lock"] = size_mahasiswa - occupied;
+    doc["avail_lock"] = size_mahasiswa - use;
 #ifdef DEBUG_ETH
     Serial.println("mac:" + String(mac_str));
     Serial.println("c_name" + String(controller_name));
@@ -318,19 +325,17 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
             JsonObject student = students.createNestedObject();
             student["locker"] = db[i].number_locker;
 
-            // Convert 4 byte pertama ke decimal dengan leading zero
             unsigned long uid_decimal =
                 ((unsigned long)db[i].card[0]) |
                 ((unsigned long)db[i].card[1] << 8) |
                 ((unsigned long)db[i].card[2] << 16) |
                 ((unsigned long)db[i].card[3] << 24);
 
-            // Format dengan leading zero (10 digit)
             char dec[11];
             sprintf(dec, "%010lu", uid_decimal);
             student["card_uid"] = dec;
 
-            student["status"] = "occupied";
+            student["status"] = "use";
         }
     }
 
@@ -501,7 +506,7 @@ void ethernet_state::handle_get_student(EthernetClient &client,
 
     if (db[locker_num].statusdb == Status_db::Not_Available)
     {
-        response["status"] = "occupied";
+        response["status"] = "use";
 
         unsigned long uid_decimal =
             ((unsigned long)db[locker_num].card[0]) |
@@ -534,10 +539,10 @@ void ethernet_state::handle_delete_student(EthernetClient &client,
         return;
     }
 
-    // Check if locker is Available (NOT occupied)
+    // Check if locker is Available (NOT use)
     if (db[locker_num].statusdb == Status_db::Available)
     {
-        send_error(client, 404, "Locker not occupied");
+        send_error(client, 404, "Locker not use");
         return;
     }
 

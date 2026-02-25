@@ -41,16 +41,11 @@ void buzzer_state::resetState(unsigned long now)
 }
 void buzzer_state::handleDenide(unsigned long now)
 {
-    if (now - LastOn < 5000)
-    {
-        digitalWrite(pin, HIGH);
-    }
-    else
-    {
-        stopBuzzer();
-        act = acc_action::acc_off;
-        LastOn = now;
-    }
+    // if (now - LastOn > 2500)
+    // {
+    //     toggleBuzzer();
+    //     LastOn = now;
+    // }
 }
 uint8_t buzzer_state::getMaxFlip()
 {
@@ -62,6 +57,8 @@ uint8_t buzzer_state::getMaxFlip()
         return 8;
     case acc_mode::mode_fastloop8X:
         return 16;
+    case acc_mode::denide:
+        return 4;
     default:
         return 0;
     }

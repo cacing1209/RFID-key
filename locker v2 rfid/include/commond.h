@@ -4,6 +4,13 @@
 // #define DEBUG_MEM
 // #define DEBUG_ACC
 #define DEBUG_RFID
+
+// #define modelL0002
+// #define modelL0004
+// #define modelL0016
+// #define modelL0032
+#define modelL0128
+
 #define read_little_end
 #include <Arduino.h>
 #include <SdFat.h>
@@ -14,10 +21,6 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
                                34, 35, 36, 37, 38, 39,
                                40, 41, 42, 43, 44, 45,
                                46, 47, 48, 49, 50, 51, 52, 53};
-//    0028758077
-//    2788524568
-//    0563089154
-//    0038865439
 
 /* #pinout#
  * PN532 RFID menggunakan I2C:
@@ -138,9 +141,45 @@ private:
     char path[32];
     bool header_done;
     char last_char;
-    byte mac_L0002[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5C};
-    const char *device_class = "A1";
+
+#define COUNT_MODELS (              \
+    (defined(modelL0002) ? 1 : 0) + \
+    (defined(modelL0004) ? 1 : 0) + \
+    (defined(modelL0016) ? 1 : 0) + \
+    (defined(modelL0032) ? 1 : 0) + \
+    (defined(modelL0064) ? 1 : 0) + \
+    (defined(modelL0128) ? 1 : 0) + \
+    (defined(modelL0256) ? 1 : 0) + \
+    (defined(modelL0512) ? 1 : 0))
+
+#if COUNT_MODELS == 0
+#error "Error: Tidak ada model yang di-define!"
+#elif COUNT_MODELS > 1
+#error "Error: Hanya boleh define SATU model!"
+#endif
+
+#ifdef modelL0002
+    byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5C};
     const char *controller_name = "L0002";
+#elif defined(modelL0004)
+    byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5D};
+    const char *controller_name = "L0004";
+#elif defined(modelL0016)
+    byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5E};
+#elif defined(modelL0032)
+    byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5F};
+#elif defined(modelL0064)
+    byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x60};
+#elif defined(modelL0128)
+    byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x61};
+    const char *controller_name = "L0128";
+#elif defined(modelL0256)
+    byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x62};
+#elif defined(modelL0512)
+    byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x63};
+#endif
+
+    const char *device_class = "A1";
     char *location = "not_set";
     EthernetServer server = EthernetServer(8000);
 
@@ -169,7 +208,7 @@ public:
                       storage_state *memory);
     void handle_open_locker(EthernetClient &client, Relay_state *rl, byte locker);
     void handle_get_student(EthernetClient &client, database_s *db, byte locker_no);
-    
+
     /* response helpers */
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
@@ -182,10 +221,16 @@ public:
 
     database_s *db_ptr = nullptr;
 };
-
+#include <avr/wdt.h>
+struct system_d
+{
+    void software_Reset()
+    {
+        wdt_enable(WDTO_15MS);
+        while (1)
+        {
+        }
+    }
+};
+extern system_d sys;
 #endif
-// #include <avr/wdt.h>
-// void software_Reset() {
-//   wdt_enable(WDTO_15MS); // Enable watchdog with 15ms timeout
-//   while(1); // Wait for reset
-// }

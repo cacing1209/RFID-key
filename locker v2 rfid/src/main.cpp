@@ -1,19 +1,12 @@
 /**
- * | Pin Arduino Mega | Fungsi | Sambung ke SD Card | Sambung ke PN532 |
- * | ---------------- | ------ | ------------------ | ---------------- |
- * | 50               | MISO   | MISO               |                  |
- * | 51               | MOSI   | MOSI               |                  |
- * | 52               | SCK    | SCK                |                  |
- * | 2                | CS     | CS                 |                  |
- * | 20               | SDA    |                    | SDA              |
- * | 21               | SCL    |                    | SCL              |
- * | GND              | GND    | GND                | GND              |
- * | 5V/3.3V          | VCC    |                    | VCC              |
+ * | Pin Arduino Mega | Fungsi | Sambung ke PN532 |
+ * | ---------------- | ------ | ---------------- |
+ * | 2                | CS     |                  |
+ * | 20               | SDA    | SDA              |
+ * | 21               | SCL    | SCL              |
+ * | GND              | GND    | GND              |
+ * | 5V/3.3V          | VCC    | VCC              |
  *
- *
- * ambil data mahasiswa dari website local ketika ada perubahan saja
- * save eeprom
- * load data mahasiswa dari sdcard ketika booting
  *
  */
 #define PN532DEBUG
@@ -23,11 +16,11 @@
 #include <Wire.h>
 
 #define baudRate_PC 9600
-#define baudRate_ESP 115200
+// #define baudRate_ESP 115200
 
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
-rfid_state rfid(2000);
+rfid_state rfid(350);
 buzzer_state buzzer(1);
 ethernet_state eth;
 
@@ -39,8 +32,8 @@ void init_mypin()
 	for (size_t i = 0; i < sizeRelay; i++)
 	{
 		locker[i].pin = pin_IO[i];
-		locker[i].interval = 150;
 		pinMode(locker[i].pin, OUTPUT);
+		locker[i].interval = 100;
 		digitalWrite(locker[i].pin, HIGH);
 		locker[i].last_t = millis();
 	}
@@ -61,6 +54,7 @@ void init_mypin()
 	// rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = acc_mode::mode_fastloop4X;
+	Wire.begin();
 	SPI.begin();
 	eth.begin(data);
 	rfid.init_sensor(&nfc);
@@ -102,24 +96,26 @@ void setup()
 	Serial.begin(baudRate_PC);
 
 	init_mypin();
+
+#ifdef DEBUG_RFID
 	uint32_t versiondata = nfc.getFirmwareVersion();
 	if (!versiondata)
 	{
-
-#ifdef DEBUG_RFID
 		Serial.println("PN532 board not found!");
-#endif
 	}
 	else
 	{
-#ifdef DEBUG_RFID
 		Serial.println("rfid already use");
-#endif
 	}
+#endif
 	if (!memory.load_data(data))
 	{
 	}
-	// memory.save_data(data, data);
+
+	digitalWrite(buzzer.pin, LOW);
+	delay(2000);
+	digitalWrite(buzzer.pin, HIGH);
+	delay(2000);
 	Serial.println("Device Start");
 }
 
@@ -134,6 +130,10 @@ void loop()
 	// static unsigned long last_t = 0;
 	// last_t = millis();
 	// write to eeprom,handle relay,sync db
+	acc_main();
+	if (rfid.open_doors(locker))
+		return;
+	eth.loop(data, &memory, locker);
 	signed char card = rfid.read_crd(data, &nfc, locker);
 	switch (card)
 	{
@@ -144,22 +144,26 @@ void loop()
 		Serial.println(":bz:tone 1");
 #endif
 		break;
+
 	case -4:
 		buzzer.mode = acc_mode::mode_fastloop8X;
 		buzzer.act = acc_action::acc_on;
-		break;
 #ifdef DEBUG_RFID
 		Serial.println(":bz:tone 0");
 #endif
 		break;
+
+		// case -2:
+		// buzzer.mode = acc_mode::denide;
+		// buzzer.act = acc_action::acc_off;
+		// break;
+		// case 2:
+		// 	buzzer.act = acc_action::acc_off;
+		// 	break;
 	default:
 		break;
 	}
-	eth.loop(data, &memory,locker);
-	rfid.open_doors(locker);
-	acc_main();
 	// latency = millis() - last_t;
 	// if (rfid.enable_debug)
 	// 	Serial.println("latency processing=>" + String(latency));
 }
-
