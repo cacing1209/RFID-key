@@ -119,7 +119,7 @@ void loop()
 		break;
 
 	case -4:
-		buzzer.mode = acc_mode::mode_fastloop8X;
+		buzzer.mode = acc_mode::mode_fastloop4X;
 		buzzer.act = acc_action::acc_on;
 #ifdef DEBUG_RFID
 		Serial.println(":bz:tone 0");

@@ -125,11 +125,6 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
         {
             counting_reset++;
             last_init = millis();
-            if (sensor_ok)
-            {
-                need_rescan = false;
-                return false;
-            }
 #ifdef DEBUG_RFID
             Serial.println(":rfid:reinit pn532");
             if (need_rescan)
@@ -138,8 +133,16 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
                 Serial.println(":rfid:scan succes");
 
 #endif
+
+            if (sensor_ok)
+            {
+                need_rescan = false;
+                return false;
+            }
+            return true;
+
         }
-        return true;
+        return false;
     }
 
     else if (!sensor_ok)

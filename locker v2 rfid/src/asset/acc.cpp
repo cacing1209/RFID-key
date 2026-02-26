@@ -19,7 +19,7 @@ void buzzer_state::main()
 
     if (now - LastOn >= Interval)
     {
-        LastOn = now;
+        LastOn = millis();
         toggleBuzzer();
         flip_flop++;
 
