@@ -61,33 +61,6 @@ void init_mypin()
 	pinMode(buzzer.pin, OUTPUT);
 }
 storage_state memory;
-// void test_databased()
-// {
-// 	data[2].card[0] = 23;
-// 	data[2].card[1] = 239;
-// 	data[2].card[2] = 206;
-// 	data[2].card[3] = 5;
-
-// 	data[4].card[0] = 51;
-// 	data[4].card[1] = 61;
-// 	data[4].card[2] = 200;
-// 	data[4].card[3] = 5;
-
-// 	data[0].card[0] = 61;
-// 	data[0].card[1] = 208;
-// 	data[0].card[2] = 182;
-// 	data[0].card[3] = 1;
-
-// 	// data[15].card[0] = 2;
-// 	// data[15].card[1] = 15;
-// 	// data[15].card[2] = 144;
-// 	// data[15].card[3] = 33;
-// 	// data[15].card[4] = 151;
-// 	// data[15].card[5] = 224;
-// 	// data[15].card[6] = 0;
-
-// 	memory.save_data(data);
-// }
 void setup()
 {
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)

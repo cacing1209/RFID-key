@@ -149,6 +149,7 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
         Serial.println(":rfid:scan" + String(need_rescan));
 #endif
     }
+
     return false;
 }
 char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl)
