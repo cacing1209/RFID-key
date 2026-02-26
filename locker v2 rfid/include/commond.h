@@ -14,7 +14,8 @@
 #define read_little_end
 #include <Arduino.h>
 #include <SdFat.h>
-#include <../lib/Ethernet-2.0.2/src/Ethernet.h>
+#include <Ethernet.h>
+// #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
 #define sizeRelay 32
 const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
                                28, 29, 30, 31, 32, 33,
@@ -51,9 +52,11 @@ enum class Status_db : uint8_t
 
 enum class acc_mode : uint8_t
 {
-    mode_fastloop3X = 0x06,
-    mode_fastloop4X = 0x09,
-    mode_fastloop8X = 0x10,
+    mode_fastloop1X = 0x06,
+    mode_fastloop2X,
+    mode_fastloop3X,
+    mode_fastloop4X,
+    mode_fastloop8X,
     denide
 };
 

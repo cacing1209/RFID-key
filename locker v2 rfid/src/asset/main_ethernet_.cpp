@@ -5,7 +5,6 @@
 void ethernet_state::begin(database_s *db)
 {
     db_ptr = db;
-
     if (Ethernet.begin(eth_mac) == 0)
     {
 #ifdef DEBUG_ETH
@@ -77,7 +76,6 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
     Serial.println(auth_header);
 #endif
 
-    // Check authentication for protected endpoints
     bool needs_auth = false;
 
     if (strcmp(method, "POST") == 0 ||
@@ -141,9 +139,9 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
     }
     else if (strcmp(path, "/restart") == 0 && strcmp(method, "POST") == 0)
     {
-        #ifdef DEBUG_ETH
-                Serial.println(":sys:restart");
-        #endif
+#ifdef DEBUG_ETH
+        Serial.println(":sys:restart");
+#endif
         sys.software_Reset();
     }
     else if (strcmp(path, "/reset") == 0 && strcmp(method, "POST") == 0)
@@ -280,6 +278,7 @@ void ethernet_state::handle_info(EthernetClient &client)
     char mac_str[18];
     sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
             eth_mac[0], eth_mac[1], eth_mac[2], eth_mac[3], eth_mac[4], eth_mac[5]);
+    Ethernet.init();
     doc["mac_addr"] = mac_str;
     doc["total_locker"] = size_mahasiswa;
 

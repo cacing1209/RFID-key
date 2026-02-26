@@ -51,6 +51,10 @@ uint8_t buzzer_state::getMaxFlip()
 {
     switch (mode)
     {
+    case acc_mode::mode_fastloop1X:
+        return 2;
+    case acc_mode::mode_fastloop2X:
+        return 4;
     case acc_mode::mode_fastloop3X:
         return 6;
     case acc_mode::mode_fastloop4X:

@@ -1,0 +1,55 @@
+cargo:rerun-if-env-changed=TAURI_CONFIG
+cargo:rustc-check-cfg=cfg(desktop)
+cargo:rustc-cfg=desktop
+cargo:rustc-check-cfg=cfg(mobile)
+cargo:rerun-if-changed=/home/qyubit/Workspace/qyubit/locker-admin/src-tauri/tauri.conf.json
+cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_APP_NAME=locker
+cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_PREFIX=com_qyubit
+cargo:rustc-check-cfg=cfg(dev)
+cargo:PERMISSION_FILES_PATH=/home/qyubit/Workspace/qyubit/locker-admin/src-tauri/target/x86_64-pc-windows-msvc/release/build/locker-admin-be206ef6b1fbc241/out/app-manifest/__app__-permission-files
+cargo:rerun-if-changed=capabilities
+cargo:rerun-if-env-changed=REMOVE_UNUSED_COMMANDS
+cargo:rustc-env=TAURI_ENV_TARGET_TRIPLE=x86_64-pc-windows-msvc
+package.metadata does not exist
+OPT_LEVEL = Some(3)
+OUT_DIR = Some(/home/qyubit/Workspace/qyubit/locker-admin/src-tauri/target/x86_64-pc-windows-msvc/release/build/locker-admin-be206ef6b1fbc241/out)
+TARGET = Some(x86_64-pc-windows-msvc)
+CARGO_ENCODED_RUSTFLAGS = Some(-Clinker-flavor=lld-link-Lnative=/home/qyubit/.cache/cargo-xwin/xwin/crt/lib/x86_64-Lnative=/home/qyubit/.cache/cargo-xwin/xwin/sdk/lib/um/x86_64-Lnative=/home/qyubit/.cache/cargo-xwin/xwin/sdk/lib/ucrt/x86_64)
+cargo:rerun-if-env-changed=VCINSTALLDIR
+VCINSTALLDIR = None
+HOST = Some(x86_64-unknown-linux-gnu)
+cargo:rerun-if-env-changed=CC_x86_64-pc-windows-msvc
+CC_x86_64-pc-windows-msvc = None
+cargo:rerun-if-env-changed=CC_x86_64_pc_windows_msvc
+CC_x86_64_pc_windows_msvc = Some(clang-cl)
+cargo:rerun-if-env-changed=CC_KNOWN_WRAPPER_CUSTOM
+CC_KNOWN_WRAPPER_CUSTOM = None
+RUSTC_WRAPPER = None
+cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+CRATE_CC_NO_DEFAULTS = None
+CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+DEBUG = Some(false)
+cargo:rerun-if-env-changed=CFLAGS
+CFLAGS = None
+cargo:rerun-if-env-changed=TARGET_CFLAGS
+TARGET_CFLAGS = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_msvc
+CFLAGS_x86_64_pc_windows_msvc = Some(--target=x86_64-pc-windows-msvc -Wno-unused-command-line-argument -fuse-ld=lld-link /imsvc /home/qyubit/.cache/cargo-xwin/xwin/crt/include /imsvc /home/qyubit/.cache/cargo-xwin/xwin/sdk/include/ucrt /imsvc /home/qyubit/.cache/cargo-xwin/xwin/sdk/include/um /imsvc /home/qyubit/.cache/cargo-xwin/xwin/sdk/include/shared /imsvc /home/qyubit/.cache/cargo-xwin/xwin/sdk/include/winrt )
+cargo:rerun-if-env-changed=CC_SHELL_ESCAPED_FLAGS
+CC_SHELL_ESCAPED_FLAGS = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-msvc
+CFLAGS_x86_64-pc-windows-msvc = None
+cargo:rustc-link-arg-bins=/home/qyubit/Workspace/qyubit/locker-admin/src-tauri/target/x86_64-pc-windows-msvc/release/build/locker-admin-be206ef6b1fbc241/out/resource.lib
+cargo:rustc-link-search=native=/home/qyubit/Workspace/qyubit/locker-admin/src-tauri/target/x86_64-pc-windows-msvc/release/build/locker-admin-be206ef6b1fbc241/out
+cargo:rustc-link-arg=/NODEFAULTLIB:libvcruntimed.lib
+cargo:rustc-link-arg=/NODEFAULTLIB:vcruntime.lib
+cargo:rustc-link-arg=/NODEFAULTLIB:vcruntimed.lib
+cargo:rustc-link-arg=/NODEFAULTLIB:libcmtd.lib
+cargo:rustc-link-arg=/NODEFAULTLIB:msvcrt.lib
+cargo:rustc-link-arg=/NODEFAULTLIB:msvcrtd.lib
+cargo:rustc-link-arg=/NODEFAULTLIB:libucrt.lib
+cargo:rustc-link-arg=/NODEFAULTLIB:libucrtd.lib
+cargo:rustc-link-arg=/DEFAULTLIB:libcmt.lib
+cargo:rustc-link-arg=/DEFAULTLIB:libvcruntime.lib
+cargo:rustc-link-arg=/DEFAULTLIB:ucrt.lib

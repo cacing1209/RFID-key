@@ -50,7 +50,7 @@ void init_mypin()
 	}
 
 	buzzer.pin = PIN_buzzer;
-	buzzer.Interval = 50;
+	buzzer.Interval = 1000;
 	// rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = acc_mode::mode_fastloop4X;
@@ -111,7 +111,7 @@ void loop()
 	switch (card)
 	{
 	case 1:
-		buzzer.mode = acc_mode::mode_fastloop3X;
+		buzzer.mode = acc_mode::mode_fastloop1X;
 		buzzer.act = acc_action::acc_on;
 #ifdef DEBUG_RFID
 		Serial.println(":bz:tone 1");
