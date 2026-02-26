@@ -20,7 +20,7 @@
 
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
-rfid_state rfid(350);
+rfid_state rfid(2000);
 buzzer_state buzzer(1);
 ethernet_state eth;
 
