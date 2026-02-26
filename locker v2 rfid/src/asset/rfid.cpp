@@ -106,8 +106,7 @@ void rfid_state::init_sensor(Adafruit_PN532 *nfc)
     nfc->SAMConfig();
 #endif
 }
-
-char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl)
+bool sensor_undetect(Adafruit_PN532 *nfc)
 {
     static unsigned long last_init = 0;
     static bool need_rescan = false;
@@ -126,11 +125,10 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         {
             counting_reset++;
             last_init = millis();
-            init_sensor(nfc);
             if (sensor_ok)
             {
                 need_rescan = false;
-                return 2;
+                return false;
             }
 #ifdef DEBUG_RFID
             Serial.println(":rfid:reinit pn532");
@@ -141,8 +139,9 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
 
 #endif
         }
-        return -2;
+        return true;
     }
+
     else if (!sensor_ok)
     {
         need_rescan = !(sensor_ok);
@@ -150,7 +149,15 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         Serial.println(":rfid:scan" + String(need_rescan));
 #endif
     }
-
+    return false;
+}
+char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl)
+{
+    if (sensor_undetect(nfc))
+    {
+        init_sensor(nfc);
+        return -2;
+    }
     static bool last_read_c = false;
     static unsigned long last_t = 0;
     unsigned long now = millis();
@@ -169,7 +176,6 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
 #ifdef DEBUG_RFID
         byte fr_read[3] = {DEC, HEX, BIN};
         const char *fr_label[3] = {"DEC", "HEX", "BIN"};
-
         for (size_t cf = 0; cf < 3; cf++)
         {
             Serial.print(":rfid:Card detected (");
