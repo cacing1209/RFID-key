@@ -473,8 +473,7 @@ void ethernet_state::handle_open_locker(EthernetClient &client,
 
     // Activate relay to open locker
     locker[locker_num].status = Status_RL::ON;
-    locker[locker_num].last_t = millis();
-    locker[locker_num].shoow_rl = true;
+    locker[locker_num].reset_t = true;
 
 #ifdef DEBUG_ETH
     Serial.print("Opening locker: ");
@@ -484,7 +483,6 @@ void ethernet_state::handle_open_locker(EthernetClient &client,
     StaticJsonDocument<128> response;
     response["status"] = "opened";
     response["locker"] = locker_num;
-    response["message"] = "Locker opened";
 
     char json[128];
     serializeJson(response, json, sizeof(json));

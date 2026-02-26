@@ -106,7 +106,7 @@ struct Relay_state
     Status_RL status;
     byte pin;
     unsigned long last_t;
-    bool shoow_rl;
+    bool reset_t;
 };
 
 #include <Adafruit_PN532.h>

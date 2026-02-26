@@ -15,13 +15,14 @@ bool rfid_state::open_doors(Relay_state *rl)
     {
         if (rl[i].status == Status_RL::ON)
         {
-#ifdef DEBUG_RFID
-            if (rl[i].shoow_rl)
+            if (rl[i].reset_t)
             {
-                rl[i].shoow_rl = false;
+                rl[i].reset_t = false;
+                rl[i].last_t = millis();
+#ifdef DEBUG_RFID
                 Serial.println("locker on=>" + String(i));
-            }
 #endif
+            }
 
             if (current_t - rl[i].last_t >= rl[i].interval)
             {
@@ -47,7 +48,7 @@ bool rfid_state::open_doors(Relay_state *rl)
         else
         {
             digitalWrite(rl[i].pin, HIGH);
-            rl[i].last_t = current_t;
+            // rl[i].last_t = current_t;
         }
     }
     return false;
@@ -140,7 +141,6 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
                 return false;
             }
             return true;
-
         }
         return false;
     }
@@ -216,7 +216,7 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         if (number_locker != -1)
         {
             rl[number_locker].status = Status_RL::ON;
-            rl[number_locker].shoow_rl = true;
+            rl[number_locker].reset_t = true;
             rl[number_locker].last_t = millis();
         }
         else
