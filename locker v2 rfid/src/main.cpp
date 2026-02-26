@@ -50,7 +50,7 @@ void init_mypin()
 	}
 
 	buzzer.pin = PIN_buzzer;
-	buzzer.Interval = 250;
+	buzzer.Interval = 600;
 	// rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = acc_mode::mode_fastloop4X;
