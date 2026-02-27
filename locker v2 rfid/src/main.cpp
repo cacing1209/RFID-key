@@ -26,16 +26,16 @@ ethernet_state eth;
 NTPConfig ntpCfg;
 
 database_s data[size_mahasiswa];
-
-char *system_t()
+String system_t()
 {
 	time_t t = now();
 	char buffer[20];
 	sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d",
 			year(t), month(t), day(t),
 			hour(t), minute(t), second(t));
-	return buffer;
+	return String(buffer);
 }
+
 void init_mypin()
 {
 	Serial.println("init my pins");
