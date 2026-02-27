@@ -213,7 +213,8 @@ private:
     const char *device_class = "A1";
     char *location = "not_set";
     EthernetServer server = EthernetServer(8000);
-    String server_log;
+    char *server_log;
+    int portServer_log;
 
 public:
     auth_state auth;
