@@ -81,7 +81,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 void ethernet_state::handle_client(EthernetClient &client, database_s *db, storage_state *memory, Relay_state *locker)
 {
     reset_parser();
-    start_time = millis();
+    // start_time = millis();
 
     if (!parse_request(client))
     {
@@ -188,8 +188,9 @@ bool ethernet_state::parse_request(EthernetClient &client)
 {
     bool first_line = true;
     String line = "";
+    start_time = millis();
 
-    while (client.connected())
+    while (client.connected() || client.available())
     {
         if (client.available())
         {
@@ -220,14 +221,17 @@ bool ethernet_state::parse_request(EthernetClient &client)
                 else if (line.length() == 0 || (line.length() == 1 && line[0] == '\r'))
                 {
                     header_done = true;
-
                     body_len = 0;
-                    while (client.available() && body_len < BODY_SIZE - 1)
+
+                    unsigned long body_start = millis();
+                    while (millis() - body_start < 500)
                     {
-                        body[body_len++] = client.read();
+                        while (client.available() && body_len < BODY_SIZE - 1)
+                            body[body_len++] = client.read();
+                        if (!client.connected() && !client.available())
+                            break;
                     }
                     body[body_len] = '\0';
-
                     return true;
                 }
 
@@ -564,7 +568,6 @@ void ethernet_state::handle_delete_student(EthernetClient &client,
         return;
     }
 
-    // Check if locker is Available (NOT use)
     if (db[locker_num].statusdb == Status_db::Available)
     {
         send_error(client, 404, "Locker not use");
@@ -577,7 +580,6 @@ void ethernet_state::handle_delete_student(EthernetClient &client,
         new_db[i] = db[i];
     }
 
-    // Set to Available (free) when deleting
     new_db[locker_num].statusdb = Status_db::Available;
     memset(new_db[locker_num].card, 0, size_uid);
     new_db[locker_num].number_locker = locker_num;
@@ -696,6 +698,7 @@ void ethernet_state::send_eventLog(EthernetClient &client, byte number_locker)
     client.println();
     client.write((uint8_t *)buffer, len);
 
+    // get response
     unsigned long timeout = millis();
     while (client.connected() && millis() - timeout < 3000)
     {
