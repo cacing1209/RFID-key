@@ -1,7 +1,16 @@
 #include <Ethernet.h>
 #include <ArduinoJson.h>
 #include <commond.h>
-
+NTPConfig ntpCfg;
+String system_t()
+{
+    time_t t = now();
+    char buffer[20];
+    sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d",
+            year(t), month(t), day(t),
+            hour(t), minute(t), second(t));
+    return String(buffer);
+}
 void ethernet_state::begin(database_s *db)
 {
     db_ptr = db;
@@ -23,12 +32,25 @@ void ethernet_state::begin(database_s *db)
 
 #endif
     reset_parser();
+    ntpCfg.Udp.begin(ntpCfg.localPort);
+    unsigned long ntpTime = 0;
+    while (ntpTime == 0)
+    {
+#ifdef DEBUG_TIME
+        Serial.println("Menghubungi NTP server...");
+#endif
+        ntpTime = ntpCfg.getNTPTime();
+    }
+    setTime(ntpTime);
+#ifdef DEBUG_TIME
+    Serial.println("Waktu berhasil disinkronkan!");
+#endif
 }
 
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     Ethernet.maintain();
-
+    ntpCfg.update();
     EthernetClient client = server.available();
 
     if (client)
@@ -358,7 +380,7 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         return;
     }
 
-    StaticJsonDocument<512> doc;
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, body);
     if (error)
     {
@@ -638,4 +660,14 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
     client.println(strlen(json));
     client.println();
     client.println(json);
+}
+void ethernet_state::send_eventLog(EthernetClient &client, byte number_locker)
+{
+
+    JsonDocument js_form;
+    char js[128];
+    js_form["t"] = system_t();
+    js_form["no"] = number_locker;
+    serializeJson(js_form, js);
+    send_ok(client, js);
 }

@@ -23,18 +23,9 @@ Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(2000);
 buzzer_state buzzer(1);
 ethernet_state eth;
-NTPConfig ntpCfg;
 
 database_s data[size_mahasiswa];
-String system_t()
-{
-	time_t t = now();
-	char buffer[20];
-	sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d",
-			year(t), month(t), day(t),
-			hour(t), minute(t), second(t));
-	return String(buffer);
-}
+
 
 void init_mypin()
 {
@@ -78,19 +69,7 @@ void setup()
 #endif
 	Serial.begin(baudRate_PC);
 	init_mypin();
-	ntpCfg.Udp.begin(ntpCfg.localPort);
-	unsigned long ntpTime = 0;
-	while (ntpTime == 0)
-	{
-#ifdef DEBUG_TIME
-		Serial.println("Menghubungi NTP server...");
-#endif
-		ntpTime = ntpCfg.getNTPTime();
-	}
-	setTime(ntpTime);
-#ifdef DEBUG_TIME
-	Serial.println("Waktu berhasil disinkronkan!");
-#endif
+
 #ifdef DEBUG_RFID
 	uint32_t versiondata = nfc.getFirmwareVersion();
 	if (!versiondata)
@@ -157,6 +136,7 @@ void loop()
 		Serial.println(system_t());
 		last_sync = millis();
 	}
+
 	// latency = millis() - last_t;
 	// if (rfid.enable_debug)
 	// 	Serial.println("latency processing=>" + String(latency));

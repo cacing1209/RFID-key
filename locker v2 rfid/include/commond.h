@@ -1,9 +1,9 @@
 #ifndef COMMOND_H
 #define COMMOND_H
-// #define DEBUG_ETH
+#define DEBUG_ETH
 // #define DEBUG_MEM
 // #define DEBUG_ACC
-#define DEBUG_RFID
+// #define DEBUG_RFID
 #define DEBUG_TIME
 
 // #define modelL0002
@@ -243,6 +243,7 @@ public:
     /* response helpers */
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
+    void send_eventLog(EthernetClient &client,byte number_locker);
 
     int newline_count;
     static const size_t BODY_SIZE = 2048;
