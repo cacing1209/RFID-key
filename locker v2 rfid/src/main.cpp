@@ -68,17 +68,16 @@ void setup()
 	delay(5000);
 #endif
 	Serial.begin(baudRate_PC);
+	init_mypin();
 	ntpCfg.Udp.begin(ntpCfg.localPort);
 	unsigned long ntpTime = 0;
 	while (ntpTime == 0)
 	{
 		Serial.println("Menghubungi NTP server...");
 		ntpTime = ntpCfg.getNTPTime();
-		delay(1000);
 	}
 	setTime(ntpTime);
 	Serial.println("Waktu berhasil disinkronkan!");
-	init_mypin();
 
 #ifdef DEBUG_RFID
 	uint32_t versiondata = nfc.getFirmwareVersion();
