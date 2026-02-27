@@ -15,6 +15,9 @@
 #include <Arduino.h>
 #include <SdFat.h>
 #include <Ethernet.h>
+#include <TimeLib.h>
+#include <EthernetUdp.h>
+
 // #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
 #define sizeRelay 32
 const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
@@ -134,6 +137,29 @@ struct storage_state
 
     void factory_reset(database_s *db);
 };
+
+// === NTP Config ===
+const int NTP_PACKET_SIZE = 48;
+struct NTPConfig
+{
+    IPAddress timeServer;
+    byte packetBuffer[NTP_PACKET_SIZE];
+    EthernetUDP Udp;
+    unsigned int localPort;
+    void sendNTPpacket();
+    unsigned long getNTPTime();
+    // WIB  (UTC+7)
+    const long utcOffsetSeconds = 7 * 3600;
+    // WITA (UTC+8)
+    // const long utcOffsetSeconds = 8 * 3600;
+    // WIT  (UTC+9)
+    // const long utcOffsetSeconds = 9 * 3600;
+    NTPConfig() : timeServer(216, 239, 35, 0), localPort(8888)
+    {
+        memset(packetBuffer, 0, NTP_PACKET_SIZE);
+    }
+};
+
 #define S_MAC 6
 #include <auth.h>
 struct ethernet_state

@@ -23,6 +23,7 @@ Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(2000);
 buzzer_state buzzer(1);
 ethernet_state eth;
+NTPConfig ntpCfg;
 
 database_s data[size_mahasiswa];
 
@@ -67,7 +68,16 @@ void setup()
 	delay(5000);
 #endif
 	Serial.begin(baudRate_PC);
-
+	ntpCfg.Udp.begin(ntpCfg.localPort);
+	unsigned long ntpTime = 0;
+	while (ntpTime == 0)
+	{
+		Serial.println("Menghubungi NTP server...");
+		ntpTime = ntpCfg.getNTPTime();
+		delay(1000);
+	}
+	setTime(ntpTime);
+	Serial.println("Waktu berhasil disinkronkan!");
 	init_mypin();
 
 #ifdef DEBUG_RFID
@@ -103,6 +113,21 @@ void loop()
 	// static unsigned long last_t = 0;
 	// last_t = millis();
 	// write to eeprom,handle relay,sync db
+	time_t t = now();
+	char buffer[20];
+	sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d",
+			year(t), month(t), day(t),
+			hour(t), minute(t), second(t));
+
+	static unsigned long last_sync = 0;
+
+	if (millis() - last_sync > 3000)
+	{
+		Serial.print("time:");
+		Serial.println(buffer);
+		last_sync = millis();
+	}
+
 	acc_main();
 	if (rfid.open_doors(locker))
 		return;
