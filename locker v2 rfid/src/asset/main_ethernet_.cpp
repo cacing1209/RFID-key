@@ -56,7 +56,14 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     for (size_t i = 0; i < size_mahasiswa; i++)
     {
         if (locker[i].reset_t == true)
-            send_eventLog(i);
+        {
+            unsigned long uid_decimal = 0;
+            for (int x = 3; x >= 0; x--)
+            {
+                uid_decimal = (uid_decimal << 8) | db[i].card[x];
+            }
+            send_eventLog(uid_decimal, i);
+        }
     }
 
     if (client)
@@ -71,9 +78,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
         client.stop();
 
 #ifdef DEBUG_ETH
-        {
-            Serial.println("Client disconnected");
-        }
+        Serial.println("Client disconnected");
 #endif
     }
 }
@@ -678,23 +683,26 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
     client.println();
     client.println(json);
 }
-void ethernet_state::send_eventLog(byte number_locker) // ← hapus parameter client
+void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
-    EthernetClient logClient; // ← client baru, socket baru
+    EthernetClient logClient;
 
     server_log = "93.144.178.53";
     portServer_log = 3000;
 
     if (!logClient.connect(server_log, portServer_log))
     {
+#ifdef DEBUG_ETH
         Serial.println("Gagal connect ke log server");
+#endif
         return;
     }
 
     StaticJsonDocument<128> doc;
     char buffer[128];
     doc["t"] = system_t();
-    doc["no"] = number_locker;
+    doc["no"] = index;
+    doc["id"] = uid_decimal;
     size_t len = serializeJson(doc, buffer);
 
     logClient.println("POST /event-log HTTP/1.1");

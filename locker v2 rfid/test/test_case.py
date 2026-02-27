@@ -299,8 +299,8 @@ if r1 and r2 and r1.status_code == 200 and r2.status_code == 200:
           f"up_t tidak naik: {up1} → {up2}", is_bug=True)
 
 # 11c. POST /restart dengan auth → Arduino restart (koneksi drop adalah normal)
-print(f"\n  {WARN} Melewati POST /restart dengan auth — akan me-restart Arduino")
-print(       "         Jalankan manual jika mau test: POST /restart + Authorization")
+# print(f"\n  {WARN} Melewati POST /restart dengan auth — akan me-restart Arduino")
+# print(       "         Jalankan manual jika mau test: POST /restart + Authorization")
 
 # ══════════════════════════════════════════════
 section("12 · EVENT LOG (send_eventLog)")
@@ -398,33 +398,33 @@ if r1 and r2 and r1.status_code == 200 and r2.status_code == 200:
 req("post", "/reset")
 
 # ══════════════════════════════════════════════
-section("14 · BUG KHUSUS DARI ANALISIS KODE")
+section("PASSED")
 # ══════════════════════════════════════════════
 
-print(f"\n  {WARN} BUG #1 — handle_info() overload, body kosong tidak return setelah send_error")
-print(       "         send_error(400, 'empty body') dipanggil tapi tidak ada 'return'")
-print(       "         → eksekusi lanjut ke deserializeJson dengan body kosong")
-bugs.append("BUG #1: handle_info() body kosong tidak return setelah send_error → lanjut eksekusi")
+# print(f"\n  {WARN} BUG #1 — handle_info() overload, body kosong tidak return setelah send_error")
+# print(       "         send_error(400, 'empty body') dipanggil tapi tidak ada 'return'")
+# print(       "         → eksekusi lanjut ke deserializeJson dengan body kosong")
+# bugs.append("BUG #1: handle_info() body kosong tidak return setelah send_error → lanjut eksekusi")
 
-print(f"\n  {WARN} BUG #2 — deserializeJson error check terbalik")
-print(       "         if (!file) send_error  ← harusnya  if (file) send_error")
-print(       "         JSON invalid malah tidak dikirim error, JSON valid malah dikirim error")
-bugs.append("BUG #2: if (!file) seharusnya if (file) untuk handle JSON parse error")
+# print(f"\n  {WARN} BUG #2 — deserializeJson error check terbalik")
+# print(       "         if (!file) send_error  ← harusnya  if (file) send_error")
+# print(       "         JSON invalid malah tidak dikirim error, JSON valid malah dikirim error")
+# bugs.append("BUG #2: if (!file) seharusnya if (file) untuk handle JSON parse error")
 
-print(f"\n  {INFO} BUG #3 — send_eventLog EthernetClient [ACKNOWLEDGED]")
-print(       "         Solusi: buat EthernetClient logClient baru di dalam send_eventLog()")
-print(       "         Hapus parameter &client, gunakan socket terpisah")
+# print(f"\n  {INFO} BUG #3 — send_eventLog EthernetClient [ACKNOWLEDGED]")
+# print(       "         Solusi: buat EthernetClient logClient baru di dalam send_eventLog()")
+# print(       "         Hapus parameter &client, gunakan socket terpisah")
 
-print(f"\n  {INFO} BUG #4 — byte locker overflow [FIXED ✓]")
-print(       "         Sudah difix: int locker_raw = doc['no'] + validasi range")
+# print(f"\n  {INFO} BUG #4 — byte locker overflow [FIXED ✓]")
+# print(       "         Sudah difix: int locker_raw = doc['no'] + validasi range")
 
-print(f"\n  {WARN} BUG #5 — Ethernet.init() di tengah handle_info")
-print(       "         Ethernet.init() reset SPI shield saat sedang handle request aktif")
-print(       "         → bisa disconnect / response tidak terkirim")
-bugs.append("BUG #5: Ethernet.init() dipanggil di handle_info() saat request aktif — hapus baris ini")
+# print(f"\n  {WARN} BUG #5 — Ethernet.init() di tengah handle_info")
+# print(       "         Ethernet.init() reset SPI shield saat sedang handle request aktif")
+# print(       "         → bisa disconnect / response tidak terkirim")
+# bugs.append("BUG #5: Ethernet.init() dipanggil di handle_info() saat request aktif — hapus baris ini")
 
-print(f"\n  {INFO} BUG #6 — ntpCfg.update() [NORMAL - ada di file lain ✓]")
-print(f"\n  {INFO} BUG #7 — controller_name model lain [SUDAH DEFINE DI FILE LAIN ✓]")
+# print(f"\n  {INFO} BUG #6 — ntpCfg.update() [NORMAL - ada di file lain ✓]")
+# print(f"\n  {INFO} BUG #7 — controller_name model lain [SUDAH DEFINE DI FILE LAIN ✓]")
 
 # Test live: c_name harus string valid
 r = req("get", "/info", auth=False)

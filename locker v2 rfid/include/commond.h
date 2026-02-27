@@ -1,10 +1,10 @@
 #ifndef COMMOND_H
 #define COMMOND_H
-#define DEBUG_ETH
+// #define DEBUG_ETH
 // #define DEBUG_MEM
 // #define DEBUG_ACC
 // #define DEBUG_RFID
-#define DEBUG_TIME
+// #define DEBUG_TIME
 
 // #define modelL0002
 // #define modelL0004
@@ -184,9 +184,9 @@ private:
     (defined(modelL0512) ? 1 : 0))
 
 #if COUNT_MODELS == 0
-#error "Error: Tidak ada model yang di-define!"
+#error "Error: DEFINE MODEL SEK SUU!"
 #elif COUNT_MODELS > 1
-#error "Error: Hanya boleh define SATU model!"
+#error "Error: PILIH SATU AJA NDENG GENDENG!"
 #endif
 
 #ifdef modelL0002
@@ -245,7 +245,7 @@ public:
     /* response helpers */
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
-    void send_eventLog(byte number_locker);
+    void send_eventLog(const unsigned long uid_decimal, byte index);
 
     int newline_count;
     static const size_t BODY_SIZE = 2048;
