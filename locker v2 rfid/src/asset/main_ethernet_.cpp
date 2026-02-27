@@ -403,8 +403,15 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         send_error(client, 400, "Missing required fields");
         return;
     }
+    int locker_raw = doc["no"];
 
-    byte locker = doc["no"];
+    if (locker_raw < 0 || locker_raw >= size_mahasiswa)
+    {
+        send_error(client, 400, "Invalid locker number");
+        return;
+    }
+
+    byte locker = (byte)locker_raw;
     const char *card_uid_str = doc["id"];
 
     if (!card_uid_str || locker >= size_mahasiswa)
