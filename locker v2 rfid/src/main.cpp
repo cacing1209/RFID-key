@@ -129,13 +129,13 @@ void loop()
 	default:
 		break;
 	}
-	static unsigned long last_sync = 0;
-	if (millis() - last_sync > 3000)
-	{
-		Serial.print("time:");
-		Serial.println(system_t());
-		last_sync = millis();
-	}
+	// static unsigned long last_sync = 0;
+	// if (millis() - last_sync > 3000)
+	// {
+	// 	Serial.print("time:");
+	// 	Serial.println(system_t());
+	// 	last_sync = millis();
+	// }
 
 	// latency = millis() - last_t;
 	// if (rfid.enable_debug)

@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <commond.h>
 NTPConfig ntpCfg;
+
 String system_t()
 {
     time_t t = now();
