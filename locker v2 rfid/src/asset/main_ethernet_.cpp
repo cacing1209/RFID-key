@@ -52,6 +52,11 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     Ethernet.maintain();
     ntpCfg.update();
     EthernetClient client = server.available();
+    for (size_t i = 0; i < size_mahasiswa; i++)
+    {
+        if (locker[i].reset_t == true)
+            send_eventLog(client, i);
+    }
 
     if (client)
     {
@@ -663,11 +668,41 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
 }
 void ethernet_state::send_eventLog(EthernetClient &client, byte number_locker)
 {
+    if (!client.connect("93.144.178.53", 3000))
+    {
+        Serial.println("Gagal connect ke server");
+        return;
+    }
 
-    JsonDocument js_form;
+    StaticJsonDocument<128> js_form;
     char js[128];
+
     js_form["t"] = system_t();
     js_form["no"] = number_locker;
-    serializeJson(js_form, js);
-    send_ok(client, js);
+
+    size_t len = serializeJson(js_form, js);
+
+    client.println("POST /event-log HTTP/1.1");
+    client.println("Host: 93.144.178.53:3000");
+    client.println("Content-Type: application/json");
+    client.println("Connection: close");
+    client.print("Content-Length: ");
+    client.println(len);
+    client.println();
+    client.write((uint8_t *)js, len);
+
+    Serial.println("Log terkirim");
+
+    unsigned long timeout = millis();
+    while (client.connected() && millis() - timeout < 3000)
+    {
+        while (client.available())
+        {
+            char c = client.read();
+            Serial.print(c);
+            timeout = millis();
+        }
+    }
+
+    client.stop();
 }

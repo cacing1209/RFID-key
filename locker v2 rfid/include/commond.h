@@ -213,6 +213,7 @@ private:
     const char *device_class = "A1";
     char *location = "not_set";
     EthernetServer server = EthernetServer(8000);
+    String server_log;
 
 public:
     auth_state auth;
@@ -243,7 +244,7 @@ public:
     /* response helpers */
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
-    void send_eventLog(EthernetClient &client,byte number_locker);
+    void send_eventLog(EthernetClient &client, byte number_locker);
 
     int newline_count;
     static const size_t BODY_SIZE = 2048;
