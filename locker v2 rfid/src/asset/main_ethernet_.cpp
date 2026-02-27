@@ -56,7 +56,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     for (size_t i = 0; i < size_mahasiswa; i++)
     {
         if (locker[i].reset_t == true)
-            send_eventLog(client, i);
+            send_eventLog(i);
     }
 
     if (client)
@@ -268,30 +268,32 @@ void ethernet_state::reset_parser()
     start_time = 0;
 }
 
-void ethernet_state::handle_info(EthernetClient &client, database_s *db, storage_state *memory, bool update)
-{
-    if (!db || !memory)
-    {
-        send_error(client, 500, "Database not available");
-        return;
-    }
-    if (body_len == 0)
-    {
-        send_error(client, 400, "empty body");
-    }
-    JsonDocument doc;
-    DeserializationError file = deserializeJson(doc, body);
-    if (!file)
-    {
-        send_error(client, 500, "error parsing json");
-        return;
-    }
-    if (String(doc.containsKey("location")) != String(location))
-    {
-    }
-}
+// void ethernet_state::handle_info(EthernetClient &client, database_s *db, storage_state *memory, bool update)
+// {
+//     if (!db || !memory)
+//     {
+//         send_error(client, 500, "Database not available");
+//         return;
+//     }
+//     if (body_len == 0)
+//     {
+//         send_error(client, 400, "empty body");
+//         return;
+//     }
+//     JsonDocument doc;
+//     DeserializationError file = deserializeJson(doc, body);
+//     if (file)
+//     {
+//         send_error(client, 500, "error parsing json");
+//         return;
+//     }
+//     if (String(doc.containsKey("location")) != String(location))
+//     {
+//     }
+// }
 void ethernet_state::handle_info(EthernetClient &client)
 {
+
     StaticJsonDocument<512> doc;
     doc["status"] = "ok";
     doc["dev_class"] = device_class;
@@ -676,45 +678,43 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
     client.println();
     client.println(json);
 }
-void ethernet_state::send_eventLog(EthernetClient &client, byte number_locker)
+void ethernet_state::send_eventLog(byte number_locker) // ← hapus parameter client
 {
+    EthernetClient logClient; // ← client baru, socket baru
+
     server_log = "93.144.178.53";
     portServer_log = 3000;
 
-    if (!client.connect(server_log, 3000))
+    if (!logClient.connect(server_log, portServer_log))
     {
-        Serial.println("Gagal connect");
+        Serial.println("Gagal connect ke log server");
         return;
     }
 
     StaticJsonDocument<128> doc;
     char buffer[128];
-
     doc["t"] = system_t();
     doc["no"] = number_locker;
-
     size_t len = serializeJson(doc, buffer);
 
-    client.println("POST /event-log HTTP/1.1");
-    client.println("Host: " + String(server_log) + ':' + String(portServer_log));
-    client.println("Content-Type: application/json");
-    client.println("X-API-KEY: locker-secret-123");
-    client.println("Connection: close");
-    client.print("Content-Length: ");
-    client.println(len);
-    client.println();
-    client.write((uint8_t *)buffer, len);
+    logClient.println("POST /event-log HTTP/1.1");
+    logClient.println("Host: " + String(server_log) + ':' + String(portServer_log));
+    logClient.println("Content-Type: application/json");
+    logClient.println("X-API-KEY: lockerqyubitL0002L0004L0008L000264L000128");
+    logClient.println("Connection: close");
+    logClient.print("Content-Length: ");
+    logClient.println(len);
+    logClient.println();
+    logClient.write((uint8_t *)buffer, len);
 
-    // get response
     unsigned long timeout = millis();
-    while (client.connected() && millis() - timeout < 3000)
+    while (logClient.connected() && millis() - timeout < 3000)
     {
-        while (client.available())
+        while (logClient.available())
         {
-            Serial.write(client.read());
+            Serial.write(logClient.read());
             timeout = millis();
         }
     }
-
-    client.stop();
+    logClient.stop();
 }

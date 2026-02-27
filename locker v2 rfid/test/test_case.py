@@ -401,46 +401,39 @@ req("post", "/reset")
 section("14 · BUG KHUSUS DARI ANALISIS KODE")
 # ══════════════════════════════════════════════
 
-print(f"\n  {WARN} BUG #1 — handle_info() overload signature salah")
-print(       "         void handle_info(client, db*, memory*, update)")
-print(       "         dipanggil dengan handle_info(client) saja → compile error / crash")
-bugs.append("BUG #1: handle_info(client, db, memory, update) tidak pernah dipanggil & body kosong tidak return error")
+print(f"\n  {WARN} BUG #1 — handle_info() overload, body kosong tidak return setelah send_error")
+print(       "         send_error(400, 'empty body') dipanggil tapi tidak ada 'return'")
+print(       "         → eksekusi lanjut ke deserializeJson dengan body kosong")
+bugs.append("BUG #1: handle_info() body kosong tidak return setelah send_error → lanjut eksekusi")
 
 print(f"\n  {WARN} BUG #2 — deserializeJson error check terbalik")
 print(       "         if (!file) send_error  ← harusnya  if (file) send_error")
-print(       "         Kalau JSON invalid, malah TIDAK error")
+print(       "         JSON invalid malah tidak dikirim error, JSON valid malah dikirim error")
 bugs.append("BUG #2: if (!file) seharusnya if (file) untuk handle JSON parse error")
 
-print(f"\n  {WARN} BUG #3 — send_eventLog pakai client dari server")
-print(       "         client sudah dipakai untuk server response,")
-print(       "         lalu di-reuse untuk connect ke log server → conflict")
-bugs.append("BUG #3: send_eventLog() reuse EthernetClient yang sama dengan HTTP server")
+print(f"\n  {INFO} BUG #3 — send_eventLog EthernetClient [ACKNOWLEDGED]")
+print(       "         Solusi: buat EthernetClient logClient baru di dalam send_eventLog()")
+print(       "         Hapus parameter &client, gunakan socket terpisah")
 
-print(f"\n  {WARN} BUG #4 — 'byte locker' bisa overflow")
-print(       "         JSON 'no' tidak dibatasi sebelum cast ke byte")
-print(       "         nilai -1 atau 256 akan wrap-around")
-bugs.append("BUG #4: byte locker = doc['no'] tanpa validasi range → overflow")
+print(f"\n  {INFO} BUG #4 — byte locker overflow [FIXED ✓]")
+print(       "         Sudah difix: int locker_raw = doc['no'] + validasi range")
 
 print(f"\n  {WARN} BUG #5 — Ethernet.init() di tengah handle_info")
-print(       "         Ethernet.init() reset SPI → bisa disconnect saat response")
-bugs.append("BUG #5: Ethernet.init() dipanggil di handle_info() saat request aktif")
+print(       "         Ethernet.init() reset SPI shield saat sedang handle request aktif")
+print(       "         → bisa disconnect / response tidak terkirim")
+bugs.append("BUG #5: Ethernet.init() dipanggil di handle_info() saat request aktif — hapus baris ini")
 
-print(f"\n  {WARN} BUG #6 — ntpCfg.update() dipanggil tapi method update() tidak didefinisikan")
-print(       "         di kode yang dibagikan → potential compile error")
-bugs.append("BUG #6: ntpCfg.update() dipanggil di loop() tapi tidak ada di NTPConfig struct")
+print(f"\n  {INFO} BUG #6 — ntpCfg.update() [NORMAL - ada di file lain ✓]")
+print(f"\n  {INFO} BUG #7 — controller_name model lain [SUDAH DEFINE DI FILE LAIN ✓]")
 
-print(f"\n  {WARN} BUG #7 — controller_name tidak didefinisikan untuk model L0016/L0032/L0064/L0256/L0512")
-print(       "         Pointer controller_name tidak di-set → undefined behavior / garbage string di /info")
-bugs.append("BUG #7: model L0016/L0032/L0064/L0256/L0512 tidak define controller_name di struct")
-
-# Test live: cek apakah c_name di response adalah garbage
+# Test live: c_name harus string valid
 r = req("get", "/info", auth=False)
 if r and r.status_code == 200:
     cname = r.json().get("c_name", "")
-    is_valid = cname and all(32 <= ord(c) < 127 for c in cname) and len(cname) < 20
-    check("c_name tidak garbage (printable ASCII, <20 char)",
+    is_valid = cname and all(32 <= ord(c) < 127 for c in str(cname)) and len(str(cname)) < 20
+    check("c_name valid (printable ASCII, <20 char)",
           is_valid,
-          f"c_name = '{cname}' — kemungkinan undefined pointer!", is_bug=True)
+          f"c_name = '{cname}'", is_bug=True)
 
 # ══════════════════════════════════════════════
 section("RINGKASAN")

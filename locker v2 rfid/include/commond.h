@@ -227,7 +227,7 @@ public:
     void reset_parser();
 
     /* endpoint handlers */
-    void handle_info(EthernetClient &client, database_s *db, storage_state *memory, bool update = false);
+    // void handle_info(EthernetClient &client, database_s *db, storage_state *memory, bool update = false);
     void handle_info(EthernetClient &client);
     void handle_get_data(EthernetClient &client, database_s *db);
     void handle_post_student(EthernetClient &client,
@@ -245,7 +245,7 @@ public:
     /* response helpers */
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
-    void send_eventLog(EthernetClient &client, byte number_locker);
+    void send_eventLog(byte number_locker);
 
     int newline_count;
     static const size_t BODY_SIZE = 2048;
