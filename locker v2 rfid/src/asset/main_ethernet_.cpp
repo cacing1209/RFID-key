@@ -669,7 +669,7 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
 }
 void ethernet_state::send_eventLog(EthernetClient &client, byte number_locker)
 {
-    if (!client.connect("192.168.1.100", 3000)) {
+    if (!client.connect("93.144.178.53", 3000)) {
         Serial.println("Gagal connect");
         return;
     }
@@ -683,7 +683,7 @@ void ethernet_state::send_eventLog(EthernetClient &client, byte number_locker)
     size_t len = serializeJson(doc, buffer);
 
     client.println("POST /event-log HTTP/1.1");
-    client.println("Host: 192.168.1.100:3000");
+    client.println("Host: 93.144.178.53:3000");
     client.println("Content-Type: application/json");
     client.println("X-API-KEY: locker-secret-123");
     client.println("Connection: close");
