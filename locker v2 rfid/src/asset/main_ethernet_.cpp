@@ -669,38 +669,34 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
 }
 void ethernet_state::send_eventLog(EthernetClient &client, byte number_locker)
 {
-    if (!client.connect("93.144.178.53", 3000))
-    {
-        Serial.println("Gagal connect ke server");
+    if (!client.connect("192.168.1.100", 3000)) {
+        Serial.println("Gagal connect");
         return;
     }
 
-    StaticJsonDocument<128> js_form;
-    char js[128];
+    StaticJsonDocument<128> doc;
+    char buffer[128];
 
-    js_form["t"] = system_t();
-    js_form["no"] = number_locker;
+    doc["t"] = system_t();
+    doc["no"] = number_locker;
 
-    size_t len = serializeJson(js_form, js);
+    size_t len = serializeJson(doc, buffer);
 
     client.println("POST /event-log HTTP/1.1");
-    client.println("Host: 93.144.178.53:3000");
+    client.println("Host: 192.168.1.100:3000");
     client.println("Content-Type: application/json");
+    client.println("X-API-KEY: locker-secret-123");
     client.println("Connection: close");
     client.print("Content-Length: ");
     client.println(len);
     client.println();
-    client.write((uint8_t *)js, len);
+    client.write((uint8_t*)buffer, len);
 
-    Serial.println("Log terkirim");
-
+    // Response debug
     unsigned long timeout = millis();
-    while (client.connected() && millis() - timeout < 3000)
-    {
-        while (client.available())
-        {
-            char c = client.read();
-            Serial.print(c);
+    while (client.connected() && millis() - timeout < 3000) {
+        while (client.available()) {
+            Serial.write(client.read());
             timeout = millis();
         }
     }
