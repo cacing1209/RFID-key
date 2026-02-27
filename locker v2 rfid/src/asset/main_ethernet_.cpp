@@ -53,18 +53,6 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     Ethernet.maintain();
     ntpCfg.update();
     EthernetClient client = server.available();
-    for (size_t i = 0; i < size_mahasiswa; i++)
-    {
-        if (locker[i].reset_t == true)
-        {
-            unsigned long uid_decimal = 0;
-            for (int x = 3; x >= 0; x--)
-            {
-                uid_decimal = (uid_decimal << 8) | db[i].card[x];
-            }
-            send_eventLog(uid_decimal, i);
-        }
-    }
 
     if (client)
     {
@@ -80,6 +68,18 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 #ifdef DEBUG_ETH
         Serial.println("Client disconnected");
 #endif
+    }
+    for (size_t i = 0; i < size_mahasiswa; i++)
+    {
+        if (locker[i].reset_t == true)
+        {
+            unsigned long uid_decimal = 0;
+            for (int x = 3; x >= 0; x--)
+            {
+                uid_decimal = (uid_decimal << 8) | db[i].card[x];
+            }
+            send_eventLog(uid_decimal, i);
+        }
     }
 }
 
