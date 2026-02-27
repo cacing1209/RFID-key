@@ -26,7 +26,6 @@ ethernet_state eth;
 
 database_s data[size_mahasiswa];
 
-
 void init_mypin()
 {
 	Serial.println("init my pins");
@@ -107,8 +106,8 @@ void loop()
 	acc_main();
 	if (rfid.open_doors(locker))
 		return;
-	eth.loop(data, &memory, locker);
 	signed char card = rfid.read_crd(data, &nfc, locker);
+	eth.loop(data, &memory, locker);
 	switch (card)
 	{
 	case 1:
