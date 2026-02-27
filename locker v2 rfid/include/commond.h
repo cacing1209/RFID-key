@@ -4,6 +4,7 @@
 // #define DEBUG_MEM
 // #define DEBUG_ACC
 #define DEBUG_RFID
+#define DEBUG_TIME
 
 // #define modelL0002
 // #define modelL0004
@@ -148,6 +149,7 @@ struct NTPConfig
     unsigned int localPort;
     void sendNTPpacket();
     unsigned long getNTPTime();
+    void update(int interval_sync = 60000);
     // WIB  (UTC+7)
     const long utcOffsetSeconds = 7 * 3600;
     // WITA (UTC+8)

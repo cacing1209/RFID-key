@@ -27,6 +27,15 @@ NTPConfig ntpCfg;
 
 database_s data[size_mahasiswa];
 
+char *system_t()
+{
+	time_t t = now();
+	char buffer[20];
+	sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d",
+			year(t), month(t), day(t),
+			hour(t), minute(t), second(t));
+	return buffer;
+}
 void init_mypin()
 {
 	Serial.println("init my pins");
@@ -73,12 +82,15 @@ void setup()
 	unsigned long ntpTime = 0;
 	while (ntpTime == 0)
 	{
+#ifdef DEBUG_TIME
 		Serial.println("Menghubungi NTP server...");
+#endif
 		ntpTime = ntpCfg.getNTPTime();
 	}
 	setTime(ntpTime);
+#ifdef DEBUG_TIME
 	Serial.println("Waktu berhasil disinkronkan!");
-
+#endif
 #ifdef DEBUG_RFID
 	uint32_t versiondata = nfc.getFirmwareVersion();
 	if (!versiondata)
@@ -112,20 +124,6 @@ void loop()
 	// static unsigned long last_t = 0;
 	// last_t = millis();
 	// write to eeprom,handle relay,sync db
-	time_t t = now();
-	char buffer[20];
-	sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d",
-			year(t), month(t), day(t),
-			hour(t), minute(t), second(t));
-
-	static unsigned long last_sync = 0;
-
-	if (millis() - last_sync > 3000)
-	{
-		Serial.print("time:");
-		Serial.println(buffer);
-		last_sync = millis();
-	}
 
 	acc_main();
 	if (rfid.open_doors(locker))
@@ -149,16 +147,15 @@ void loop()
 		Serial.println(":bz:tone 0");
 #endif
 		break;
-
-		// case -2:
-		// buzzer.mode = acc_mode::denide;
-		// buzzer.act = acc_action::acc_off;
-		// break;
-		// case 2:
-		// 	buzzer.act = acc_action::acc_off;
-		// 	break;
 	default:
 		break;
+	}
+	static unsigned long last_sync = 0;
+	if (millis() - last_sync > 3000)
+	{
+		Serial.print("time:");
+		Serial.println(system_t());
+		last_sync = millis();
 	}
 	// latency = millis() - last_t;
 	// if (rfid.enable_debug)
