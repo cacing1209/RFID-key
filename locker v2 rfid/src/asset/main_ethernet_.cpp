@@ -20,7 +20,7 @@ void ethernet_state::begin(database_s *db)
 #ifdef DEBUG_ETH
         Serial.println("Failed to configure Ethernet using DHCP");
 #endif
-        IPAddress ip(192, 168, 1, 177);
+        IPAddress ip(192, 168, 0, 177);
         Ethernet.begin(eth_mac, ip);
     }
 
@@ -33,7 +33,7 @@ void ethernet_state::begin(database_s *db)
 
 #endif
     reset_parser();
-    ntpCfg.Udp.begin(ntpCfg.localPort);
+    // ntpCfg.Udp.begin(ntpCfg.localPort);
     unsigned long ntpTime = 0;
 #ifdef DEBUG_TIME
     Serial.println("Menghubungi NTP server...");
@@ -55,15 +55,15 @@ void ethernet_state::begin(database_s *db)
             Serial.println(system_t());
 #endif
         }
-        ntpTime = ntpCfg.getNTPTime();
+        // ntpTime = ntpCfg.getNTPTime();
     }
-    setTime(ntpTime);
+    // setTime(ntpTime);
 }
 
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     Ethernet.maintain();
-    ntpCfg.update();
+    // ntpCfg.update();
     EthernetClient client = server.available();
 
     if (client)
