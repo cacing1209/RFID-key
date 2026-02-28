@@ -210,16 +210,16 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
         client.stop();
     }
 
-    // for (size_t i = 0; i < size_mahasiswa; i++)
-    // {
-    //     if (locker[i].reset_t == true)
-    //     {
-    //         unsigned long uid_decimal = 0;
-    //         for (int x = 3; x >= 0; x--)
-    //             uid_decimal = (uid_decimal << 8) | db[i].card[x];
-    //         send_eventLog(uid_decimal, i);
-    //     }
-    // }
+    for (size_t i = 0; i < size_mahasiswa; i++)
+    {
+        if (locker[i].reset_t == true)
+        {
+            unsigned long uid_decimal = 0;
+            for (int x = 3; x >= 0; x--)
+                uid_decimal = (uid_decimal << 8) | db[i].card[x];
+            send_eventLog(uid_decimal, i);
+        }
+    }
 }
 
 void ethernet_state::handle_client(EthernetClient &client, database_s *db, storage_state *memory, Relay_state *locker)
