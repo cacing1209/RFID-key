@@ -11,7 +11,7 @@ void buzzer_state::main()
         return;
     }
 
-    if (mode == acc_mode::denide)
+    if (mode == bz_mode::denide)
     {
         handleDenide(now);
         return;
@@ -51,17 +51,17 @@ uint8_t buzzer_state::getMaxFlip()
 {
     switch (mode)
     {
-    case acc_mode::mode_fastloop1X:
+    case bz_mode::mode_fastloop1X:
         return 2;
-    case acc_mode::mode_fastloop2X:
+    case bz_mode::mode_fastloop2X:
         return 4;
-    case acc_mode::mode_fastloop3X:
+    case bz_mode::mode_fastloop3X:
         return 6;
-    case acc_mode::mode_fastloop4X:
+    case bz_mode::mode_fastloop4X:
         return 8;
-    case acc_mode::mode_fastloop8X:
+    case bz_mode::mode_fastloop8X:
         return 16;
-    case acc_mode::denide:
+    case bz_mode::denide:
         return 4;
     default:
         return 0;
@@ -77,3 +77,4 @@ void buzzer_state::toggleBuzzer()
     else
         digitalWrite(pin, LOW);
 }
+

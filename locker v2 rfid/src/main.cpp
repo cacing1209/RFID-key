@@ -53,7 +53,7 @@ void init_mypin()
 	buzzer.Interval = 600;
 	// rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
-	buzzer.mode = acc_mode::mode_fastloop4X;
+	buzzer.mode = bz_mode::mode_fastloop4X;
 	pinMode(buzzer.pin, OUTPUT);
 	Wire.begin();
 	SPI.begin();
@@ -115,7 +115,7 @@ void loop()
 	switch (card)
 	{
 	case 1:
-		buzzer.mode = acc_mode::mode_fastloop1X;
+		buzzer.mode = bz_mode::mode_fastloop1X;
 		buzzer.act = acc_action::acc_on;
 		eth.interupt_trigger = true;
 #ifdef DEBUG_RFID
@@ -125,7 +125,7 @@ void loop()
 
 	case -4:
 		eth.interupt_trigger = true;
-		buzzer.mode = acc_mode::mode_fastloop4X;
+		buzzer.mode = bz_mode::mode_fastloop4X;
 		buzzer.act = acc_action::acc_on;
 #ifdef DEBUG_RFID
 		Serial.println(":bz:tone 0");

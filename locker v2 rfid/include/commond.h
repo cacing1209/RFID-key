@@ -50,7 +50,7 @@ enum class Status_db : uint8_t
     Not_Available
 };
 
-enum class acc_mode : uint8_t
+enum class bz_mode : uint8_t
 {
     mode_fastloop1X = 0x06,
     mode_fastloop2X,
@@ -65,13 +65,13 @@ enum class acc_action : uint8_t
     acc_on = 0x28,
     acc_off
 };
+
 struct buzzer_state
 {
-    acc_mode mode;
+    bz_mode mode;
     byte pin;
     acc_action act;
     unsigned long Interval;
-    unsigned int freq;
 
     byte flip_flop;
     bool buzzerState;
@@ -84,7 +84,6 @@ struct buzzer_state
     void stopBuzzer();
     void resetState(unsigned long now);
     void handleDenide(unsigned long now);
-    buzzer_state::buzzer_state(int feq) : freq(feq) {}
 };
 ;
 
