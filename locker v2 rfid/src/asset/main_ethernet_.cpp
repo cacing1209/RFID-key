@@ -12,8 +12,12 @@ String system_t()
             hour(t), minute(t), second(t));
     return String(buffer);
 }
+
 void ethernet_state::begin(database_s *db)
 {
+    db_ptr = db;
+    Ethernet.init(10);
+    delay(250);
 #ifdef DEBUG_ETH
     Serial.println(":eth:begin!");
     switch (Ethernet.hardwareStatus())
@@ -32,7 +36,6 @@ void ethernet_state::begin(database_s *db)
         break;
     }
 #endif
-    db_ptr = db;
     if (Ethernet.begin(eth_mac) == 0)
     {
 #ifdef DEBUG_ETH
@@ -93,20 +96,24 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     // ── Cek hardware link dulu (non-blocking) ──
     bool link_up = (Ethernet.linkStatus() == LinkON);
 
-    if (!link_up) {
+    if (!link_up)
+    {
         // Kabel cabut — skip semua, tidak ada delay
         eth_connected = false;
         return;
     }
 
     // ── Kabel baru konek lagi — reconnect ──
-    if (!eth_connected) {
-        if (now - last_reconnect >= RECONNECT_INTERVAL) {
+    if (!eth_connected)
+    {
+        if (now - last_reconnect >= RECONNECT_INTERVAL)
+        {
             last_reconnect = now;
 #ifdef DEBUG_ETH
             Serial.println("Kabel konek — mencoba DHCP...");
 #endif
-            if (Ethernet.begin(eth_mac) != 0) {
+            if (Ethernet.begin(eth_mac) != 0)
+            {
                 eth_connected = true;
                 server.begin();
                 ntpCfg.Udp.begin(ntpCfg.localPort);
@@ -117,14 +124,16 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
             }
             // kalau masih gagal, next iteration coba lagi
         }
-        return;  // ← jangan lanjut kalau belum connected
+        return; // ← jangan lanjut kalau belum connected
     }
 
     // ── Maintain DHCP — non-blocking pakai interval ──
-    if (now - last_maintain >= MAINTAIN_INTERVAL) {
+    if (now - last_maintain >= MAINTAIN_INTERVAL)
+    {
         last_maintain = now;
         byte result = Ethernet.maintain();
-        if (result == 1 || result == 3) {
+        if (result == 1 || result == 3)
+        {
             // 1 = renew fail, 3 = rebind fail → mark disconnect
             eth_connected = false;
 #ifdef DEBUG_ETH
@@ -138,15 +147,18 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 
     // ── Handle HTTP client ──
     EthernetClient client = server.available();
-    if (client) {
+    if (client)
+    {
         handle_client(client, db, memory, locker);
         delay(1);
         client.stop();
     }
 
     // ── Send event log ──
-    for (size_t i = 0; i < size_mahasiswa; i++) {
-        if (locker[i].reset_t == true) {
+    for (size_t i = 0; i < size_mahasiswa; i++)
+    {
+        if (locker[i].reset_t == true)
+        {
             unsigned long uid_decimal = 0;
             for (int x = 3; x >= 0; x--)
                 uid_decimal = (uid_decimal << 8) | db[i].card[x];
@@ -389,7 +401,6 @@ void ethernet_state::handle_info(EthernetClient &client)
     char mac_str[18];
     sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
             eth_mac[0], eth_mac[1], eth_mac[2], eth_mac[3], eth_mac[4], eth_mac[5]);
-    Ethernet.init();
     doc["mac_addr"] = mac_str;
     doc["total_locker"] = size_mahasiswa;
 
