@@ -90,29 +90,69 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 {
     unsigned long now = millis();
 
-    // ── Cek link status sesuai chip ──────────────────
-    bool link_up;
-    if (Ethernet.hardwareStatus() == EthernetW5100)
-    {
-        // W5100 tidak support linkStatus — pakai IP check sebagai fallback
-        link_up = (Ethernet.localIP() != IPAddress(0, 0, 0, 0));
-    }
-    else
-    {
-        // W5200 / W5500 — bisa pakai linkStatus
-        link_up = (Ethernet.linkStatus() == LinkON);
-    }
+    // ── Cek hardware link dulu (non-blocking) ──
+    bool link_up = (Ethernet.linkStatus() == LinkON);
 
-    if (!link_up)
-    {
+    if (!link_up) {
+        // Kabel cabut — skip semua, tidak ada delay
         eth_connected = false;
-#ifdef DEBUG_ETH
-        Serial.println(":eth:not connected");
-#endif
         return;
     }
 
-    // ... sisa kode tetap sama
+    // ── Kabel baru konek lagi — reconnect ──
+    if (!eth_connected) {
+        if (now - last_reconnect >= RECONNECT_INTERVAL) {
+            last_reconnect = now;
+#ifdef DEBUG_ETH
+            Serial.println("Kabel konek — mencoba DHCP...");
+#endif
+            if (Ethernet.begin(eth_mac) != 0) {
+                eth_connected = true;
+                server.begin();
+                ntpCfg.Udp.begin(ntpCfg.localPort);
+#ifdef DEBUG_ETH
+                Serial.print("Reconnect OK, IP: ");
+                Serial.println(Ethernet.localIP());
+#endif
+            }
+            // kalau masih gagal, next iteration coba lagi
+        }
+        return;  // ← jangan lanjut kalau belum connected
+    }
+
+    // ── Maintain DHCP — non-blocking pakai interval ──
+    if (now - last_maintain >= MAINTAIN_INTERVAL) {
+        last_maintain = now;
+        byte result = Ethernet.maintain();
+        if (result == 1 || result == 3) {
+            // 1 = renew fail, 3 = rebind fail → mark disconnect
+            eth_connected = false;
+#ifdef DEBUG_ETH
+            Serial.println("DHCP renew gagal");
+#endif
+            return;
+        }
+    }
+
+    ntpCfg.update();
+
+    // ── Handle HTTP client ──
+    EthernetClient client = server.available();
+    if (client) {
+        handle_client(client, db, memory, locker);
+        delay(1);
+        client.stop();
+    }
+
+    // ── Send event log ──
+    for (size_t i = 0; i < size_mahasiswa; i++) {
+        if (locker[i].reset_t == true) {
+            unsigned long uid_decimal = 0;
+            for (int x = 3; x >= 0; x--)
+                uid_decimal = (uid_decimal << 8) | db[i].card[x];
+            send_eventLog(uid_decimal, i);
+        }
+    }
 }
 
 void ethernet_state::handle_client(EthernetClient &client, database_s *db, storage_state *memory, Relay_state *locker)
