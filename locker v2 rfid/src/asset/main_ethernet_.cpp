@@ -134,6 +134,9 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
             send_eventLog(uid_decimal, i);
         }
     }
+#ifdef DEBUG_ETH
+    Serial.println(":eth:begin end");
+#endif
 }
 
 void ethernet_state::handle_client(EthernetClient &client, database_s *db, storage_state *memory, Relay_state *locker)
