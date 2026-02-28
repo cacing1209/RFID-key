@@ -14,6 +14,9 @@ String system_t()
 }
 void ethernet_state::begin(database_s *db)
 {
+#ifdef DEBUG_ETH
+    Serial.println(":eth:begin!");
+#endif
     db_ptr = db;
     if (Ethernet.begin(eth_mac) == 0)
     {
@@ -22,18 +25,21 @@ void ethernet_state::begin(database_s *db)
 #endif
         IPAddress ip(192, 168, 0, 177);
         Ethernet.begin(eth_mac, ip);
+        eth_connected = false;
+    }
+    else
+    {
+#ifdef DEBUG_ETH
+        Serial.print("Server is at ");
+        Serial.println(Ethernet.localIP());
+        Serial.println("port" + String(server));
+#endif
     }
 
     server.begin();
-
-#ifdef DEBUG_ETH
-    Serial.print("Server is at ");
-    Serial.println(Ethernet.localIP());
-    Serial.println("port" + String(server));
-
-#endif
     reset_parser();
-    // ntpCfg.Udp.begin(ntpCfg.localPort);
+    if (eth_connected)
+        ntpCfg.Udp.begin(ntpCfg.localPort);
     unsigned long ntpTime = 0;
 #ifdef DEBUG_TIME
     Serial.println("Menghubungi NTP server...");
@@ -55,41 +61,76 @@ void ethernet_state::begin(database_s *db)
             Serial.println(system_t());
 #endif
         }
-        // ntpTime = ntpCfg.getNTPTime();
+        ntpTime = ntpCfg.getNTPTime();
     }
-    // setTime(ntpTime);
+    setTime(ntpTime);
 }
 
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
-    Ethernet.maintain();
-    // ntpCfg.update();
-    EthernetClient client = server.available();
+    unsigned long now = millis();
 
+    bool link_up = (Ethernet.linkStatus() == LinkON);
+
+    if (!link_up)
+    {
+        eth_connected = false;
+        return;
+    }
+
+    if (!eth_connected)
+    {
+        if (now - last_reconnect >= RECONNECT_INTERVAL)
+        {
+            last_reconnect = now;
+#ifdef DEBUG_ETH
+            Serial.println("Kabel konek — mencoba DHCP...");
+#endif
+            if (Ethernet.begin(eth_mac) != 0)
+            {
+                eth_connected = true;
+                server.begin();
+                ntpCfg.Udp.begin(ntpCfg.localPort);
+#ifdef DEBUG_ETH
+                Serial.print("Reconnect OK, IP: ");
+                Serial.println(Ethernet.localIP());
+#endif
+            }
+        }
+        return;
+    }
+
+    if (now - last_maintain >= MAINTAIN_INTERVAL)
+    {
+        last_maintain = now;
+        byte result = Ethernet.maintain();
+        if (result == 1 || result == 3)
+        {
+            eth_connected = false;
+#ifdef DEBUG_ETH
+            Serial.println("DHCP renew gagal");
+#endif
+            return;
+        }
+    }
+
+    ntpCfg.update();
+
+    EthernetClient client = server.available();
     if (client)
     {
-#ifdef DEBUG_ETH
-        Serial.println("New client connected");
-#endif
-
         handle_client(client, db, memory, locker);
-
         delay(1);
         client.stop();
-
-#ifdef DEBUG_ETH
-        Serial.println("Client disconnected");
-#endif
     }
+
     for (size_t i = 0; i < size_mahasiswa; i++)
     {
         if (locker[i].reset_t == true)
         {
             unsigned long uid_decimal = 0;
             for (int x = 3; x >= 0; x--)
-            {
                 uid_decimal = (uid_decimal << 8) | db[i].card[x];
-            }
             send_eventLog(uid_decimal, i);
         }
     }

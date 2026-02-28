@@ -167,6 +167,12 @@ struct NTPConfig
 struct ethernet_state
 {
 private:
+private:
+    bool eth_connected = false;
+    unsigned long last_maintain = 0;
+    unsigned long last_reconnect = 0;
+    static const unsigned long MAINTAIN_INTERVAL = 500;
+    static const unsigned long RECONNECT_INTERVAL = 5000;
     String auth_header;
     char method[8];
     char path[32];
