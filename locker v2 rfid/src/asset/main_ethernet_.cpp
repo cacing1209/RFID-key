@@ -16,7 +16,7 @@ String system_t()
 void ethernet_state::begin(database_s *db)
 {
     db_ptr = db;
-    Ethernet.init();
+    Ethernet.init(10);
     delay(250);
 #ifdef DEBUG_ETH
     Serial.println(":eth:begin!");
@@ -78,12 +78,12 @@ void ethernet_state::begin(database_s *db)
         {
 #ifdef DEBUG_TIME
             Serial.println("Waktu berhasil disinkronkan!");
-            Serial.println(system_t());
 #endif
         }
         ntpTime = ntpCfg.getNTPTime();
     }
     setTime(ntpTime);
+    Serial.println(system_t());
 #ifdef DEBUG_ETH
     Serial.println(":eth:begin end");
 #endif
@@ -93,17 +93,14 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 {
     unsigned long now = millis();
 
-    // ── Cek hardware link dulu (non-blocking) ──
-    bool link_up = (Ethernet.linkStatus() == LinkON);
+    // bool link_up = (Ethernet.linkStatus() == LinkON);
 
-    if (!link_up)
-    {
-        // Kabel cabut — skip semua, tidak ada delay
-        eth_connected = false;
-        return;
-    }
+    // if (!link_up)
+    // {
+    //     eth_connected = false;
+    //     return;
+    // }
 
-    // ── Kabel baru konek lagi — reconnect ──
     if (!eth_connected)
     {
         if (now - last_reconnect >= RECONNECT_INTERVAL)

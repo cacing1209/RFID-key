@@ -54,11 +54,11 @@ void init_mypin()
 	// rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = acc_mode::mode_fastloop4X;
+	pinMode(buzzer.pin, OUTPUT);
 	Wire.begin();
 	SPI.begin();
 	eth.begin(data);
 	rfid.init_sensor(&nfc);
-	pinMode(buzzer.pin, OUTPUT);
 }
 storage_state memory;
 void setup()
