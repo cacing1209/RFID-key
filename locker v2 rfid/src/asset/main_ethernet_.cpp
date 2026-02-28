@@ -99,7 +99,13 @@ void ethernet_state::begin(database_s *db)
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     unsigned long now = millis();
-
+    if (Ethernet.linkStatus() == LinkOFF)
+    {
+#ifdef DEBUG_ETH
+        Serial.println("Kabel disconnect");
+#endif
+        return;
+    }
     if (!eth_connected)
     {
         if (now - last_reconnect >= RECONNECT_INTERVAL)
