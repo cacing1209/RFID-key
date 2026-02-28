@@ -57,7 +57,7 @@ void ethernet_state::begin(database_s *db)
 #ifdef DEBUG_ETH
         Serial.println("Failed to configure Ethernet using DHCP");
 #endif
-        IPAddress ip(192, 168, 0, 177);
+        IPAddress ip(192, 168, 0, 8);
         Ethernet.begin(eth_mac, ip);
         eth_connected = false;
     }
@@ -69,6 +69,14 @@ void ethernet_state::begin(database_s *db)
     Serial.print("Server is at ");
     Serial.println(Ethernet.localIP());
     Serial.println("port" + String(server));
+     if (ethernetCableConnected())
+    {
+        Serial.println("Ethernet cable connected");
+    }
+    else
+    {
+        Serial.println("Cable NOT connected");
+    }
     switch (Ethernet.hardwareStatus())
     {
     case EthernetW5100:
