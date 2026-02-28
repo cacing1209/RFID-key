@@ -115,8 +115,8 @@ void ethernet_state::begin(database_s *db)
         ntpTime = ntpCfg.getNTPTime();
     }
     setTime(ntpTime);
-    Serial.println(system_t());
 #ifdef DEBUG_ETH
+    Serial.println(system_t());
     Serial.println(":eth:begin end");
 #endif
 }
@@ -170,11 +170,10 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 server.begin();
                 ntpCfg.Udp.begin(ntpCfg.localPort);
                 ntpCfg.update(0);
-                Serial.println(String("t:") + system_t());
                 if (ntpCfg.getNTPTime() != 0)
                     setTime(ntpCfg.getNTPTime());
-                Serial.println(String("t:") + system_t());
 #ifdef DEBUG_ETH
+                Serial.println(String("t:") + system_t());
                 Serial.print("Reconnect OK, IP: ");
                 Serial.println(Ethernet.localIP());
 #endif
@@ -859,7 +858,9 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     {
         while (logClient.available())
         {
+#ifdef DEBUG_ETH
             Serial.write(logClient.read());
+#endif
             timeout = millis();
         }
     }

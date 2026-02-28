@@ -20,7 +20,7 @@
 
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
-rfid_state rfid(2000);
+rfid_state rfid(500);
 buzzer_state buzzer(1);
 ethernet_state eth;
 
@@ -88,7 +88,9 @@ void setup()
 	digitalWrite(buzzer.pin, LOW);
 	delay(200);
 	digitalWrite(buzzer.pin, HIGH);
+	delay(200);
 	Serial.println("Device Start");
+	eth.interupt_trigger = true;
 }
 
 void acc_main()
@@ -125,11 +127,11 @@ void loop()
 		eth.interupt_trigger = true;
 		buzzer.mode = acc_mode::mode_fastloop4X;
 		buzzer.act = acc_action::acc_on;
-		#ifdef DEBUG_RFID
+#ifdef DEBUG_RFID
 		Serial.println(":bz:tone 0");
-		#endif
+#endif
 		break;
-		default:
+	default:
 		break;
 	}
 	// Serial.println("latency processing=>" + String(latency));
