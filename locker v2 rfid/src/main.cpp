@@ -70,6 +70,7 @@ void setup()
 	init_mypin();
 
 #ifdef DEBUG_RFID
+	Serial.println("get board rfid");
 	uint32_t versiondata = nfc.getFirmwareVersion();
 	if (!versiondata)
 	{
