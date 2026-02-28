@@ -81,7 +81,6 @@ void setup()
 		Serial.println("rfid already use");
 	}
 #endif
-	Serial.println("load data");
 	if (!memory.load_data(data))
 	{
 	}
