@@ -160,6 +160,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
             if (Ethernet.begin(eth_mac) != 0)
             {
                 eth_connected = true;
+                first_initialize = true;
                 server.begin();
                 ntpCfg.Udp.begin(ntpCfg.localPort);
 #ifdef DEBUG_ETH
