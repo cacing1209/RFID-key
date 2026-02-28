@@ -39,6 +39,8 @@ void ethernet_state::begin(database_s *db)
 
     server.begin();
     reset_parser();
+    if (!eth_connected)
+        return;
     ntpCfg.Udp.begin(ntpCfg.localPort);
     unsigned long ntpTime = 0;
 #ifdef DEBUG_TIME
@@ -78,6 +80,9 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     if (!link_up)
     {
         eth_connected = false;
+#ifdef DEBUG_ETH
+        Serial.println(":eth:not connected lan");
+#endif
         return;
     }
 
