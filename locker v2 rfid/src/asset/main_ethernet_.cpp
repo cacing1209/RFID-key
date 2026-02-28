@@ -152,6 +152,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     if (!eth_connected && interupt_trigger)
     {
         last_reconnect = now;
+        interupt_trigger = false;
         return;
     }
     if (!eth_connected)
@@ -169,6 +170,10 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 server.begin();
                 ntpCfg.Udp.begin(ntpCfg.localPort);
                 ntpCfg.update(0);
+                Serial.println(String("t:") + system_t());
+                if (ntpCfg.getNTPTime() != 0)
+                    setTime(ntpCfg.getNTPTime());
+                Serial.println(String("t:") + system_t());
 #ifdef DEBUG_ETH
                 Serial.print("Reconnect OK, IP: ");
                 Serial.println(Ethernet.localIP());

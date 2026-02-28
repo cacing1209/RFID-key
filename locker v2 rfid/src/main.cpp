@@ -130,7 +130,6 @@ void loop()
 		#endif
 		break;
 		default:
-		eth.interupt_trigger = false;
 		break;
 	}
 	// Serial.println("latency processing=>" + String(latency));
