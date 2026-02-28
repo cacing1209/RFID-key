@@ -57,7 +57,7 @@ void init_mypin()
 	Wire.begin();
 	SPI.begin();
 	eth.begin(data);
-	rfid.init_sensor(&nfc);
+	// rfid.init_sensor(&nfc);
 	pinMode(buzzer.pin, OUTPUT);
 }
 storage_state memory;
