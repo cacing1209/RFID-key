@@ -21,7 +21,7 @@
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(500);
-buzzer_state buzzer(1);
+buzzer_state buzzer;
 ethernet_state eth;
 
 database_s data[size_mahasiswa];
