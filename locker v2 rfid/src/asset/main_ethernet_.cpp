@@ -16,7 +16,7 @@ String system_t()
 void ethernet_state::begin(database_s *db)
 {
     db_ptr = db;
-    Ethernet.init(10);
+    Ethernet.init();
     delay(250);
 #ifdef DEBUG_ETH
     Serial.println(":eth:begin!");
