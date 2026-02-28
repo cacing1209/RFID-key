@@ -165,6 +165,7 @@ struct ethernet_state
 private:
 private:
     bool eth_connected = false;
+    bool first_initialize = false;
     unsigned long last_maintain = 0;
     unsigned long last_reconnect = 0;
     static const unsigned long MAINTAIN_INTERVAL = 500;

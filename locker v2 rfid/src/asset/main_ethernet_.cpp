@@ -2,32 +2,6 @@
 #include <ArduinoJson.h>
 #include <commond.h>
 NTPConfig ntpCfg;
-bool ethernetCableConnected()
-{
-    auto link = Ethernet.linkStatus();
-
-    if (link == LinkON)
-    {
-        return true;
-    }
-
-    if (link == LinkOFF)
-    {
-        return false;
-    }
-
-    EthernetClient testClient;
-
-    IPAddress gateway = Ethernet.gatewayIP();
-
-    if (testClient.connect(gateway, 80))
-    {
-        testClient.stop();
-        return true;
-    }
-
-    return false;
-}
 String system_t()
 {
     time_t t = now();
@@ -43,15 +17,9 @@ void ethernet_state::begin(database_s *db)
     db_ptr = db;
     Ethernet.init(10);
     delay(250);
+#ifdef DEBUG_ETH
     Serial.println(":eth:begin..");
-    if (ethernetCableConnected())
-    {
-        Serial.println("Ethernet cable connected");
-    }
-    else
-    {
-        Serial.println("Cable NOT connected");
-    }
+#endif
     if (Ethernet.begin(eth_mac) == 0)
     {
 #ifdef DEBUG_ETH
@@ -60,16 +28,18 @@ void ethernet_state::begin(database_s *db)
         IPAddress ip(192, 168, 0, 8);
         Ethernet.begin(eth_mac, ip);
         eth_connected = false;
+        first_initialize = false;
     }
     else
     {
         eth_connected = true;
+        first_initialize = true;
     }
 #ifdef DEBUG_ETH
     Serial.print("Server is at ");
     Serial.println(Ethernet.localIP());
     Serial.println("port" + String(server));
-     if (ethernetCableConnected())
+    if (Ethernet.linkStatus() == LinkON)
     {
         Serial.println("Ethernet cable connected");
     }
@@ -131,10 +101,10 @@ void ethernet_state::begin(database_s *db)
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     unsigned long now = millis();
-    if (!ethernetCableConnected())
+    if (Ethernet.linkStatus() == LinkOFF && first_initialize)
     {
 #ifdef DEBUG_ETH
-        Serial.println("Kabel disconnect");
+        Serial.println("cable disconnect");
 #endif
         return;
     }
@@ -144,7 +114,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
         {
             last_reconnect = now;
 #ifdef DEBUG_ETH
-            Serial.println("Kabel konek — mencoba DHCP...");
+            Serial.println("try dhcp");
 #endif
             if (Ethernet.begin(eth_mac) != 0)
             {
@@ -156,6 +126,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 Serial.println(Ethernet.localIP());
 #endif
             }
+            first_initialize = true;
         }
         return;
     }
