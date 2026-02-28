@@ -127,26 +127,27 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     // static byte counting_try = 0;
     bool cable = ethernetCableConnected();
 
-    if (!cable && !first_initialize)
+    if (!cable)
     {
-        if (now - last_reconnect > 20000)
+        if (first_initialize)
         {
 #ifdef DEBUG_ETH
-            Serial.println("cable disconnect,with reinit");
+            Serial.println("cable disconnect");
 #endif
-            first_initialize = false;
+            return;
         }
-    }
-    else if (!cable && first_initialize)
-    {
+        else
+        {
+            if (now - last_reconnect > 20000)
+            {
 #ifdef DEBUG_ETH
-        Serial.println("cable disconnect");
+                Serial.println("cable disconnect,with reinit");
 #endif
-        return;
-    }
-    else
-    {
-        first_initialize = true;
+                first_initialize = false;
+            }
+            else
+                return;
+        }
     }
     if (!eth_connected)
     {
