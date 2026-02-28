@@ -29,6 +29,7 @@ void ethernet_state::begin(database_s *db)
     }
     else
     {
+        eth_connected = true;
 #ifdef DEBUG_ETH
         Serial.print("Server is at ");
         Serial.println(Ethernet.localIP());
