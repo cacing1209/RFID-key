@@ -35,26 +35,34 @@ void ethernet_state::begin(database_s *db)
     reset_parser();
     ntpCfg.Udp.begin(ntpCfg.localPort);
     unsigned long ntpTime = 0;
+#ifdef DEBUG_TIME
+    Serial.println("Menghubungi NTP server...");
+#endif
     while (ntpTime == 0)
     {
         static byte trying_get_time = 0;
         if (trying_get_time++ > 5)
-            break;
+        {
 #ifdef DEBUG_TIME
-        Serial.println("Menghubungi NTP server...");
+            Serial.println("gagal sinkronisasi waktu");
 #endif
+            break;
+        }
+        else
+        {
+#ifdef DEBUG_TIME
+            Serial.println("Waktu berhasil disinkronkan!");
+#endif
+        }
         ntpTime = ntpCfg.getNTPTime();
     }
     setTime(ntpTime);
-#ifdef DEBUG_TIME
-    Serial.println("Waktu berhasil disinkronkan!");
-#endif
 }
 
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     Ethernet.maintain();
-    // ntpCfg.update();
+    ntpCfg.update();
     EthernetClient client = server.available();
 
     if (client)
