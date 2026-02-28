@@ -86,9 +86,8 @@ void setup()
 	}
 
 	digitalWrite(buzzer.pin, LOW);
-	delay(2000);
+	delay(200);
 	digitalWrite(buzzer.pin, HIGH);
-	delay(2000);
 	Serial.println("Device Start");
 }
 

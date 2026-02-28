@@ -1,7 +1,7 @@
 #ifndef COMMOND_H
 #define COMMOND_H
 #define DEBUG_ETH
-// #define DEBUG_MEM
+#define DEBUG_MEM
 // #define DEBUG_ACC
 // #define DEBUG_RFID
 #define DEBUG_TIME
@@ -32,11 +32,7 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
  * SDA = Pin 20 (Arduino Mega)
  * SCL = Pin 21 (Arduino Mega)
  *
- * SD Card menggunakan SPI:
- * SPI MOSI    MOSI         51
- * SPI MISO    MISO         50
- * SPI SCK     SCK          52
- * CS          CS_SD        2
+
  * */
 
 #define CS_SD 2
