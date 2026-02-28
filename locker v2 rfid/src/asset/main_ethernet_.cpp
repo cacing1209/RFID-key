@@ -39,8 +39,7 @@ void ethernet_state::begin(database_s *db)
 
     server.begin();
     reset_parser();
-    if (eth_connected)
-        ntpCfg.Udp.begin(ntpCfg.localPort);
+    ntpCfg.Udp.begin(ntpCfg.localPort);
     unsigned long ntpTime = 0;
 #ifdef DEBUG_TIME
     Serial.println("Menghubungi NTP server...");
