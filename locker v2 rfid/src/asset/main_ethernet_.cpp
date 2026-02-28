@@ -124,18 +124,35 @@ void ethernet_state::begin(database_s *db)
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     unsigned long now = millis();
-    if (!ethernetCableConnected() && first_initialize)
+    // static byte counting_try = 0;
+    bool cable = ethernetCableConnected();
+
+    if (!cable && !first_initialize)
+    {
+        if (now - last_reconnect > 20000)
+        {
+#ifdef DEBUG_ETH
+            Serial.println("cable disconnect,with reinit");
+#endif
+            first_initialize = false;
+        }
+    }
+    else if (!cable && first_initialize)
     {
 #ifdef DEBUG_ETH
         Serial.println("cable disconnect");
 #endif
         return;
     }
+    else
+    {
+        first_initialize = true;
+    }
     if (!eth_connected)
     {
         if (now - last_reconnect >= RECONNECT_INTERVAL)
         {
-            last_reconnect = now;
+
 #ifdef DEBUG_ETH
             Serial.println("try dhcp");
 #endif
@@ -149,8 +166,8 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 Serial.println(Ethernet.localIP());
 #endif
             }
-            first_initialize = true;
         }
+        last_reconnect = millis();
         return;
     }
 
