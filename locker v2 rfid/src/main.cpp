@@ -101,14 +101,16 @@ void loop()
 {
 	static unsigned long latency = 0;
 	static unsigned long last_t = 0;
-	last_t = millis();
 	// write to eeprom,handle relay,sync db
 
 	acc_main();
 	if (rfid.open_doors(locker))
 		return;
 	signed char card = rfid.read_crd(data, &nfc, locker);
+	last_t = millis();
 	eth.loop(data, &memory, locker);
+	latency = millis() - last_t;
+
 	switch (card)
 	{
 	case 1:
@@ -129,7 +131,5 @@ void loop()
 	default:
 		break;
 	}
-
-	latency = millis() - last_t;
 	Serial.println("latency processing=>" + String(latency));
 }
