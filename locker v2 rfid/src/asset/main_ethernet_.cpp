@@ -180,6 +180,9 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
             }
         }
         last_reconnect = millis();
+#ifdef DEBUG_ETH
+        Serial.println("try dhcp end");
+#endif
         return;
     }
 
