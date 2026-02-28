@@ -168,6 +168,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 first_initialize = true;
                 server.begin();
                 ntpCfg.Udp.begin(ntpCfg.localPort);
+                ntpCfg.update(0);
 #ifdef DEBUG_ETH
                 Serial.print("Reconnect OK, IP: ");
                 Serial.println(Ethernet.localIP());
