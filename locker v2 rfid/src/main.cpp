@@ -100,17 +100,17 @@ void acc_main()
 void setup();
 void loop()
 {
-	static unsigned long latency = 0;
-	static unsigned long last_t = 0;
+	// static unsigned long latency = 0;
+	// static unsigned long last_t = 0;
 	// write to eeprom,handle relay,sync db
 
 	acc_main();
 	if (rfid.open_doors(locker))
 		return;
 	signed char card = rfid.read_crd(data, &nfc, locker);
-	last_t = millis();
+	// last_t = millis();
 	eth.loop(data, &memory, locker);
-	latency = millis() - last_t;
+	// latency = millis() - last_t;
 
 	switch (card)
 	{
