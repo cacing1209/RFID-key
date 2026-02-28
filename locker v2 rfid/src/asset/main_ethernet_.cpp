@@ -15,6 +15,9 @@ String system_t()
 
 void ethernet_state::begin(database_s *db)
 {
+#ifdef DEBUG_ETH
+    Serial.println(":eth:begin..");
+#endif
     db_ptr = db;
     Ethernet.init(10);
     delay(250);
@@ -30,14 +33,11 @@ void ethernet_state::begin(database_s *db)
     else
     {
         eth_connected = true;
-#ifdef DEBUG_ETH
-        Serial.print("Server is at ");
-        Serial.println(Ethernet.localIP());
-        Serial.println("port" + String(server));
-#endif
     }
 #ifdef DEBUG_ETH
-    Serial.println(":eth:begin!");
+    Serial.print("Server is at ");
+    Serial.println(Ethernet.localIP());
+    Serial.println("port" + String(server));
     switch (Ethernet.hardwareStatus())
     {
     case EthernetW5100:
@@ -53,7 +53,8 @@ void ethernet_state::begin(database_s *db)
         Serial.println("Chip: Not found!");
         break;
     }
-    if (Ethernet.linkStatus() == LinkOFF)
+
+    if (Ethernet.linkStatus() == LinkON)
     {
         Serial.println("Ethernet cable connected");
     }
