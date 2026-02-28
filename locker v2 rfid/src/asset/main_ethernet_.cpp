@@ -40,12 +40,18 @@ String system_t()
 
 void ethernet_state::begin(database_s *db)
 {
-#ifdef DEBUG_ETH
-    Serial.println(":eth:begin..");
-#endif
     db_ptr = db;
     Ethernet.init(10);
     delay(250);
+    Serial.println(":eth:begin..");
+    if (ethernetCableConnected())
+    {
+        Serial.println("Ethernet cable connected");
+    }
+    else
+    {
+        Serial.println("Cable NOT connected");
+    }
     if (Ethernet.begin(eth_mac) == 0)
     {
 #ifdef DEBUG_ETH
@@ -79,14 +85,6 @@ void ethernet_state::begin(database_s *db)
         break;
     }
 
-    if (ethernetCableConnected())
-    {
-        Serial.println("Ethernet cable connected");
-    }
-    else
-    {
-        Serial.println("Cable NOT connected");
-    }
 #endif
     server.begin();
     reset_parser();
@@ -151,7 +149,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 #endif
             }
         }
-        return; 
+        return;
     }
 
     if (now - last_maintain >= MAINTAIN_INTERVAL)
