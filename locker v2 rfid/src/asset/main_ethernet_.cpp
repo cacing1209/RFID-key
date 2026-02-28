@@ -92,15 +92,14 @@ void ethernet_state::begin(database_s *db)
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     unsigned long now = millis();
-
-    // bool link_up = (Ethernet.linkStatus() == LinkON);
-
-    // if (!link_up)
-    // {
-    //     eth_connected = false;
-    //     return;
-    // }
-
+    if (Ethernet.linkStatus() == LinkON)
+    {
+        Serial.println("Ethernet cable connected");
+    }
+    else
+    {
+        Serial.println("Cable NOT connected");
+    }
     if (!eth_connected)
     {
         if (now - last_reconnect >= RECONNECT_INTERVAL)
