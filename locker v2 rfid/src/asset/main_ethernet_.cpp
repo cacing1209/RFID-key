@@ -18,24 +18,6 @@ void ethernet_state::begin(database_s *db)
     db_ptr = db;
     Ethernet.init(10);
     delay(250);
-#ifdef DEBUG_ETH
-    Serial.println(":eth:begin!");
-    switch (Ethernet.hardwareStatus())
-    {
-    case EthernetW5100:
-        Serial.println("Chip: W5100");
-        break;
-    case EthernetW5200:
-        Serial.println("Chip: W5200");
-        break;
-    case EthernetW5500:
-        Serial.println("Chip: W5500");
-        break;
-    default:
-        Serial.println("Chip: Not found!");
-        break;
-    }
-#endif
     if (Ethernet.begin(eth_mac) == 0)
     {
 #ifdef DEBUG_ETH
@@ -54,7 +36,32 @@ void ethernet_state::begin(database_s *db)
         Serial.println("port" + String(server));
 #endif
     }
-
+#ifdef DEBUG_ETH
+    Serial.println(":eth:begin!");
+    switch (Ethernet.hardwareStatus())
+    {
+    case EthernetW5100:
+        Serial.println("Chip: W5100");
+        break;
+    case EthernetW5200:
+        Serial.println("Chip: W5200");
+        break;
+    case EthernetW5500:
+        Serial.println("Chip: W5500");
+        break;
+    default:
+        Serial.println("Chip: Not found!");
+        break;
+    }
+    if (Ethernet.linkStatus() == LinkON)
+    {
+        Serial.println("Ethernet cable connected");
+    }
+    else
+    {
+        Serial.println("Cable NOT connected");
+    }
+#endif
     server.begin();
     reset_parser();
     if (!eth_connected)
@@ -92,14 +99,7 @@ void ethernet_state::begin(database_s *db)
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     unsigned long now = millis();
-    if (Ethernet.linkStatus() == LinkON)
-    {
-        Serial.println("Ethernet cable connected");
-    }
-    else
-    {
-        Serial.println("Cable NOT connected");
-    }
+
     if (!eth_connected)
     {
         if (now - last_reconnect >= RECONNECT_INTERVAL)
