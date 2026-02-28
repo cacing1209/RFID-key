@@ -57,7 +57,7 @@ void init_mypin()
 	Wire.begin();
 	SPI.begin();
 	eth.begin(data);
-	// rfid.init_sensor(&nfc);
+	rfid.init_sensor(&nfc);
 	pinMode(buzzer.pin, OUTPUT);
 }
 storage_state memory;
@@ -99,9 +99,9 @@ void acc_main()
 void setup();
 void loop()
 {
-	// static unsigned long latency = 0;
-	// static unsigned long last_t = 0;
-	// last_t = millis();
+	static unsigned long latency = 0;
+	static unsigned long last_t = 0;
+	last_t = millis();
 	// write to eeprom,handle relay,sync db
 
 	acc_main();
@@ -129,15 +129,7 @@ void loop()
 	default:
 		break;
 	}
-	// static unsigned long last_sync = 0;
-	// if (millis() - last_sync > 3000)
-	// {
-	// 	Serial.print("time:");
-	// 	Serial.println(system_t());
-	// 	last_sync = millis();
-	// }
 
-	// latency = millis() - last_t;
-	// if (rfid.enable_debug)
-	// 	Serial.println("latency processing=>" + String(latency));
+	latency = millis() - last_t;
+	Serial.println("latency processing=>" + String(latency));
 }
