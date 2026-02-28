@@ -150,19 +150,16 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 Serial.println(Ethernet.localIP());
 #endif
             }
-            // kalau masih gagal, next iteration coba lagi
         }
-        return; // ← jangan lanjut kalau belum connected
+        return; 
     }
 
-    // ── Maintain DHCP — non-blocking pakai interval ──
     if (now - last_maintain >= MAINTAIN_INTERVAL)
     {
         last_maintain = now;
         byte result = Ethernet.maintain();
         if (result == 1 || result == 3)
         {
-            // 1 = renew fail, 3 = rebind fail → mark disconnect
             eth_connected = false;
 #ifdef DEBUG_ETH
             Serial.println("DHCP renew gagal");
@@ -173,7 +170,6 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 
     ntpCfg.update();
 
-    // ── Handle HTTP client ──
     EthernetClient client = server.available();
     if (client)
     {
@@ -182,7 +178,6 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
         client.stop();
     }
 
-    // ── Send event log ──
     for (size_t i = 0; i < size_mahasiswa; i++)
     {
         if (locker[i].reset_t == true)
