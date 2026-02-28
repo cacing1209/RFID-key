@@ -125,7 +125,7 @@ void ethernet_state::begin(database_s *db)
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     unsigned long now = millis();
-    if (ethernetCableConnected())
+    if (!ethernetCableConnected())
     {
 #ifdef DEBUG_ETH
         Serial.println("Kabel disconnect");
