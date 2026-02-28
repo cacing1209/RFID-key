@@ -2,6 +2,29 @@
 #include <ArduinoJson.h>
 #include <commond.h>
 NTPConfig ntpCfg;
+bool ethernetCableConnected()
+{
+    auto link = Ethernet.linkStatus();
+    if (link == LinkON)
+    {
+        return true;
+    }
+
+    if (link == LinkOFF)
+    {
+        return false;
+    }
+    EthernetClient testClient;
+    IPAddress gateway = Ethernet.gatewayIP();
+
+    if (testClient.connect(gateway, 80))
+    {
+        testClient.stop();
+        return true;
+    }
+
+    return false;
+}
 String system_t()
 {
     time_t t = now();
@@ -39,7 +62,7 @@ void ethernet_state::begin(database_s *db)
     Serial.print("Server is at ");
     Serial.println(Ethernet.localIP());
     Serial.println("port" + String(server));
-    if (Ethernet.linkStatus() == LinkON)
+    if (ethernetCableConnected())
     {
         Serial.println("Ethernet cable connected");
     }
@@ -101,7 +124,7 @@ void ethernet_state::begin(database_s *db)
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
     unsigned long now = millis();
-    if (Ethernet.linkStatus() == LinkOFF && first_initialize)
+    if (ethernetCableConnected() == LinkOFF && first_initialize)
     {
 #ifdef DEBUG_ETH
         Serial.println("cable disconnect");
