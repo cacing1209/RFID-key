@@ -52,6 +52,7 @@ void ethernet_state::begin(database_s *db)
         {
 #ifdef DEBUG_TIME
             Serial.println("Waktu berhasil disinkronkan!");
+            Serial.println(system_t());
 #endif
         }
         ntpTime = ntpCfg.getNTPTime();
