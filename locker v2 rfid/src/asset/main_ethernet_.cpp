@@ -168,11 +168,6 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 first_initialize = true;
                 server.begin();
                 ntpCfg.Udp.begin(ntpCfg.localPort);
-                if (ntpCfg.getNTPTime() != 0)
-                {
-                    ntpCfg.update(0);
-                    // setTime(ntpCfg.getNTPTime());
-                }
 #ifdef DEBUG_ETH
                 Serial.print("Reconnect OK, IP: ");
                 Serial.println(Ethernet.localIP());
@@ -195,10 +190,9 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 #endif
             return;
         }
-        Serial.println("DHCP renew gagal");
     }
 
-    ntpCfg.update(15000);
+    ntpCfg.update();
 
     EthernetClient client = server.available();
     if (client)
