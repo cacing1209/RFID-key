@@ -115,12 +115,14 @@ void loop()
 	case 1:
 		buzzer.mode = acc_mode::mode_fastloop1X;
 		buzzer.act = acc_action::acc_on;
+		eth.interupt_trigger = true;
 #ifdef DEBUG_RFID
 		Serial.println(":bz:tone 1");
 #endif
 		break;
 
 	case -4:
+		eth.interupt_trigger = true;
 		buzzer.mode = acc_mode::mode_fastloop4X;
 		buzzer.act = acc_action::acc_on;
 #ifdef DEBUG_RFID

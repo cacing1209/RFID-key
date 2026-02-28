@@ -1,7 +1,7 @@
 #ifndef COMMOND_H
 #define COMMOND_H
 #define DEBUG_ETH
-#define DEBUG_MEM
+// #define DEBUG_MEM
 // #define DEBUG_ACC
 // #define DEBUG_RFID
 #define DEBUG_TIME
@@ -145,7 +145,7 @@ struct NTPConfig
     unsigned int localPort;
     void sendNTPpacket();
     unsigned long getNTPTime();
-    void update(int interval_sync = 60000);
+    void update(int interval_sync = 15000);
     // WIB  (UTC+7)
     const long utcOffsetSeconds = 7 * 3600;
     // WITA (UTC+8)
@@ -162,7 +162,6 @@ struct NTPConfig
 #include <auth.h>
 struct ethernet_state
 {
-private:
 private:
     bool eth_connected = false;
     bool first_initialize = false;
@@ -221,6 +220,7 @@ private:
 
 public:
     auth_state auth;
+    bool interupt_trigger = false;
     void begin(database_s *db);
     void loop(database_s *db, storage_state *memory, Relay_state *locker);
 

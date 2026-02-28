@@ -114,7 +114,6 @@ void ethernet_state::begin(database_s *db)
         }
         ntpTime = ntpCfg.getNTPTime();
     }
-    setTime(ntpTime);
     Serial.println(system_t());
 #ifdef DEBUG_ETH
     Serial.println(":eth:begin end");
@@ -149,6 +148,11 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 return;
         }
     }
+    if (!eth_connected && interupt_trigger)
+    {
+        last_reconnect = now;
+        return;
+    }
     if (!eth_connected)
     {
         if (now - last_reconnect >= RECONNECT_INTERVAL)
@@ -163,6 +167,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 first_initialize = true;
                 server.begin();
                 ntpCfg.Udp.begin(ntpCfg.localPort);
+                ntpCfg.update();
 #ifdef DEBUG_ETH
                 Serial.print("Reconnect OK, IP: ");
                 Serial.println(Ethernet.localIP());
@@ -185,6 +190,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 #endif
             return;
         }
+        Serial.println("DHCP renew gagal");
     }
 
     ntpCfg.update();
