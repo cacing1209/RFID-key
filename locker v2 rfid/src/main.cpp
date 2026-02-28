@@ -125,11 +125,12 @@ void loop()
 		eth.interupt_trigger = true;
 		buzzer.mode = acc_mode::mode_fastloop4X;
 		buzzer.act = acc_action::acc_on;
-#ifdef DEBUG_RFID
+		#ifdef DEBUG_RFID
 		Serial.println(":bz:tone 0");
-#endif
+		#endif
 		break;
-	default:
+		default:
+		eth.interupt_trigger = false;
 		break;
 	}
 	// Serial.println("latency processing=>" + String(latency));
