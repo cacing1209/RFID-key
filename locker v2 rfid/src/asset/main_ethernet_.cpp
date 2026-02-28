@@ -53,7 +53,7 @@ void ethernet_state::begin(database_s *db)
         Serial.println("Chip: Not found!");
         break;
     }
-    if (Ethernet.linkStatus() == LinkON)
+    if (Ethernet.linkStatus() == LinkOFF)
     {
         Serial.println("Ethernet cable connected");
     }
