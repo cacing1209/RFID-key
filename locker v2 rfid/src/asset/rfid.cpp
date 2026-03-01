@@ -8,7 +8,7 @@ rfid_state::rfid_state(const long interval_read) : interval(interval_read)
     if (interval_read > 3000)
         interval = 3000;
 }
-bool rfid_state::open_doors(Relay_state *rl)
+bool rfid_state::open_doors(Relay_state *rl, bool *send_log)
 {
     unsigned long current_t = millis();
     for (size_t i = 0; i < size_mahasiswa; i++)
@@ -18,6 +18,7 @@ bool rfid_state::open_doors(Relay_state *rl)
             if (rl[i].reset_t)
             {
                 rl[i].reset_t = false;
+                send_log[i] = true;
                 rl[i].last_t = millis();
 #ifdef DEBUG_RFID
                 Serial.println("locker on=>" + String(i));
@@ -34,6 +35,7 @@ bool rfid_state::open_doors(Relay_state *rl)
                 rl[i].status = Status_RL::OFF;
                 rl[i].last_t = current_t;
                 digitalWrite(rl[i].pin, HIGH);
+                delay(225);
                 return false;
             }
             else
@@ -103,6 +105,8 @@ void rfid_state::init_sensor(Adafruit_PN532 *nfc)
     else
         Serial.println(":rfid:sensor failure");
 #else
+    Serial.begin(9600);
+    delay(500);
     nfc->begin();
     nfc->SAMConfig();
 #endif
@@ -137,6 +141,9 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
 
             if (sensor_ok)
             {
+#ifdef DEBUG_RFID
+                Serial.println("board detect");
+#endif
                 need_rescan = false;
                 return false;
             }
@@ -157,14 +164,19 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
 }
 char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl)
 {
+    // static unsigned long last_check = 0;
+    unsigned long now = millis();
+    // if (now - last_check > 10000)
+    // {
     if (sensor_undetect(nfc))
     {
         init_sensor(nfc);
         return -2;
     }
+    //     last_check = now;
+    // }
     static bool last_read_c = false;
     static unsigned long last_t = 0;
-    unsigned long now = millis();
 
     if (now - last_t < interval)
         return -1;

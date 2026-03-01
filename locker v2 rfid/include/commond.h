@@ -1,6 +1,6 @@
 #ifndef COMMOND_H
 #define COMMOND_H
-#define DEBUG_ETH
+// #define DEBUG_ETH
 // #define DEBUG_MEM
 // #define DEBUG_ACC
 // #define DEBUG_RFID
@@ -77,15 +77,15 @@ struct buzzer_state
     bool buzzerState;
     unsigned long LastOn;
 
-    void main();
+    bool in_action();
 
     uint8_t getMaxFlip();
     void toggleBuzzer();
     void stopBuzzer();
     void resetState(unsigned long now);
     void handleDenide(unsigned long now);
+    buzzer_state::buzzer_state(int i_bz) : Interval(i_bz) {}
 };
-;
 
 enum class Status_RL
 {
@@ -113,7 +113,7 @@ struct rfid_state
 {
     char read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl);
     signed char card_isregistered(const database_s *db);
-    bool open_doors(Relay_state *rl);
+    bool open_doors(Relay_state *rl, bool *send_log);
     long interval;
     uint8_t size_uid_incoming = size_uid;
     uint8_t uid_incoming[size_uid];
@@ -248,7 +248,7 @@ public:
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
     void send_eventLog(const unsigned long uid_decimal, byte index);
-
+    bool send_log[size_mahasiswa];
     int newline_count;
     static const size_t BODY_SIZE = 2048;
     char body[BODY_SIZE];

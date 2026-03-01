@@ -126,7 +126,6 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     unsigned long now = millis();
     // static byte counting_try = 0;
     bool cable = ethernetCableConnected();
-
     if (!cable)
     {
         if (first_initialize)
@@ -138,7 +137,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
         }
         else
         {
-            if (now - last_reconnect > 20000)
+            if (now - last_reconnect > 120000)
             {
 #ifdef DEBUG_ETH
                 Serial.println("cable disconnect,with reinit");
@@ -212,12 +211,13 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 
     for (size_t i = 0; i < size_mahasiswa; i++)
     {
-        if (locker[i].reset_t == true)
+        if (send_log[i])
         {
             unsigned long uid_decimal = 0;
             for (int x = 3; x >= 0; x--)
                 uid_decimal = (uid_decimal << 8) | db[i].card[x];
             send_eventLog(uid_decimal, i);
+            send_log[i] = false;
         }
     }
 }
@@ -825,7 +825,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
 
-    server_log = "93.144.178.53";
+    server_log = "192.168.0.102";
     portServer_log = 3000;
 
     if (!logClient.connect(server_log, portServer_log))

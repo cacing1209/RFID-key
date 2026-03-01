@@ -1,23 +1,21 @@
 #include <commond.h>
 
-void buzzer_state::main()
+bool buzzer_state::in_action()
 {
     unsigned long now = millis();
-
-    if (act != acc_action::acc_on)
-    {
-        stopBuzzer();
-        resetState(now);
-        return;
-    }
 
     if (mode == bz_mode::denide)
     {
         handleDenide(now);
-        return;
+        return true;
     }
-
-    if (now - LastOn >= Interval)
+    if (act != acc_action::acc_on)
+    {
+        stopBuzzer();
+        resetState(now);
+        return false;
+    }
+    else if (now - LastOn >= Interval)
     {
         LastOn = millis();
         toggleBuzzer();
@@ -27,11 +25,14 @@ void buzzer_state::main()
         {
             act = acc_action::acc_off;
         }
+        return true;
     }
+    else
+        return false;
 }
 void buzzer_state::stopBuzzer()
 {
-    noTone(pin);
+    digitalWrite(pin, LOW);
 }
 void buzzer_state::resetState(unsigned long now)
 {
@@ -77,4 +78,3 @@ void buzzer_state::toggleBuzzer()
     else
         digitalWrite(pin, LOW);
 }
-

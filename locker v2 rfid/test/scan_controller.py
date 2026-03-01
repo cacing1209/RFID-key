@@ -273,13 +273,6 @@ def main():
 
     if not results:
         print(f"\n  {RED}Tidak ada controller ditemukan.{RESET}")
-        print(f"""
-  {YELLOW}Tips:{RESET}
-    • Port Arduino adalah 8000 bukan 80!
-    • Coba: python3 scan_controller.py --ip 93.144.178.16
-    • Kalau public IP, pastikan port 8000 di-forward di router
-    • Cek Serial Monitor — pakai IP yang muncul di sana
-""")
     else:
         print(f"\n  {GREEN}{BOLD}Ditemukan {len(results)} controller:{RESET}")
         for i, c in enumerate(results, 1):
@@ -293,10 +286,10 @@ def main():
 
         c = results[0]
         print(f"""
-  {YELLOW}─── Langkah Selanjutnya ──────────────────────────────{RESET}
+  {YELLOW}─── NICE ──────────────────────────────{RESET}
   Edit BASE_URL di test_locker.py:
     BASE_URL = "{c['url']}"
-  Lalu jalankan:
+  RUN:
     python3 test_locker.py
   {YELLOW}──────────────────────────────────────────────────────{RESET}
 """)

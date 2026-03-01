@@ -9,26 +9,27 @@
  *
  *
  */
-#define PN532DEBUG
-#define PN532DEBUGPRINT Serial
+// #define PN532DEBUG
+// #define PN532DEBUGPRINT Serial
 
 #include <commond.h>
 #include <Wire.h>
 
 #define baudRate_PC 9600
-// #define baudRate_ESP 115200
 
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(500);
-buzzer_state buzzer;
+buzzer_state buzzer(150);
 ethernet_state eth;
 
 database_s data[size_mahasiswa];
 
 void init_mypin()
 {
+#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
 	Serial.println("init my pins");
+#endif
 	for (size_t i = 0; i < sizeRelay; i++)
 	{
 		locker[i].pin = pin_IO[i];
@@ -50,7 +51,6 @@ void init_mypin()
 	}
 
 	buzzer.pin = PIN_buzzer;
-	buzzer.Interval = 600;
 	// rfid.action = action_Card::None;
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = bz_mode::mode_fastloop4X;
@@ -64,9 +64,9 @@ storage_state memory;
 void setup()
 {
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
-	delay(5000);
-#endif
+	delay(2000);
 	Serial.begin(baudRate_PC);
+#endif
 	init_mypin();
 
 	// #ifdef DEBUG_RFID
@@ -81,22 +81,17 @@ void setup()
 	// 	Serial.println("rfid already use");
 	// }
 	// #endif
-	if (!memory.load_data(data))
-	{
-	}
-
+	memory.load_data(data);
 	digitalWrite(buzzer.pin, LOW);
-	delay(200);
+	delay(100);
 	digitalWrite(buzzer.pin, HIGH);
-	delay(200);
+	delay(100);
+#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
 	Serial.println("Device Start");
+#endif
 	eth.interupt_trigger = true;
 }
 
-void acc_main()
-{
-	buzzer.main();
-}
 void setup();
 void loop()
 {
@@ -104,12 +99,13 @@ void loop()
 	// static unsigned long last_t = 0;
 	// write to eeprom,handle relay,sync db
 
-	acc_main();
-	if (rfid.open_doors(locker))
-		return;
-	signed char card = rfid.read_crd(data, &nfc, locker);
 	// last_t = millis();
-	eth.loop(data, &memory, locker);
+	signed char card = 0;
+	if (!rfid.open_doors(locker, eth.send_log) && !buzzer.in_action())
+	{
+		eth.loop(data, &memory, locker);
+		card = rfid.read_crd(data, &nfc, locker);
+	}
 	// latency = millis() - last_t;
 
 	switch (card)
@@ -125,8 +121,8 @@ void loop()
 
 	case -4:
 		eth.interupt_trigger = true;
-		buzzer.mode = bz_mode::mode_fastloop4X;
-		buzzer.act = acc_action::acc_on;
+		// buzzer.mode = bz_mode::mode_fastloop4X;
+		// buzzer.act = acc_action::acc_on;
 #ifdef DEBUG_RFID
 		Serial.println(":bz:tone 0");
 #endif
