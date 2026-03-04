@@ -825,7 +825,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
 
-    server_log = "192.168.0.102";
+    server_log = " 93.144.178.187";
     portServer_log = 3000;
 
     if (!logClient.connect(server_log, portServer_log))
