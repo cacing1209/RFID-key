@@ -99,7 +99,7 @@ void rfid_state::init_sensor(Adafruit_PN532 *nfc)
 {
 
 #ifdef DEBUG_RFID
-    bool is_normal = nfc->begin() & nfc->SAMConfig();
+    bool is_normal = (nfc->begin() && nfc->SAMConfig());
     if (is_normal)
         Serial.println(":rfid:sensor already");
     else
@@ -143,6 +143,7 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
                 Serial.println("board detect");
 #endif
                 need_rescan = false;
+                counting_reset = 0;
                 return false;
             }
             return true;
