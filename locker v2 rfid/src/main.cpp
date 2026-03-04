@@ -63,8 +63,7 @@ void init_mypin()
 storage_state memory;
 void setup()
 {
-	Serial.begin(baudRate_PC);
-#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
+#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.begin(baudRate_PC);
 	delay(2000);
 #endif
@@ -87,30 +86,37 @@ void setup()
 	delay(100);
 	digitalWrite(buzzer.pin, HIGH);
 	delay(100);
-#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
+#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.println("Device Start");
 #endif
-	Serial.println("Device Start");
 	eth.interupt_trigger = true;
 }
 
 void setup();
 void loop()
 {
-	// write to eeprom,handle relay,sync db
+// write to eeprom,handle relay,sync db
+#ifdef DEBUG_SYS
 	static unsigned long latency = 0;
 	static unsigned long last_t = 0;
-	signed char card = 0;
 	last_t = millis();
 	Serial.print("exec open door,");
+#endif
+	signed char card = 0;
 	bool opened_door = rfid.open_doors(locker, eth.send_log);
+#ifdef DEBUG_SYS
 	Serial.print("exec acc main,");
+#endif
 	bool acc = buzzer.in_action();
 	if (!opened_door && !acc)
 	{
+#ifdef DEBUG_SYS
 		Serial.print("exec eth.loop,");
+#endif
 		eth.loop(data, &memory, locker);
+#ifdef DEBUG_SYS
 		Serial.print("exec rfid.loop,");
+#endif
 		card = rfid.read_crd(data, &nfc, locker);
 	}
 
@@ -123,6 +129,8 @@ void loop()
 	{
 		eth.interupt_trigger = true;
 	}
+#ifdef DEBUG_SYS
 	latency = millis() - last_t;
 	Serial.println("latency processing=>" + String(latency));
+#endif
 }
