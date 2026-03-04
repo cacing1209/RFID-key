@@ -115,7 +115,7 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
     static bool need_rescan = false;
 
     // bool sensor_ok = (nfc->getFirmwareVersion() != 0);
-    bool sensor_ok = false;
+    bool sensor_ok = true;
     if (need_rescan)
     {
         static byte counting_reset = 0;
