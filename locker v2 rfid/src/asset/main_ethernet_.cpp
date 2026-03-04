@@ -125,8 +125,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 {
     unsigned long now = millis();
     // static byte counting_try = 0;
-    // bool cable = ethernetCableConnected();
-    bool cable = true;
+    bool cable = ethernetCableConnected();
     if (!cable)
     {
         if (first_initialize)
@@ -199,9 +198,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
             return;
         }
     }
-
-    ntpCfg.update();
-
+    ntpCfg.update(60000);
     EthernetClient client = server.available();
     if (client)
     {
