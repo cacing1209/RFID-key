@@ -94,24 +94,11 @@ signed char rfid_state::card_isregistered(const database_s *db)
     }
     return number_locker;
 }
-void i2c_recover()
-{
-    pinMode(SCL, OUTPUT);
-    pinMode(SDA, INPUT_PULLUP);
-
-    for (int i = 0; i < 9; i++)
-    {
-        digitalWrite(SCL, HIGH);
-        delayMicroseconds(5);
-        digitalWrite(SCL, LOW);
-        delayMicroseconds(5);
-    }
-
-    Wire.begin();
-}
 void rfid_state::init_sensor(Adafruit_PN532 *nfc)
 {
-    i2c_recover();
+    Wire.setTimeout(50);
+    Wire.begin();
+    Wire.setWireTimeout(3000, true);
 #ifdef DEBUG_RFID
     bool is_normal = (nfc->begin() && nfc->SAMConfig());
     if (is_normal)
@@ -123,22 +110,49 @@ void rfid_state::init_sensor(Adafruit_PN532 *nfc)
     nfc->SAMConfig();
 
 #endif
-    Wire.setTimeout(50);
 }
 bool sensor_undetect(Adafruit_PN532 *nfc)
 {
     static unsigned long last_init = 0;
     static bool need_rescan = false;
+    static byte counting_reset = 0;
 
-    bool sensor_ok = (nfc->getFirmwareVersion() != 0);
+    Wire.beginTransmission(PN532_I2C_ADDRESS);
+    byte bus_error = Wire.endTransmission();
+    bool bus_ok = (bus_error == 0);
+
+    if (Wire.getWireTimeoutFlag())
+    {
+        Wire.clearWireTimeoutFlag();
+        Wire.begin();
+#ifdef DEBUG_RFID
+        Serial.println(":rfid:i2c timeout, bus reset");
+#endif
+        need_rescan = true;
+    }
+
+    if (!bus_ok)
+    {
+        need_rescan = true;
+#ifdef DEBUG_RFID
+        Serial.println(":rfid:i2c bus error: " + String(bus_error));
+#endif
+    }
+
+    bool sensor_ok = false;
+    if (bus_ok)
+    {
+        sensor_ok = (nfc->getFirmwareVersion() != 0);
+    }
+
     if (need_rescan)
     {
-        static byte counting_reset = 0;
         if (counting_reset >= 15)
         {
             counting_reset = 0;
             sys.software_Reset();
         }
+
         if (millis() - last_init > 4000)
         {
             counting_reset++;
@@ -149,7 +163,6 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
                 Serial.println(":rfid:scan failure:" + String(counting_reset));
             else
                 Serial.println(":rfid:scan succes");
-
 #endif
 
             if (sensor_ok)
@@ -165,16 +178,83 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
         }
         return false;
     }
-
     else if (!sensor_ok)
     {
-        need_rescan = !(sensor_ok);
+        need_rescan = true;
 #ifdef DEBUG_RFID
         Serial.println(":rfid:scan" + String(need_rescan));
 #endif
     }
+
     return false;
 }
+// void rfid_state::init_sensor(Adafruit_PN532 *nfc)
+// {
+//     Wire.setTimeout(50);
+//     Wire.begin();
+//     Wire.setWireTimeout(3000, true);
+// #ifdef DEBUG_RFID
+//     bool is_normal = (nfc->begin() && nfc->SAMConfig());
+//     if (is_normal)
+//         Serial.println(":rfid:sensor already");
+//     else
+//         Serial.println(":rfid:sensor failure");
+// #else
+//     nfc->begin();
+//     nfc->SAMConfig();
+
+// #endif
+// }
+// bool sensor_undetect(Adafruit_PN532 *nfc)
+// {
+//     static unsigned long last_init = 0;
+//     static bool need_rescan = false;
+
+//     bool sensor_ok = (nfc->getFirmwareVersion() != 0);
+//     if (need_rescan)
+//     {
+//         static byte counting_reset = 0;
+//         if (counting_reset >= 15)
+//         {
+//             counting_reset = 0;
+//             sys.software_Reset();
+//         }
+//         if (millis() - last_init > 4000)
+//         {
+//             counting_reset++;
+//             last_init = millis();
+// #ifdef DEBUG_RFID
+//             Serial.println(":rfid:reinit pn532");
+//             if (need_rescan)
+//                 Serial.println(":rfid:scan failure:" + String(counting_reset));
+//             else
+//                 Serial.println(":rfid:scan succes");
+
+// #endif
+
+//             if (sensor_ok)
+//             {
+// #ifdef DEBUG_RFID
+//                 Serial.println("board detect");
+// #endif
+//                 need_rescan = false;
+//                 counting_reset = 0;
+//                 return false;
+//             }
+//             return true;
+//         }
+//         return false;
+//     }
+
+//     else if (!sensor_ok)
+//     {
+//         need_rescan = !(sensor_ok);
+// #ifdef DEBUG_RFID
+//         Serial.println(":rfid:scan" + String(need_rescan));
+// #endif
+//     }
+//     return false;
+// }
 char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl)
 {
     unsigned long now = millis();
