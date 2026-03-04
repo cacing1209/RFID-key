@@ -100,13 +100,12 @@ void loop()
 	// write to eeprom,handle relay,sync db
 	static unsigned long latency = 0;
 	static unsigned long last_t = 0;
-	latency = millis() - last_t;
 	signed char card = 0;
+	last_t = millis();
 	Serial.print("exec open door,");
 	bool opened_door = rfid.open_doors(locker, eth.send_log);
 	Serial.print("exec acc main,");
 	bool acc = buzzer.in_action();
-	last_t = millis();
 	if (!opened_door && !acc)
 	{
 		Serial.print("exec eth.loop,");
@@ -124,5 +123,6 @@ void loop()
 	{
 		eth.interupt_trigger = true;
 	}
+	latency = millis() - last_t;
 	Serial.println("latency processing=>" + String(latency));
 }
