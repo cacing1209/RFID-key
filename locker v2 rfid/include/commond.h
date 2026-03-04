@@ -1,9 +1,9 @@
 #ifndef COMMOND_H
 #define COMMOND_H
-#define DEBUG_ETH
+// #define DEBUG_ETH
 // #define DEBUG_MEM
 // #define DEBUG_ACC
-#define DEBUG_RFID
+// #define DEBUG_RFID
 // #define DEBUG_TIME
 
 // #define modelL0002
@@ -118,7 +118,7 @@ struct rfid_state
     uint8_t size_uid_incoming = size_uid;
     uint8_t uid_incoming[size_uid];
     void init_sensor(Adafruit_PN532 *nfc);
-    rfid_state::rfid_state(const long interval_read);
+    rfid_state::rfid_state(const long interval_read = 50);
 
 #ifdef little_endian
 

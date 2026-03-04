@@ -27,8 +27,6 @@ bool buzzer_state::in_action()
         }
         return true;
     }
-    else
-        return false;
 }
 void buzzer_state::stopBuzzer()
 {
