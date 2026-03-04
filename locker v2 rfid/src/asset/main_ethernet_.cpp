@@ -861,6 +861,8 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
         {
 #ifdef DEBUG_ETH
             Serial.write(logClient.read());
+#else
+            logClient.read();
 #endif
             timeout = millis();
         }
