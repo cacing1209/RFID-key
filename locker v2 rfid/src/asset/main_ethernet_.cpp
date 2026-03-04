@@ -198,7 +198,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
             return;
         }
     }
-    ntpCfg.update(60000);
+    ntpCfg.update(10000);
     EthernetClient client = server.available();
     if (client)
     {
