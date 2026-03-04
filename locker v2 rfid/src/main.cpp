@@ -96,8 +96,9 @@ void setup();
 void loop()
 {
 	// write to eeprom,handle relay,sync db
-	// static unsigned long latency = 0;
-	// static unsigned long last_t = 0;
+	static unsigned long latency = 0;
+	static unsigned long last_t = 0;
+	latency = millis() - last_t;
 	// last_t = millis();
 	signed char card = 0;
 	if (!rfid.open_doors(locker, eth.send_log) && !buzzer.in_action())
@@ -105,7 +106,6 @@ void loop()
 		eth.loop(data, &memory, locker);
 		card = rfid.read_crd(data, &nfc, locker);
 	}
-	// latency = millis() - last_t;
 
 	if (card == 1)
 	{
@@ -116,5 +116,5 @@ void loop()
 	{
 		eth.interupt_trigger = true;
 	}
-	// Serial.println("latency processing=>" + String(latency));
+	Serial.println("latency processing=>" + String(latency));
 }
