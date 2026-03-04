@@ -105,7 +105,6 @@ void rfid_state::init_sensor(Adafruit_PN532 *nfc)
     else
         Serial.println(":rfid:sensor failure");
 #else
-    Serial.begin(9600);
     nfc->begin();
     nfc->SAMConfig();
 #endif
