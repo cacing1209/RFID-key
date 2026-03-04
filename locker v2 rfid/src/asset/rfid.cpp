@@ -162,16 +162,11 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
 }
 char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl)
 {
-    static unsigned long last_check = 0;
     unsigned long now = millis();
-    if (now - last_check > 10000)
+    if (sensor_undetect(nfc))
     {
-        if (sensor_undetect(nfc))
-        {
-            init_sensor(nfc);
-            return -2;
-        }
-        last_check = now;
+        init_sensor(nfc);
+        return -2;
     }
     static bool last_read_c = false;
     static unsigned long last_t = 0;
