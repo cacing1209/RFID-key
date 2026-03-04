@@ -114,8 +114,7 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
     static unsigned long last_init = 0;
     static bool need_rescan = false;
 
-    // bool sensor_ok = (nfc->getFirmwareVersion() != 0);
-    bool sensor_ok = true;
+    bool sensor_ok = (nfc->getFirmwareVersion() != 0);
     if (need_rescan)
     {
         static byte counting_reset = 0;
@@ -174,12 +173,11 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
     if (now - last_t < interval)
         return -1;
 
-    // bool read_c = nfc->readPassiveTargetID(
-    //     PN532_MIFARE_ISO14443A,
-    //     uid_incoming,
-    //     &size_uid_incoming,
-    //     100);
-    bool read_c = false;
+    bool read_c = nfc->readPassiveTargetID(
+        PN532_MIFARE_ISO14443A,
+        uid_incoming,
+        &size_uid_incoming,
+        100);
 
     if (read_c && !last_read_c)
     {

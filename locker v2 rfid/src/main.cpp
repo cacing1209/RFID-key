@@ -59,6 +59,7 @@ void init_mypin()
 	SPI.begin();
 	eth.begin(data);
 	rfid.init_sensor(&nfc);
+	Wire.setTimeout(50);   
 }
 storage_state memory;
 void setup()
