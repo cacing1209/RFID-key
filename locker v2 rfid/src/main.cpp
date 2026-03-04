@@ -102,9 +102,15 @@ void loop()
 	latency = millis() - last_t;
 	// last_t = millis();
 	signed char card = 0;
-	if (!rfid.open_doors(locker, eth.send_log) && !buzzer.in_action())
+	Serial.println("exec open door");
+	bool opened_door = rfid.open_doors(locker, eth.send_log);
+	Serial.println("exec acc main");
+	bool acc = buzzer.in_action();
+	if (!opened_door && !acc)
 	{
+		Serial.println("exec eth.loop");
 		eth.loop(data, &memory, locker);
+		Serial.println("exec rfid.loop");
 		card = rfid.read_crd(data, &nfc, locker);
 	}
 
