@@ -21,7 +21,7 @@ void NTPConfig::sendNTPpacket()
 unsigned long NTPConfig::getNTPTime()
 {
     sendNTPpacket();
-    delay(1500);
+    delay(1000);
 
     if (Udp.parsePacket())
     {

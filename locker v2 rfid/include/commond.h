@@ -144,7 +144,7 @@ struct NTPConfig
     unsigned int localPort;
     void sendNTPpacket();
     unsigned long getNTPTime();
-    void update(int interval_sync = 15000);
+    void update(int interval_sync = 60000);
     // WIB  (UTC+7)
     const long utcOffsetSeconds = 7 * 3600;
     // WITA (UTC+8)
