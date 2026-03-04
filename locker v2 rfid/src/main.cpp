@@ -63,7 +63,7 @@ void init_mypin()
 storage_state memory;
 void setup()
 {
-	// Serial.begin(baudRate_PC);
+	Serial.begin(baudRate_PC);
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
 	Serial.begin(baudRate_PC);
 	delay(2000);
@@ -90,6 +90,7 @@ void setup()
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
 	Serial.println("Device Start");
 #endif
+	Serial.println("Device Start");
 	eth.interupt_trigger = true;
 }
 
