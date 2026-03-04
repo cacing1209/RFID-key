@@ -100,7 +100,7 @@ void loop()
 	static unsigned long latency = 0;
 	static unsigned long last_t = 0;
 	latency = millis() - last_t;
-	// last_t = millis();
+	last_t = millis();
 	signed char card = 0;
 	Serial.println("exec open door");
 	bool opened_door = rfid.open_doors(locker, eth.send_log);
