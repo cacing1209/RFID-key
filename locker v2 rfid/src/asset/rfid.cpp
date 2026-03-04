@@ -94,10 +94,24 @@ signed char rfid_state::card_isregistered(const database_s *db)
     }
     return number_locker;
 }
+void i2c_recover()
+{
+    pinMode(SCL, OUTPUT);
+    pinMode(SDA, INPUT_PULLUP);
 
+    for (int i = 0; i < 9; i++)
+    {
+        digitalWrite(SCL, HIGH);
+        delayMicroseconds(5);
+        digitalWrite(SCL, LOW);
+        delayMicroseconds(5);
+    }
+
+    Wire.begin();
+}
 void rfid_state::init_sensor(Adafruit_PN532 *nfc)
 {
-
+    i2c_recover();
 #ifdef DEBUG_RFID
     bool is_normal = (nfc->begin() && nfc->SAMConfig());
     if (is_normal)
