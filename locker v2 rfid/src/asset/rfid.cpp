@@ -107,7 +107,9 @@ void rfid_state::init_sensor(Adafruit_PN532 *nfc)
 #else
     nfc->begin();
     nfc->SAMConfig();
+
 #endif
+    Wire.setTimeout(50);
 }
 bool sensor_undetect(Adafruit_PN532 *nfc)
 {
