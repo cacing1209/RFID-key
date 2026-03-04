@@ -172,7 +172,7 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
 #endif
                 need_rescan = false;
                 counting_reset = 0;
-                return false;
+                return true;
             }
             return true;
         }
