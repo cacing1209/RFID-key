@@ -59,14 +59,6 @@ void init_mypin()
 	SPI.begin();
 	eth.begin(data);
 	rfid.init_sensor(&nfc);
-	for (size_t i = 0; i < sizeRelay; i++)
-	{
-		locker[i].pin = pin_IO[i];
-		pinMode(locker[i].pin, OUTPUT);
-		digitalWrite(locker[i].pin, HIGH);
-		locker[i].interval = 100;
-		locker[i].last_t = millis();
-	}
 }
 storage_state memory;
 void setup()
@@ -92,10 +84,10 @@ void setup()
 	memory.load_data(data);
 	// digitalWrite(buzzer.pin, LOW);
 	tone(buzzer.pin, 1000);
-	delay(100);
+	delay(1000);
 	noTone(buzzer.pin);
 	// digitalWrite(buzzer.pin, HIGH);
-	delay(100);
+	delay(1000);
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.println("Device Start");
 #endif

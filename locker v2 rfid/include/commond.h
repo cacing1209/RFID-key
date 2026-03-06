@@ -29,7 +29,6 @@ const int pin_IO[sizeRelay] = {47, 41, 23, 38, 64, 43, 44, 33, 36, 62, 42, 48, 4
 // 51 -> 63
 // 52 -> 64
 // 53 -> 65
-#define find_p
 #ifdef find_p
 // sangat membantu untuk mapping awal relay pin
 // tinggal define ajah
