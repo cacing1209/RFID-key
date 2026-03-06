@@ -115,13 +115,16 @@ void setup()
 		{
 			if (i)
 			{
-				if (custom_fl > limit)
+				if (custom_fl < limit)
+				{
+					custom_fl++;
+					tone(buzzer.pin, freq);
+				}
+				else
 				{
 					custom_fl = 0;
-					continue;
+					noTone(buzzer.pin);
 				}
-				tone(buzzer.pin, freq);
-				custom_fl++;
 			}
 			else
 				noTone(buzzer.pin);
