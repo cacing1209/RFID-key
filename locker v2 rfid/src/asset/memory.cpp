@@ -1,4 +1,5 @@
 #include <commond.h>
+#ifndef find_p
 #include <EEPROM.h>
 
 #define flags_register 0x02
@@ -12,7 +13,7 @@ bool storage_state::load_data(database_s *db)
 {
     int addr = flags_load;
 
-    for (size_t i = 0; i < size_mahasiswa; i++)
+    for (size_t i = 0; i < Size_Siswa; i++)
     {
         epr.get(addr, db[i]);
         addr += sizeof(database_s);
@@ -27,7 +28,7 @@ bool storage_state::load_data(database_s *db)
 #ifdef DEBUG_MEM
     {
         Serial.println(":mem:load");
-        for (size_t x = 0; x < size_mahasiswa; x++)
+        for (size_t x = 0; x < Size_Siswa; x++)
         {
             Serial.print(":mem:card =>" + String(x) + "=>");
             for (size_t y = 0; y < size_uid; y++)
@@ -51,7 +52,7 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
 {
     int addr = flags_load;
     bool saved = false;
-    for (size_t i = 0; i < size_mahasiswa; i++)
+    for (size_t i = 0; i < Size_Siswa; i++)
     {
         Status_db st = Status_db::Available;
         bool replace = false;
@@ -128,7 +129,7 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
 // {
 //     int addr = flags_load;
 
-//     for (size_t i = 0; i < size_mahasiswa; i++)
+//     for (size_t i = 0; i < Size_Siswa; i++)
 //     {
 //         uint8_t *ptr = (uint8_t *)&db[i];
 
@@ -148,7 +149,7 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
 
 //     #ifdef DEBUG_MEM
 //     {
-//         for (size_t x = 0; x < size_mahasiswa; x++)
+//         for (size_t x = 0; x < Size_Siswa; x++)
 //         {
 //             Serial.print("card =>" + String(x) + "=>");
 //             for (size_t y = 0; y < size_uid; y++)
@@ -170,7 +171,7 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
 // {
 //     int addr = flags_load;
 
-//     for (size_t i = 0; i < size_mahasiswa; i++)
+//     for (size_t i = 0; i < Size_Siswa; i++)
 //     {
 //         uint8_t *ptr = (uint8_t *)&db[i];
 
@@ -197,7 +198,7 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
 void storage_state::factory_reset(database_s *db)
 {
     int addr = flags_load;
-    for (size_t i = 0; i < size_mahasiswa; i++)
+    for (size_t i = 0; i < Size_Siswa; i++)
     {
         for (size_t x = 0; x < size_uid; x++)
         {
@@ -209,3 +210,4 @@ void storage_state::factory_reset(database_s *db)
         addr += sizeof(database_s);
     }
 }
+#endif

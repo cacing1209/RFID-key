@@ -16,14 +16,14 @@
 #include <Wire.h>
 
 #define baudRate_PC 9600
-
+#ifndef find_p
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(400);
 buzzer_state buzzer(500);
 ethernet_state eth;
 
-database_s data[size_mahasiswa];
+database_s data[Size_Siswa];
 
 void init_mypin()
 {
@@ -34,12 +34,12 @@ void init_mypin()
 	{
 		locker[i].pin = pin_IO[i];
 		pinMode(locker[i].pin, OUTPUT);
-		locker[i].interval = 100;
 		digitalWrite(locker[i].pin, HIGH);
+		locker[i].interval = 100;
 		locker[i].last_t = millis();
 	}
 
-	for (size_t i = 0; i < size_mahasiswa; i++)
+	for (size_t i = 0; i < Size_Siswa; i++)
 	{
 		for (size_t xp = 0; xp < size_uid; xp++)
 		{
@@ -59,6 +59,14 @@ void init_mypin()
 	SPI.begin();
 	eth.begin(data);
 	rfid.init_sensor(&nfc);
+	for (size_t i = 0; i < sizeRelay; i++)
+	{
+		locker[i].pin = pin_IO[i];
+		pinMode(locker[i].pin, OUTPUT);
+		digitalWrite(locker[i].pin, HIGH);
+		locker[i].interval = 100;
+		locker[i].last_t = millis();
+	}
 }
 storage_state memory;
 void setup()
@@ -82,9 +90,11 @@ void setup()
 	// }
 	// #endif
 	memory.load_data(data);
-	digitalWrite(buzzer.pin, LOW);
+	// digitalWrite(buzzer.pin, LOW);
+	tone(buzzer.pin, 1000);
 	delay(100);
-	digitalWrite(buzzer.pin, HIGH);
+	noTone(buzzer.pin);
+	// digitalWrite(buzzer.pin, HIGH);
 	delay(100);
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.println("Device Start");
@@ -134,3 +144,44 @@ void loop()
 	Serial.println("latency processing=>" + String(latency));
 #endif
 }
+#elif defined(find_p)
+mapping_p map_p;
+
+void setup()
+{
+	Serial.begin(baudRate_PC);
+	map_p.begin();
+	Serial.println("device start");
+}
+void loop()
+{
+	// map_p.bypass = true;
+	map_p.main();
+	static bool showing = true;
+	if (map_p.bypass && showing)
+	{
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			delay(50);
+			digitalWrite(pin_IO[i], HIGH);
+			delay(50);
+		}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			delay(50);
+		}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], HIGH);
+			delay(100);
+		}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+		}
+		showing = false;
+	}
+}
+#endif

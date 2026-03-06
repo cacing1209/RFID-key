@@ -1,211 +1,148 @@
-// #include <commond.h>
+#include <commond.h>
 
-// void Data_state::save_data(const char *filename)
+#ifdef find_p
+void mapping_p::begin()
+{
+    for (size_t i = 0; i < sizeRelay; i++)
+    {
+        pinMode(pin_IO[i], OUTPUT);
+        digitalWrite(pin_IO[i], LOW);
+        delay(100);
+    }
+    delay(250);
+    for (size_t i = 0; i < sizeRelay; i++)
+    {
+        digitalWrite(pin_IO[i], HIGH);
+    }
+}
+bool mapping_p::pins_avaiable()
+{
+    for (size_t i = 0; i < sizeRelay; i++)
+    {
+        if (pin[i] != 0)
+            return false;
+    }
+    return true;
+}
+
+// void swap(byte &xp, byte &yp)
 // {
-//     action = idle;
-//     file = sd->open(filename, O_WRONLY | O_CREAT | O_TRUNC);
-//     if (!file)
-//     {
-//         Serial.println("Gagal membuka file untuk menulis");
-//         return;
-//     }
-
-//     file.println("[");
-
-//     for (size_t i = 0; i < total_card_rfid; i++)
-//     {
-//         StaticJsonDocument<256> doc;
-
-//         JsonObject obj = doc.to<JsonObject>();
-//         obj["mahasiswa"] = String(i);
-
-//         JsonArray uidArray = obj.createNestedArray("uid");
-//         for (size_t x = 0; x < size_rfid; x++)
-//         {
-//             uidArray.add(rfid.card[i][x]);
-//         }
-
-//         serializeJsonPretty(doc, file);
-
-//         if (i < total_card_rfid - 1)
-//             file.println(",");
-//     }
-
-//     file.println("]");
-
-//     Serial.println("JSON berhasil disimpan");
-//     file.close();
+//     byte *temp;
+//     temp = &xp;
+//     xp = yp;
+//     yp = *temp;
 // }
+void mapping_p::shorting_pins()
+{
+    static bool need_reswap = true;
+    if (!need_reswap)
+        return;
+    int n = sizeRelay;
+    int new_setup_rl[sizeRelay];
+    for (size_t i = 0; i < sizeRelay; i++)
+    {
+        new_setup_rl[i] = pin_IO[i];
+    }
 
-// void Aksesoris_state::on(int Ringetone)
-// {
-//     unsigned long currentTime = millis();
+    for (int i = 0; i < n - 1; i++)
+    {
+        for (int j = 0; j < n - i - 1; j++)
+        {
+            if (pin[j] > pin[j + 1])
+            {
+                // swap(pin[j], pin[j + 1]);
+                byte temp;
+                temp = pin[j];
+                pin[j] = pin[j + 1];
+                pin[j + 1] = temp;
 
-//     if (Ringetone == 3000)
-//     {
-//         if (Status == state_ON_fastloop)
-//         {
-//             if (currentTime - LastOn >= flipflopinterval01)
-//             {
-//                 digitalWrite(pin, !digitalRead(pin));
-//                 LastOn = currentTime;
-//             }
-//         }
-//         else if (Status == state_ON)
-//         {
-//             if (currentTime - LastOn >= Interval)
-//             {
-//                 digitalWrite(pin, !digitalRead(pin));
-//                 LastOn = currentTime;
-//             }
-//         }
-//         else
-//         {
-//             digitalWrite(pin, LOW);
-//             LastOn = currentTime;
-//         }
-//     }
-//     else
-//     {
-//         static byte count = 0;
-//         const byte bitfalse = 4;
-//         if (Status == state_ON_fastloop)
-//         {
-//             if (count >= bitfalse)
-//             {
-//                 count = 0;
-//                 Status = state_OFF;
-//             }
-//             else if (currentTime - LastOn >= flipflopinterval02)
-//             {
-//                 LastOn = currentTime;
-//                 if (digitalRead(pin) == HIGH)
-//                     count++;
-//                 digitalWrite(pin, !digitalRead(pin) == HIGH);
-//             }
-//         }
-//         else if (Status == state_ON)
-//         {
-//             if (currentTime - LastOn >= Interval)
-//             {
-//                 LastOn = currentTime;
-//                 Status = state_OFF;
-//             }
-//             else
-//             {
-//                 digitalWrite(pin, HIGH);
-//             }
-//         }
-//         else
-//         {
-//             digitalWrite(pin, LOW);
-//             count = 0;
-//             LastOn = currentTime;
-//         }
-//     }
-// }
+                byte temp_x;
+                temp_x = new_setup_rl[j];
+                new_setup_rl[j] = new_setup_rl[j + 1];
+                new_setup_rl[j + 1] = temp_x;
+            }
+        }
+    }
 
-// void Data_state::load_data(const char *filename)
-// {
-//     file = sd->open(filename, O_RDONLY);
-//     if (!file)
-//     {
-//         Serial.println("Gagal buka file");
-//         return;
-//     }
+    Serial.println("shord arr=>");
+    for (size_t i = 0; i < 2; i++)
+    {
+        Serial.print('[');
+        for (size_t index = 0; index < sizeof(pin); index++)
+        {
+            if (i % 2 == 0)
+                Serial.print(pin[index]);
+            else
+                Serial.print(new_setup_rl[index]);
+            Serial.print(',');
+        }
+        Serial.println(']');
+    }
+    for (size_t xp = 0; xp < sizeRelay; xp++)
+    {
+        digitalWrite(new_setup_rl[xp], LOW);
+        delay(1000);
+        digitalWrite(new_setup_rl[xp], HIGH);
+        delay(1000);
+    }
 
-//     size_t i = 0;
-//     bool insideArray = false;
-//     const size_t bufferSize = 512;
-//     DynamicJsonDocument doc(bufferSize);
+    need_reswap = false;
+}
+void mapping_p::main()
+{
+    bool wait_input = true;
+    if (bypass)
+        return;
+    if (!pins_avaiable())
+    {
+        shorting_pins();
+        return;
+    }
+    for (size_t i = 0; i < sizeRelay; i++)
+    {
+        wait_input = true;
 
-//     while (file.available() && i < total_card_rfid)
-//     {
-//         char c = file.peek();
+        Serial.print("get_input=>");
+        digitalWrite(pin_IO[i], LOW);
 
-//         while (isspace(c))
-//         {
-//             file.read(); // discard
-//             if (!file.available())
-//                 break;
-//             c = file.peek();
-//         }
+        while (wait_input)
+        {
+            if (Serial.available())
+            {
+                String input = Serial.readStringUntil('\n');
+                input.trim(); // hapus \r dan spasi
 
-//         if (!insideArray)
-//         {
-//             if (c == '[')
-//             {
-//                 file.read();
-//                 insideArray = true;
-//                 continue;
-//             }
-//             else
-//             {
-//                 Serial.println("Format JSON tidak valid: tidak diawali '['");
-//                 file.close();
-//                 return;
-//             }
-//         }
+                Serial.print("num=>");
+                Serial.println(input);
 
-//         if (c == ']')
-//         {
-//             break;
-//         }
+                if (input.length() > 0 && input.length() <= 2)
+                {
+                    pin[i] = input.toInt();
 
-//         DeserializationError error = deserializeJson(doc, file);
+                    Serial.println("himpunan=>");
+                    Serial.print('[');
 
-//         if (error)
-//         {
-//             Serial.print("Gagal parsing JSON object ke-");
-//             Serial.print(i);
-//             Serial.print(": ");
-//             Serial.println(error.c_str());
-//             break;
-//         }
+                    for (size_t idx = 0; idx < sizeof(pin) / sizeof(pin[0]); idx++)
+                    {
+                        Serial.print(pin[idx]);
+                        Serial.print(',');
+                    }
 
-//         JsonObject obj = doc.as<JsonObject>();
-//         JsonArray uidArray = obj["uid"];
+                    Serial.println(']');
+                    wait_input = false;
+                }
+                else
+                {
+                    Serial.println("failed set..overflow number");
+                }
+            }
+        }
+    }
+}
+// himpunan=>
+// [29,3,26,21,28,20,32,24,31,18,30,8,27,19,9,22,4,14,13,2,11,6,7,16,17,1,12,23,10,25,5,15,]
+// shord arr=>
+// [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,]
+// [47,41,23,38,52,43,44,33,36,50,42,48,40,39,53,45,46,31,35,27,25,37,49,29,51,24,34,26,22,32,30,28,]
 
-//         for (size_t x = 0; x < uidArray.size() && x < size_rfid; x++)
-//         {
-//             rfid.card[i][x] = uidArray[x];
-//         }
-//         // Serial.print("Mahasiswa ");
-//         // Serial.print(obj["mahasiswa"].as<const char *>());
-//         // Serial.print(": ");
-//         // for (size_t x = 0; x < size_rfid; x++)
-//         // {
-//         //     Serial.print(rfid.card[i][x]);
-//         //     Serial.print(" ");
-//         // }
-//         // Serial.println();
-
-//         i++;
-
-//         // Baca ',' antar object
-//         while (file.available())
-//         {
-//             char d = file.peek();
-//             if (isspace(d))
-//             {
-//                 file.read();
-//                 continue;
-//             }
-//             if (d == ',')
-//             {
-//                 file.read();
-//                 break;
-//             }
-//             if (d == ']')
-//             {
-//                 break;
-//             }
-//             break;
-//         }
-
-//         doc.clear();
-//     }
-
-//     file.close();
-//     Serial.println("Data UID berhasil dimuat (sd card).");
-// }
+#endif

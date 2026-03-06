@@ -7,26 +7,45 @@
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
-// #define modelL0002
+#define modelL0002
 // #define modelL0004
 // #define modelL0016
 // #define modelL0032
-#define modelL0128
+// #define modelL0128
 
 #define read_little_end
 #include <Arduino.h>
 #include <SdFat.h>
-#include <Ethernet.h>
-#include <TimeLib.h>
-#include <EthernetUdp.h>
 
 // #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
 #define sizeRelay 32
-const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
-                               28, 29, 30, 31, 32, 33,
-                               34, 35, 36, 37, 38, 39,
-                               40, 41, 42, 43, 44, 45,
-                               46, 47, 48, 49, 50, 51, 52, 53};
+
+// const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,28, 29, 30, 31, 32, 33,
+//                                34, 35, 36, 37, 38, 39,
+//                                40, 41, 42, 43, 44, 45,
+//                                46, 47, 48, 49, 50, 51, 52, 53};
+const int pin_IO[sizeRelay] = {47, 41, 23, 38, 64, 43, 44, 33, 36, 62, 42, 48, 40, 39, 65, 45, 46, 31, 35, 27, 25, 37, 49, 29, 63, 24, 34, 26, 22, 32, 30, 28};
+// 50 -> 62
+// 51 -> 63
+// 52 -> 64
+// 53 -> 65
+#define find_p
+#ifdef find_p
+// sangat membantu untuk mapping awal relay pin
+// tinggal define ajah
+struct mapping_p
+{
+    bool bypass;
+    byte pin[sizeRelay];
+    void begin();
+    void main();
+    bool pins_avaiable();
+    void shorting_pins();
+};
+#else
+#include <Ethernet.h>
+#include <TimeLib.h>
+#include <EthernetUdp.h>
 
 /* #pinout#
  * PN532 RFID menggunakan I2C:
@@ -42,7 +61,7 @@ const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,
 #define PIN_buzzer 69
 
 #define total_card_rfid 30
-#define size_mahasiswa 30
+#define Size_Siswa 30
 #define size_uid 12
 
 enum class Status_db : uint8_t
@@ -249,7 +268,7 @@ public:
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
     void send_eventLog(const unsigned long uid_decimal, byte index);
-    bool send_log[size_mahasiswa];
+    bool send_log[Size_Siswa];
     int newline_count;
     static const size_t BODY_SIZE = 2048;
     char body[BODY_SIZE];
@@ -270,4 +289,5 @@ struct system_d
     }
 };
 extern system_d sys;
+#endif
 #endif

@@ -1,4 +1,5 @@
 #include "commond.h"
+#ifndef find_p
 void NTPConfig::update(int interval_sync)
 {
     unsigned long last_sync = 0;
@@ -34,3 +35,4 @@ unsigned long NTPConfig::getNTPTime()
     }
     return 0;
 }
+#endif

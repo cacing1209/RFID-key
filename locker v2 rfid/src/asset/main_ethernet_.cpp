@@ -1,6 +1,7 @@
+#include <commond.h>
+#ifndef find_p
 #include <Ethernet.h>
 #include <ArduinoJson.h>
-#include <commond.h>
 NTPConfig ntpCfg;
 bool ethernetCableConnected()
 {
@@ -207,7 +208,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
         client.stop();
     }
 
-    for (size_t i = 0; i < size_mahasiswa; i++)
+    for (size_t i = 0; i < Size_Siswa; i++)
     {
         if (send_log[i])
         {
@@ -266,7 +267,7 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
     {
         int locker_num = atoi(path + 10);
 
-        if (locker_num >= 0 && locker_num < size_mahasiswa)
+        if (locker_num >= 0 && locker_num < Size_Siswa)
         {
             route_found = true;
 
@@ -455,12 +456,12 @@ void ethernet_state::handle_info(EthernetClient &client)
     sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
             eth_mac[0], eth_mac[1], eth_mac[2], eth_mac[3], eth_mac[4], eth_mac[5]);
     doc["mac_addr"] = mac_str;
-    doc["total_locker"] = size_mahasiswa;
+    doc["total_locker"] = Size_Siswa;
 
     int use = 0;
     if (db_ptr)
     {
-        for (int i = 0; i < size_mahasiswa; i++)
+        for (int i = 0; i < Size_Siswa; i++)
         {
             if (db_ptr[i].statusdb == Status_db::Not_Available)
             {
@@ -468,7 +469,7 @@ void ethernet_state::handle_info(EthernetClient &client)
             }
         }
     }
-    doc["avail_lock"] = size_mahasiswa - use;
+    doc["avail_lock"] = Size_Siswa - use;
 #ifdef DEBUG_ETH
     Serial.println("mac:" + String(mac_str));
     Serial.println("c_name" + String(controller_name));
@@ -492,7 +493,7 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
     JsonDocument doc;
     JsonArray students = doc.createNestedArray("students");
 
-    for (int i = 0; i < size_mahasiswa; i++)
+    for (int i = 0; i < Size_Siswa; i++)
     {
         if (db[i].statusdb == Status_db::Not_Available)
         {
@@ -548,7 +549,7 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
     }
     int locker_raw = doc["no"];
 
-    if (locker_raw < 0 || locker_raw >= size_mahasiswa)
+    if (locker_raw < 0 || locker_raw >= Size_Siswa)
     {
         send_error(client, 400, "Invalid locker number");
         return;
@@ -557,7 +558,7 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
     byte locker = (byte)locker_raw;
     const char *card_uid_str = doc["id"];
 
-    if (!card_uid_str || locker >= size_mahasiswa)
+    if (!card_uid_str || locker >= Size_Siswa)
     {
         send_error(client, 400, "Invalid student data");
         return;
@@ -589,8 +590,8 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         return;
     }
 
-    database_s new_db[size_mahasiswa];
-    for (int i = 0; i < size_mahasiswa; i++)
+    database_s new_db[Size_Siswa];
+    for (int i = 0; i < Size_Siswa; i++)
     {
         new_db[i] = db[i];
     }
@@ -724,8 +725,8 @@ void ethernet_state::handle_delete_student(EthernetClient &client,
         return;
     }
 
-    database_s new_db[size_mahasiswa];
-    for (int i = 0; i < size_mahasiswa; i++)
+    database_s new_db[Size_Siswa];
+    for (int i = 0; i < Size_Siswa; i++)
     {
         new_db[i] = db[i];
     }
@@ -764,9 +765,9 @@ void ethernet_state::handle_reset(EthernetClient &client,
         return;
     }
 
-    database_s new_db[size_mahasiswa];
+    database_s new_db[Size_Siswa];
 
-    for (int i = 0; i < size_mahasiswa; i++)
+    for (int i = 0; i < Size_Siswa; i++)
     {
         new_db[i].statusdb = Status_db::Available;
         memset(new_db[i].card, 0, size_uid);
@@ -871,3 +872,4 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     }
     logClient.stop();
 }
+#endif

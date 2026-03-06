@@ -1,6 +1,6 @@
 
 #include <commond.h>
-
+#ifndef find_p
 rfid_state::rfid_state(const long interval_read) : interval(interval_read)
 {
     if (interval_read < 25)
@@ -11,7 +11,7 @@ rfid_state::rfid_state(const long interval_read) : interval(interval_read)
 bool rfid_state::open_doors(Relay_state *rl, bool *send_log)
 {
     unsigned long current_t = millis();
-    for (size_t i = 0; i < size_mahasiswa; i++)
+    for (size_t i = 0; i < Size_Siswa; i++)
     {
         if (rl[i].status == Status_RL::ON)
         {
@@ -59,7 +59,7 @@ signed char rfid_state::card_isregistered(const database_s *db)
 {
     bool match = false;
     signed char number_locker = -1;
-    for (size_t x = 0; x < size_mahasiswa; x++)
+    for (size_t x = 0; x < Size_Siswa; x++)
     {
         match = true;
         // for (size_t xp = 0; xp < size_uid_incoming; xp++)
@@ -342,3 +342,4 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
 
     return 0;
 }
+#endif

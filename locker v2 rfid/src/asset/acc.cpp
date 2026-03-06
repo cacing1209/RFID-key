@@ -1,5 +1,5 @@
 #include <commond.h>
-
+#ifndef find_p
 bool buzzer_state::in_action()
 {
     unsigned long now = millis();
@@ -30,7 +30,8 @@ bool buzzer_state::in_action()
 }
 void buzzer_state::stopBuzzer()
 {
-    digitalWrite(pin, LOW);
+    // digitalWrite(pin, LOW);
+    noTone(pin);
 }
 void buzzer_state::resetState(unsigned long now)
 {
@@ -72,7 +73,10 @@ void buzzer_state::toggleBuzzer()
     buzzerState = !buzzerState;
 
     if (buzzerState)
-        digitalWrite(pin, HIGH);
+        tone(pin, 1000);
+    // digitalWrite(pin, HIGH);
     else
-        digitalWrite(pin, LOW);
+        noTone(pin);
+    // digitalWrite(pin, LOW);
 }
+#endif
