@@ -86,17 +86,20 @@ void setup()
 	// digitalWrite(buzzer.pin, LOW);
 	while (1)
 	{
-		 int freq = 3200;
+		int freq = 3200;
+		static int ritme = 25;
 		Serial.print("in test=>");
-		Serial.println(freq);
+		Serial.println(ritme);
+
 		for (size_t i = 0; i < 10; i++)
 		{
 			if (i % 2 == 0)
 				tone(buzzer.pin, freq);
 			else
 				noTone(buzzer.pin);
-			delay(400);
+			delay(ritme);
 		}
+		ritme += 25;
 	}
 
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
