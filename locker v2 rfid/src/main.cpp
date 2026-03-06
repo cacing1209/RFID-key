@@ -99,7 +99,7 @@ void setup()
 			int digit = 0;
 			if (isdigit(c))
 			{
-				digit = (int)c;
+				digit = c - '0';
 				switch (digit)
 				{
 				case 1:
