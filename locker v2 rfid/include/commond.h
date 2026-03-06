@@ -7,11 +7,11 @@
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
-#define modelL0002
+// #define modelL0002
 // #define modelL0004
 // #define modelL0016
 // #define modelL0032
-// #define modelL0128
+#define modelL0128
 
 #define read_little_end
 #include <Arduino.h>
