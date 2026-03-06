@@ -99,7 +99,12 @@ void setup()
 				noTone(buzzer.pin);
 			delay(ritme);
 		}
-		ritme += 25;
+		if (Serial.available())
+		{
+			char c = Serial.read();
+			if (c)
+				ritme += 25;
+		}
 	}
 
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
