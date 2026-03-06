@@ -147,7 +147,7 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
 
     if (need_rescan)
     {
-        if (counting_reset >= 15)
+        if (counting_reset >= 10)
         {
             counting_reset = 0;
             sys.software_Reset();
