@@ -90,14 +90,17 @@ void setup()
 		static int ritme = 25;
 		Serial.print("in test=>");
 		Serial.println(ritme);
+		static unsigned long last_t = 0;
+		static bool i = false;
 
-		for (size_t i = 0; i < 10; i++)
+		if (millis() - last_t > ritme)
 		{
-			if (i % 2 == 0)
+			if (i)
 				tone(buzzer.pin, freq);
 			else
 				noTone(buzzer.pin);
-			delay(ritme);
+			i = !i;
+			last_t = millis();
 		}
 		if (Serial.available())
 		{
