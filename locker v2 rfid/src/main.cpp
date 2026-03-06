@@ -20,7 +20,7 @@
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(400);
-buzzer_state buzzer(500);
+buzzer_state buzzer(75);
 ethernet_state eth;
 
 database_s data[Size_Siswa];
@@ -84,54 +84,54 @@ void setup()
 	// #endif
 	memory.load_data(data);
 	// digitalWrite(buzzer.pin, LOW);
-	while (1)
-	{
-		int freq = 3200;
-		static int ritme = 25;
-		Serial.print("in test=>");
-		Serial.println(ritme);
-		static unsigned long last_t = 0;
-		static bool i = false;
-		static byte custom_fl = 0, limit = 0;
-		if (Serial.available())
-		{
-			char c = Serial.read();
-			int digit = 0;
-			if (isdigit(c))
-			{
-				digit = c - '0';
-				switch (digit)
-				{
-				case 1:
-					ritme += 25;
-					break;
-				case 2:
-					limit++;
-					break;
-				}
-			}
-		}
-		if (millis() - last_t > ritme)
-		{
-			if (i)
-			{
-				if (custom_fl < limit)
-				{
-					custom_fl++;
-					tone(buzzer.pin, freq);
-				}
-				else
-				{
-					custom_fl = 0;
-					noTone(buzzer.pin);
-				}
-			}
-			else
-				noTone(buzzer.pin);
-			i = !i;
-			last_t = millis();
-		}
-	}
+	// while (1)
+	// {
+	// 	int freq = 3200;
+	// 	static int ritme = 25;
+	// 	Serial.print("in test=>");
+	// 	Serial.println(ritme);
+	// 	static unsigned long last_t = 0;
+	// 	static bool i = false;
+	// 	static byte custom_fl = 0, limit = 0;
+	// 	if (Serial.available())
+	// 	{
+	// 		char c = Serial.read();
+	// 		int digit = 0;
+	// 		if (isdigit(c))
+	// 		{
+	// 			digit = c - '0';
+	// 			switch (digit)
+	// 			{
+	// 			case 1:
+	// 				ritme += 25;
+	// 				break;
+	// 			case 2:
+	// 				limit++;
+	// 				break;
+	// 			}
+	// 		}
+	// 	}
+	// 	if (millis() - last_t > ritme)
+	// 	{
+	// 		if (i)
+	// 		{
+	// 			if (custom_fl < limit)
+	// 			{
+	// 				custom_fl++;
+	// 				tone(buzzer.pin, freq);
+	// 			}
+	// 			else
+	// 			{
+	// 				custom_fl = 0;
+	// 				noTone(buzzer.pin);
+	// 			}
+	// 		}
+	// 		else
+	// 			noTone(buzzer.pin);
+	// 		i = !i;
+	// 		last_t = millis();
+	// 	}
+	// }
 
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.println("Device Start");
@@ -169,7 +169,12 @@ void loop()
 
 	if (card == 1)
 	{
-		buzzer.mode = bz_mode::mode_fastloop1X;
+		buzzer.mode = bz_mode::mode_fastloop2X;
+		buzzer.act = acc_action::acc_on;
+	}
+	else if (card == -4)
+	{
+		buzzer.mode = bz_mode::mode_fastloop4X;
 		buzzer.act = acc_action::acc_on;
 	}
 	if (card == 1 || card == -4)

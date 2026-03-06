@@ -73,7 +73,7 @@ void buzzer_state::toggleBuzzer()
     buzzerState = !buzzerState;
 
     if (buzzerState)
-        tone(pin, 1000);
+        tone(pin, 3200);
     // digitalWrite(pin, HIGH);
     else
         noTone(pin);
