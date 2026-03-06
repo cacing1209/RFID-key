@@ -92,22 +92,41 @@ void setup()
 		Serial.println(ritme);
 		static unsigned long last_t = 0;
 		static bool i = false;
-
+		static byte custom_fl = 0, limit = 0;
 		if (millis() - last_t > ritme)
 		{
 			if (i)
+			{
+				if (custom_fl > limit)
+				{
+					custom_fl = 0;
+					continue;
+				}
 				tone(buzzer.pin, freq);
+				custom_fl++;
+			}
 			else
 				noTone(buzzer.pin);
 			i = !i;
 			last_t = millis();
 		}
+
 		if (Serial.available())
 		{
 			char c = Serial.read();
+			int digit = 0;
 			if (isdigit(c))
 			{
-				ritme += 25;
+				digit = (int)c;
+				switch (digit)
+				{
+				case 1:
+					ritme += 25;
+					break;
+				case 2:
+					limit++;
+					break;
+				}
 			}
 		}
 	}
