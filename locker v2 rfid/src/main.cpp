@@ -63,6 +63,7 @@ void init_mypin()
 storage_state memory;
 void setup()
 {
+	Serial.begin(baudRate_PC);
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.begin(baudRate_PC);
 	delay(2000);
