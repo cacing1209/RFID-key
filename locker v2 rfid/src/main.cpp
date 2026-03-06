@@ -83,11 +83,22 @@ void setup()
 	// #endif
 	memory.load_data(data);
 	// digitalWrite(buzzer.pin, LOW);
-	tone(buzzer.pin, 1000);
-	delay(1000);
-	noTone(buzzer.pin);
-	// digitalWrite(buzzer.pin, HIGH);
-	delay(1000);
+	while (1)
+	{
+		static int freq = 50;
+		Serial.print("in test=>");
+		Serial.println(freq);
+		for (size_t i = 0; i < 10; i++)
+		{
+			if (i % 2 == 0)
+				tone(buzzer.pin, freq);
+			else
+				noTone(buzzer.pin);
+			delay(1000);
+		}
+		freq += freq;
+	}
+
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.println("Device Start");
 #endif
