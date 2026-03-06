@@ -24,14 +24,17 @@
 //                                34, 35, 36, 37, 38, 39,
 //                                40, 41, 42, 43, 44, 45,
 //                                46, 47, 48, 49, 50, 51, 52, 53};
+
 const int pin_IO[sizeRelay] = {47, 41, 23, 38, 64, 43, 44, 33, 36, 62, 42, 48, 40, 39, 65, 45, 46, 31, 35, 27, 25, 37, 49, 29, 63, 24, 34, 26, 22, 32, 30, 28};
 // 50 -> 62
 // 51 -> 63
 // 52 -> 64
 // 53 -> 65
-#ifdef find_p
+
 // sangat membantu untuk mapping awal relay pin
 // tinggal define ajah
+// #define find_p
+#ifdef find_p
 struct mapping_p
 {
     bool bypass;
