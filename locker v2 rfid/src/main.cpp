@@ -105,8 +105,10 @@ void setup()
 		if (Serial.available())
 		{
 			char c = Serial.read();
-			if (c)
+			if (isdigit(c))
+			{
 				ritme += 25;
+			}
 		}
 	}
 
