@@ -120,7 +120,7 @@ void mapping_p::main()
                     pin[i] = input.toInt();
 
                     Serial.println("himpunan=>");
-                    Serial.print('[');
+                    Serial.print('{');
 
                     for (size_t idx = 0; idx < sizeof(pin) / sizeof(pin[0]); idx++)
                     {
@@ -128,7 +128,7 @@ void mapping_p::main()
                         Serial.print(',');
                     }
 
-                    Serial.println(']');
+                    Serial.println('}');
                     wait_input = false;
                 }
                 else
