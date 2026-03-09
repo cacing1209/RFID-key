@@ -1,31 +1,46 @@
 #ifndef COMMOND_H
 #define COMMOND_H
 // #define DEBUG_ETH
+// #define DEBUG_RFID
 // #define DEBUG_MEM
 // #define DEBUG_ACC
-// #define DEBUG_RFID
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
-// #define modelL0002
+#define modelL0002
 // #define modelL0004
 // #define modelL0016
 // #define modelL0032
-#define modelL0128
+// #define modelL0064
+// #define modelL0128
+// #define modelL0256
+// #define modelL0512
+// #define find_p
 
 #define read_little_end
 #include <Arduino.h>
-#include <SdFat.h>
 
 // #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
 #define sizeRelay 32
 
-// const int pin_IO[sizeRelay] = {22, 23, 24, 25, 26, 27,28, 29, 30, 31, 32, 33,
-//                                34, 35, 36, 37, 38, 39,
-//                                40, 41, 42, 43, 44, 45,
-//                                46, 47, 48, 49, 50, 51, 52, 53};
-
+// #if (defined) modelL0002
 const int pin_IO[sizeRelay] = {47, 41, 23, 38, 64, 43, 44, 33, 36, 62, 42, 48, 40, 39, 65, 45, 46, 31, 35, 27, 25, 37, 49, 29, 63, 24, 34, 26, 22, 32, 30, 28};
+// #elif (defined) modelL0256
+// const int pin_IO[sizeRelay] = {32, 24, 36, 38, 64, 34, 25, 63, 62, 37, 43, 44, 30, 48, 33, 27, 45, 31, 47, 41, 40, 28, 65, 49, 26, 29, 22, 23, 46, 42, 35, 39};
+// #elif (defined) modelL0512
+// const int pin_IO[sizeRelay] = {40, 25, 29, 42, 48, 45, 62, 44, 41, 49, 27, 34, 24, 47, 36, 63, 26, 65, 22, 35, 33, 28, 39, 43, 23, 37, 38, 31, 46, 30, 64, 32};
+// #elif (defined) modelL0016
+// const int pin_IO[sizeRelay] = {45, 39, 42, 63, 48, 33, 49, 38, 43, 65, 27, 32, 30, 26, 28, 29, 46, 44, 23, 62, 37, 36, 35, 64, 41, 47, 22, 40, 24, 31, 25, 34};
+// #elif (defined) modelL0032
+// const int pin_IO[sizeRelay] = {63, 23, 31, 27, 48, 26, 62, 44, 30, 22, 45, 65, 25, 39, 49, 64, 32, 38, 47, 41, 46, 34, 28, 42, 29, 40, 43, 35, 33, 24, 37, 36};
+
+// #elif (defined) modelL0004
+// const int pin_IO[sizeRelay] = {24, 39, 46, 64, 48, 41, 22, 45, 42, 65, 47, 36, 27, 26, 32, 30, 25, 43, 29, 33, 23, 35, 37, 31, 63, 28, 44, 34, 49, 62, 38, 40};
+// #elif (defined) modelL0064
+// const int pin_IO[sizeRelay] = {62, 39, 42, 38, 34, 40, 29, 27, 36, 65, 44, 49, 24, 30, 37, 23, 63, 46, 33, 32, 41, 64, 48, 47, 25, 35, 31, 22, 45, 26, 28, 43};
+// #elif (defined) modelL0128
+// const int pin_IO[sizeRelay] = {40, 25, 29, 42, 48, 45, 62, 44, 41, 49, 27, 34, 24, 47, 36, 63, 26, 65, 22, 35, 33, 28, 39, 43, 23, 37, 38, 31, 46, 30, 64, 32};
+// #endif
 // 50 -> 62
 // 51 -> 63
 // 52 -> 64
@@ -33,7 +48,6 @@ const int pin_IO[sizeRelay] = {47, 41, 23, 38, 64, 43, 44, 33, 36, 62, 42, 48, 4
 
 // sangat membantu untuk mapping awal relay pin
 // tinggal define ajah
-// #define find_p
 #ifdef find_p
 struct mapping_p
 {
@@ -220,17 +234,22 @@ private:
     const char *controller_name = "L0004";
 #elif defined(modelL0016)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5E};
+    const char *controller_name = "L0016";
 #elif defined(modelL0032)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5F};
+    const char *controller_name = "L0032";
 #elif defined(modelL0064)
+    const char *controller_name = "L0064";
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x60};
 #elif defined(modelL0128)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x61};
     const char *controller_name = "L0128";
 #elif defined(modelL0256)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x62};
+    const char *controller_name = "L0256";
 #elif defined(modelL0512)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x63};
+    const char *controller_name = "L0512";
 #endif
 
     const char *device_class = "A1";

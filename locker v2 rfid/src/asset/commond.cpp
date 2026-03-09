@@ -9,11 +9,38 @@ void mapping_p::begin()
         digitalWrite(pin_IO[i], LOW);
         delay(100);
     }
+    for (signed char i = sizeRelay; i >= 0; i--)
+    {
+        digitalWrite(pin_IO[i], HIGH);
+        delay(25);
+    }
+    delay(1000);
+    for (size_t i = 0; i < sizeRelay; i++)
+    {
+        digitalWrite(pin_IO[i], LOW);
+        delay(25);
+    }
+    delay(1500);
+    for (size_t i = 0; i < sizeRelay; i++)
+    {
+        digitalWrite(pin_IO[i], HIGH);
+    }
+    for (size_t i = 0; i < sizeRelay / 2; i++)
+    {
+        digitalWrite(pin_IO[i], LOW);
+        digitalWrite(pin_IO[sizeRelay - i], LOW);
+        if (i % 2 == 0)
+            delay(600);
+        else
+            delay(50);
+    }
     delay(250);
     for (size_t i = 0; i < sizeRelay; i++)
     {
         digitalWrite(pin_IO[i], HIGH);
     }
+    delay(5000);
+    Serial.println("start device");
 }
 bool mapping_p::pins_avaiable()
 {
@@ -81,7 +108,9 @@ void mapping_p::shorting_pins()
     for (size_t xp = 0; xp < sizeRelay; xp++)
     {
         digitalWrite(new_setup_rl[xp], LOW);
+        Serial.print(new_setup_rl[xp]);
         delay(1000);
+        Serial.println(',');
         digitalWrite(new_setup_rl[xp], HIGH);
         delay(1000);
     }

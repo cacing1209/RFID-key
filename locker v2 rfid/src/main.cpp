@@ -57,8 +57,13 @@ void init_mypin()
 	pinMode(buzzer.pin, OUTPUT);
 	Wire.begin();
 	SPI.begin();
-	eth.begin(data);
 	rfid.init_sensor(&nfc);
+#ifdef DEBUG_RFID
+	tone(buzzer.pin, 3200);
+	delay(1000);
+	noTone(buzzer.pin);
+#endif
+	eth.begin(data);
 }
 storage_state memory;
 void setup()
@@ -69,56 +74,6 @@ void setup()
 #endif
 	init_mypin();
 	memory.load_data(data);
-	// digitalWrite(buzzer.pin, LOW);
-	// while (1)
-	// {
-	// 	int freq = 3200;
-	// 	static int ritme = 25;
-	// 	Serial.print("in test=>");
-	// 	Serial.println(ritme);
-	// 	static unsigned long last_t = 0;
-	// 	static bool i = false;
-	// 	static byte custom_fl = 0, limit = 0;
-	// 	if (Serial.available())
-	// 	{
-	// 		char c = Serial.read();
-	// 		int digit = 0;
-	// 		if (isdigit(c))
-	// 		{
-	// 			digit = c - '0';
-	// 			switch (digit)
-	// 			{
-	// 			case 1:
-	// 				ritme += 25;
-	// 				break;
-	// 			case 2:
-	// 				limit++;
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// 	if (millis() - last_t > ritme)
-	// 	{
-	// 		if (i)
-	// 		{
-	// 			if (custom_fl < limit)
-	// 			{
-	// 				custom_fl++;
-	// 				tone(buzzer.pin, freq);
-	// 			}
-	// 			else
-	// 			{
-	// 				custom_fl = 0;
-	// 				noTone(buzzer.pin);
-	// 			}
-	// 		}
-	// 		else
-	// 			noTone(buzzer.pin);
-	// 		i = !i;
-	// 		last_t = millis();
-	// 	}
-	// }
-
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.println("Device Start");
 #endif
@@ -181,6 +136,7 @@ void loop()
 #endif
 }
 #elif defined(find_p)
+
 mapping_p map_p;
 
 void setup()
@@ -191,7 +147,7 @@ void setup()
 }
 void loop()
 {
-	// map_p.bypass = true;
+	map_p.bypass = true;
 	map_p.main();
 	static bool showing = true;
 	if (map_p.bypass && showing)
@@ -213,9 +169,25 @@ void loop()
 			digitalWrite(pin_IO[i], HIGH);
 			delay(100);
 		}
+		for (size_t i = 0; i < sizeRelay / 2; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			digitalWrite(pin_IO[sizeRelay - i], LOW);
+			if (i % 2 == 0)
+				delay(450);
+			else
+				delay(50);
+		}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], HIGH);
+			delay(100);
+		}
 		for (size_t i = 0; i < sizeRelay; i++)
 		{
 			digitalWrite(pin_IO[i], LOW);
+			delay(2000);
+			Serial.println(',');
 		}
 		showing = false;
 	}
