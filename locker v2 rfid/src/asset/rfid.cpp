@@ -150,7 +150,7 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
         if (counting_reset >= 10)
         {
             counting_reset = 0;
-            sys.software_Reset();
+            sys.software_Resatrt();
         }
 
         if (millis() - last_init > 4000)

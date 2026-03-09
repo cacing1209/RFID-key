@@ -7,6 +7,7 @@
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
+// #define find_p
 #define modelL0002
 // #define modelL0004
 // #define modelL0016
@@ -15,7 +16,6 @@
 // #define modelL0128
 // #define modelL0256
 // #define modelL0512
-// #define find_p
 
 #define read_little_end
 #include <Arduino.h>
@@ -226,22 +226,6 @@ private:
     bool header_done;
     char last_char;
 
-    // #define COUNT_MODELS (              \
-//     (defined(modelL0002) ? 1 : 0) + \
-//     (defined(modelL0004) ? 1 : 0) + \
-//     (defined(modelL0016) ? 1 : 0) + \
-//     (defined(modelL0032) ? 1 : 0) + \
-//     (defined(modelL0064) ? 1 : 0) + \
-//     (defined(modelL0128) ? 1 : 0) + \
-//     (defined(modelL0256) ? 1 : 0) + \
-//     (defined(modelL0512) ? 1 : 0))
-
-    // #if COUNT_MODELS == 0
-    // #error "Error: DEFINE MODEL SEK SUU!"
-    // #elif COUNT_MODELS > 1
-    // #error "Error: PILIH SATU AJA NDENG GENDENG!"
-    // #endif
-
 #ifdef modelL0002
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5C};
     const char *controller_name = "L0002";
@@ -317,7 +301,7 @@ public:
 #include <avr/wdt.h>
 struct system_d
 {
-    void software_Reset()
+    void software_Resatrt()
     {
         wdt_enable(WDTO_15MS);
         while (1)
