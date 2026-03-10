@@ -313,7 +313,7 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
 #ifdef DEBUG_ETH
         Serial.println(":sys:restart");
 #endif
-        sys.software_Reset();
+        sys.software_Resatrt();
     }
     else if (strcmp(path, "/reset") == 0 && strcmp(method, "POST") == 0)
     {
