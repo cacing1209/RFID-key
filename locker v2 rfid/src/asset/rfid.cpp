@@ -1,6 +1,24 @@
 
 #include <commond.h>
 #ifndef find_p
+void i2crecovery()
+{
+    pinMode(SCL, OUTPUT);
+    pinMode(SDA, INPUT_PULLUP);
+    for (size_t i = 0; i < 9; i++)
+    {
+        digitalWrite(SCL, HIGH);
+        delayMicroseconds(5);
+        digitalWrite(SCL, LOW);
+        delayMicroseconds(5);
+    }
+    pinMode(SDA, OUTPUT);
+    digitalWrite(SDA, LOW);
+    delayMicroseconds(5);
+    digitalWrite(SCL, HIGH);
+    delayMicroseconds(5);
+    digitalWrite(SDA, LOW);
+}
 rfid_state::rfid_state(const long interval_read) : interval(interval_read)
 {
     if (interval_read < 25)
@@ -36,6 +54,7 @@ bool rfid_state::open_doors(Relay_state *rl, bool *send_log)
                 rl[i].last_t = current_t;
                 digitalWrite(rl[i].pin, HIGH);
                 delay(225);
+                i2crecovery();
                 return false;
             }
             else
@@ -99,6 +118,7 @@ void rfid_state::init_sensor(Adafruit_PN532 *nfc)
     Wire.setTimeout(50);
     Wire.begin();
     Wire.setWireTimeout(3000, true);
+    // Wire.setClock(50000);
 #ifdef DEBUG_RFID
     bool is_normal = (nfc->begin() && nfc->SAMConfig());
     if (is_normal)
@@ -153,7 +173,7 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
             sys.software_Resatrt();
         }
 
-        if (millis() - last_init > 4000)
+        if (millis() - last_init > 3000)
         {
             counting_reset++;
             last_init = millis();

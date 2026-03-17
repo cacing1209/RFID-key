@@ -30,8 +30,7 @@ bool buzzer_state::in_action()
 }
 void buzzer_state::stopBuzzer()
 {
-    // digitalWrite(pin, LOW);
-    noTone(pin);
+    digitalWrite(pin, HIGH);
 }
 void buzzer_state::resetState(unsigned long now)
 {
