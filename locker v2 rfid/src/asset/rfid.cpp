@@ -18,6 +18,9 @@ void i2crecovery()
     digitalWrite(SCL, HIGH);
     delayMicroseconds(5);
     digitalWrite(SDA, LOW);
+#ifdef DEBUG_RFID
+    Serial.println(":rfid:has been restart comunication");
+#endif
 }
 rfid_state::rfid_state(const long interval_read) : interval(interval_read)
 {
