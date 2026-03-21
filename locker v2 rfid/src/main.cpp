@@ -57,13 +57,13 @@ void init_mypin()
 	pinMode(buzzer.pin, OUTPUT);
 	Wire.begin();
 	SPI.begin();
-	rfid.init_sensor(&nfc);
+	eth.begin(data);
 #ifdef DEBUG_RFID
 	tone(buzzer.pin, 3200);
 	delay(1000);
 	noTone(buzzer.pin);
 #endif
-	eth.begin(data);
+	rfid.init_sensor(&nfc);
 }
 storage_state memory;
 void setup()
