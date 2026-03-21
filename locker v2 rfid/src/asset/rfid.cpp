@@ -57,7 +57,7 @@ bool rfid_state::open_doors(Relay_state *rl, bool *send_log)
                 rl[i].last_t = current_t;
                 digitalWrite(rl[i].pin, HIGH);
                 delay(225);
-                // i2crecovery();
+                i2crecovery();
                 return false;
             }
             else
