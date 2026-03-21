@@ -42,7 +42,7 @@ void ethernet_state::begin(database_s *db)
     Ethernet.init(10);
     delay(250);
 #ifdef DEBUG_ETH
-    Serial.println(":eth:begin..");
+    Serial.println(":eth:init...");
 #endif
     if (Ethernet.begin(eth_mac) == 0)
     {
@@ -91,7 +91,12 @@ void ethernet_state::begin(database_s *db)
     server.begin();
     reset_parser();
     if (!eth_connected)
+    {
+#ifdef DEBUG_ETH
+        Serial.println(":eth:init end");
+#endif
         return;
+    }
     ntpCfg.Udp.begin(ntpCfg.localPort);
     unsigned long ntpTime = 0;
 #ifdef DEBUG_TIME
@@ -118,7 +123,7 @@ void ethernet_state::begin(database_s *db)
     setTime(ntpTime);
 #ifdef DEBUG_ETH
     Serial.println(system_t());
-    Serial.println(":eth:begin end");
+    Serial.println(":eth:init end");
 #endif
 }
 
