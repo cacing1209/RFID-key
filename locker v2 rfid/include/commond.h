@@ -13,9 +13,9 @@
 // #define modelL0032
 // #define modelL0064
 // #define modelL0256
-// #define modelL0512
+#define modelL0512
 // #define modelL0004
-#define modelL0128
+// #define modelL0128
 
 #define read_little_end
 #include <Arduino.h>

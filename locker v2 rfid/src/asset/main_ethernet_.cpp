@@ -212,6 +212,12 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
         delay(1);
         client.stop();
     }
+    // static bool res = true;
+    // if (res)
+    // {
+    //     handle_reset(client, db, memory);
+    //     res = false;
+    // }
 
     for (size_t i = 0; i < Size_Siswa; i++)
     {
@@ -228,6 +234,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 
 void ethernet_state::handle_client(EthernetClient &client, database_s *db, storage_state *memory, Relay_state *locker)
 {
+
     reset_parser();
     // start_time = millis();
 
@@ -791,7 +798,9 @@ void ethernet_state::handle_reset(EthernetClient &client,
 
     char json[128];
     serializeJson(response, json, sizeof(json));
-
+#ifdef DEBUG_ETH
+    Serial.println(":eth:reset database");
+#endif
     send_ok(client, json);
 }
 void ethernet_state::send_ok(EthernetClient &client, const char *json)
@@ -831,7 +840,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 
     // server_log = "93.144.178.187";
     // server_log = "93.144.178.53";
-    server_log = "192.168.0.130";
+    server_log = "192.168.0.100";
     portServer_log = 3000;
 
     if (!logClient.connect(server_log, portServer_log))
