@@ -840,7 +840,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 
     // server_log = "93.144.178.187";
     // server_log = "93.144.178.53";
-    server_log = "93.144.178.187";
+    server_log = "93.144.178.53";
     portServer_log = 3000;
 
     if (!logClient.connect(server_log, portServer_log))
@@ -864,7 +864,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     logClient.println("POST /event-log HTTP/1.1");
     logClient.println("Host: " + String(server_log) + ':' + String(portServer_log));
     logClient.println("Content-Type: application/json");
-    logClient.println("X-API-KEY: lockerqyubitL0002L0004L0008L000264L000128");
+    logClient.println("Authorization:Bearear lockerqyubitL0002L0004L0008L000264L000128");
     logClient.println("Connection: close");
     logClient.print("Content-Length: ");
     logClient.println(len);
