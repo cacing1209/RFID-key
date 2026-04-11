@@ -864,7 +864,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     logClient.println("POST /event-log HTTP/1.1");
     logClient.println("Host: " + String(server_log) + ':' + String(portServer_log));
     logClient.println("Content-Type: application/json");
-    logClient.println("Authorization:Bearear lockerqyubitL0002L0004L0008L000264L000128");
+    logClient.println("Authorization:Bearer lockerqyubitL0002L0004L0008L000264L000128");
     logClient.println("Connection: close");
     logClient.print("Content-Length: ");
     logClient.println(len);
