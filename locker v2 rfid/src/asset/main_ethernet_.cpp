@@ -632,6 +632,7 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
     if (!can_replace)
     {
         send_error(client, 409, msg.c_str());
+        return;
     }
 
 #ifdef DEBUG_ETH
