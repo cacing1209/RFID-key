@@ -615,24 +615,23 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
     new_db[locker].card[1] = (uid_decimal >> 8) & 0xFF;
     new_db[locker].card[2] = (uid_decimal >> 16) & 0xFF;
     new_db[locker].card[3] = (uid_decimal >> 24) & 0xFF;
-    bool can_replace = true;
     for (size_t xp = 0; xp < Size_Siswa; xp++)
     {
 
+        String msg = "duplicated uid with locker num" + String(locker);
         for (size_t i = 0; i < 4; i++)
         {
             if (db[xp].card[i] == new_db[locker].card[i])
             {
-                can_replace = false;
+#ifdef DEBUG_ETH
+                Serial.println(":eth:error same uid card " + String(db[xp].card[i]) + " :new:" + String(new_db[locker].card[i]));
+#endif
+                send_error(client, 409, msg.c_str());
+                memset(new_db[locker].card, 0, size_uid);
+
+                return;
             }
         }
-    }
-    String msg = "duplicated uid with locker num" + String(locker);
-
-    if (!can_replace)
-    {
-        send_error(client, 409, msg.c_str());
-        return;
     }
 
 #ifdef DEBUG_ETH

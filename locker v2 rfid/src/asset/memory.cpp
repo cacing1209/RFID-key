@@ -76,17 +76,6 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
                 st = Status_db::Not_Available;
             }
         }
-
-        if (db[i].number_locker != new_db[i].number_locker)
-        {
-            db[i].number_locker = new_db[i].number_locker;
-#ifdef DEBUG_MEM
-            {
-                Serial.println(":mem:number replace=>" + String(i));
-            }
-#endif
-            replace = true;
-        }
         if (st != db[i].statusdb)
         {
             db[i].statusdb = st;

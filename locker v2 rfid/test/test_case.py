@@ -422,7 +422,6 @@ req("post", "/reset")
 time.sleep(0.3)
 req("post", "/students", body={"no": 0, "id": "0028758077"})
 
-# Buka locker → set reset_t = true → harusnya kirim event log ke server log
 r = req("post", "/students/0")
 check(
     "POST /students/0 (buka locker) → 200 sebelum event log dikirim",
