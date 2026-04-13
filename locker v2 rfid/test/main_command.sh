@@ -4,7 +4,7 @@
 #   Usage: ./locker.sh <command> [args]
 # ═══════════════════════════════════════════════════
 
-BASE_URL="http://93.144.178.16:8000"
+BASE_URL="http://93.144.178.18:8000"
 API_KEY="lockerqyubitL0002L0004L0008L000264L000128"
 AUTH="Authorization: ${API_KEY}"
 CT="Content-Type: application/json"
