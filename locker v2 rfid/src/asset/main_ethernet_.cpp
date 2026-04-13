@@ -581,7 +581,6 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         send_error(client, 409, "Locker already in use");
         return;
     }
-    
 
     String uid_str = card_uid_str;
 
@@ -616,6 +615,24 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
     new_db[locker].card[1] = (uid_decimal >> 8) & 0xFF;
     new_db[locker].card[2] = (uid_decimal >> 16) & 0xFF;
     new_db[locker].card[3] = (uid_decimal >> 24) & 0xFF;
+    bool can_replace = true;
+    for (size_t xp = 0; xp < Size_Siswa; xp++)
+    {
+
+        for (size_t i = 0; i < 4; i++)
+        {
+            if (db[xp].card[i] == new_db[locker].card[i])
+            {
+                can_replace = false;
+            }
+        }
+    }
+    String msg = "duplicated uid with locker num" + String(locker);
+
+    if (!can_replace)
+    {
+        send_error(client, 409, msg.c_str());
+    }
 
 #ifdef DEBUG_ETH
     Serial.print("Stored decimal UID: ");

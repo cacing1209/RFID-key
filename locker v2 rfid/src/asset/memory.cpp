@@ -48,21 +48,7 @@ bool storage_state::load_data(database_s *db)
 #endif
     return true;
 }
-bool equal_db(database_s *xp, database_s *yp, int index)
-{
-    bool can_replace = true;
-    for (size_t i = 0; i < Size_Siswa; i++)
-    {
-        for (size_t x = 0; x < size_uid; x++)
-        {
-            if (xp[i].card[x] == yp[index].card[x])
-            {
-                can_replace = false;
-            }
-        }
-    }
-    return can_replace;
-}
+
 bool storage_state::save_data(database_s *db, database_s *new_db)
 {
     int addr = flags_load;
@@ -105,8 +91,6 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
         {
             db[i].statusdb = st;
             replace = true;
-            if (!equal_db(db, new_db, new_db[i].number_locker))
-                return false;
         }
 #ifdef DEBUG_MEM
         Serial.println("status " + String(db[i].statusdb == Status_db::Available ? "avaiable" : "not avaiable"));
