@@ -581,10 +581,10 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         send_error(client, 409, "Locker already in use");
         return;
     }
+    
 
     String uid_str = card_uid_str;
 
-    // Check if input is decimal number
     bool is_decimal = true;
     for (size_t i = 0; i < uid_str.length(); i++)
     {
@@ -608,13 +608,10 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         new_db[i] = db[i];
     }
 
-    // Clear the card array first
     memset(new_db[locker].card, 0, size_uid);
 
-    // Convert decimal string to 4-byte UID (little-endian format)
     unsigned long uid_decimal = strtoul(uid_str.c_str(), NULL, 10);
 
-    // Store in little-endian format (matches sensor output)
     new_db[locker].card[0] = (uid_decimal) & 0xFF;
     new_db[locker].card[1] = (uid_decimal >> 8) & 0xFF;
     new_db[locker].card[2] = (uid_decimal >> 16) & 0xFF;
