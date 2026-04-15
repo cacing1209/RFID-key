@@ -17,7 +17,7 @@
 
 #define baudRate_PC 9600
 #ifndef find_p
-Relay_state locker[sizeRelay];
+Relay_state locker[sizeRelay];																																			
 Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(100);
 buzzer_state buzzer(75);
