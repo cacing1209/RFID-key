@@ -1,4 +1,5 @@
 #include <auth.h>
+
 bool auth_state::check_auth(String auth_h)
 {
     if (!auth_h)
