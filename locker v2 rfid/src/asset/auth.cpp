@@ -9,10 +9,9 @@ bool auth_state::check_auth(String auth_h)
     String auth_str = auth_h;
     auth_str.trim();
 
-    // Check if starts with "Bearer "
     if (auth_str.startsWith("Bearer "))
     {
-        auth_str = auth_str.substring(7); // Remove "Bearer "
+        auth_str = auth_str.substring(7); 
         auth_str.trim();
     }
 
