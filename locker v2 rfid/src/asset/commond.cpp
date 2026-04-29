@@ -6,8 +6,16 @@ void mapping_p::begin()
     for (size_t i = 0; i < sizeRelay; i++)
     {
         pinMode(pin_IO[i], OUTPUT);
-        digitalWrite(pin_IO[i], LOW);
+        if (!bypass)
+            digitalWrite(pin_IO[i], HIGH);
+        else
+            digitalWrite(pin_IO[i], LOW);
         delay(100);
+    }
+    if (!bypass)
+    {
+        Serial.println("start device");
+        return;
     }
     for (signed char i = sizeRelay; i >= 0; i--)
     {
@@ -108,9 +116,11 @@ void mapping_p::shorting_pins()
     for (size_t xp = 0; xp < sizeRelay; xp++)
     {
         digitalWrite(new_setup_rl[xp], LOW);
+        Serial.print("index ->" + String(xp));
+        Serial.print(" ");
         Serial.print(new_setup_rl[xp]);
         delay(1000);
-        Serial.println(',');
+        Serial.println();
         digitalWrite(new_setup_rl[xp], HIGH);
         delay(1000);
     }

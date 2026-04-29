@@ -17,7 +17,7 @@
 
 #define baudRate_PC 9600
 #ifndef find_p
-Relay_state locker[sizeRelay];																																			
+Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
 rfid_state rfid(100);
 buzzer_state buzzer(75);
@@ -142,14 +142,14 @@ mapping_p map_p;
 void setup()
 {
 	Serial.begin(baudRate_PC);
+	map_p.bypass = true;
 	map_p.begin();
 	Serial.println("device start");
 }
 void loop()
 {
-	map_p.bypass = true;
 	map_p.main();
-	static bool showing = true;
+	static bool showing = false;
 	if (map_p.bypass && showing)
 	{
 		for (size_t i = 0; i < sizeRelay; i++)
@@ -186,10 +186,19 @@ void loop()
 		for (size_t i = 0; i < sizeRelay; i++)
 		{
 			digitalWrite(pin_IO[i], LOW);
-			delay(2000);
+			delay(800);
 			Serial.println(',');
 		}
 		showing = false;
+	}
+	else
+	{
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			delay(800);
+			Serial.println(',');
+		}
 	}
 }
 #endif
