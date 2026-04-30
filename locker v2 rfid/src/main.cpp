@@ -197,7 +197,9 @@ void loop()
 		{
 			digitalWrite(pin_IO[i], LOW);
 			delay(800);
-			Serial.println(',');
+			Serial.print(i);
+			Serial.print("->");
+			Serial.println(pin_IO[i]);
 		}
 	}
 }
