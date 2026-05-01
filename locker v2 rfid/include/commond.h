@@ -15,7 +15,7 @@
 // #define modelL0256
 // #define modelL0512
 // #define modelL0004
-#define modelL0128
+// #define modelL0128
 
 #define read_little_end
 #include <Arduino.h>
@@ -53,7 +53,7 @@ const int pin_IO[sizeRelay] = {63, 23, 31, 27, 48, 26, 62, 44, 30, 22, 45, 65, 2
 #elif defined(modelL0004)
 const int pin_IO[sizeRelay] = {24, 39, 46, 64, 48, 41, 22, 45, 42, 65, 47, 36, 27, 26, 32, 30, 25, 43, 29, 33, 23, 35, 37, 31, 63, 28, 44, 34, 49, 62, 38, 40};
 #elif defined(modelL0064)
-const int pin_IO[sizeRelay] = {62, 39, 42, 38, 34, 40, 29, 27, 36, 65, 44, 49, 24, 30, 37, 23, 63, 46, 33, 32, 41, 64, 48, 47, 25, 35, 31, 22, 45, 26, 28, 43};
+const int pin_IO[sizeRelay] = {36,65,44,49,23,37,30,24,31,22,35,25,43,26,28,45,62,39,42,38,47,48,64,41,63,33,46,32,40,34,29,27};
 #elif defined(modelL0128)
 const int pin_IO[sizeRelay] = {49, 39, 29, 35, 37, 41, 43, 27, 62, 23, 42, 30, 25, 26, 44, 38, 28, 47, 48, 36, 22, 63, 32, 45, 64, 65, 24, 46, 34, 31, 40, 33};
 #endif
