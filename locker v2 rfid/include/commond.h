@@ -1,9 +1,9 @@
 #ifndef COMMOND_H
 #define COMMOND_H
-#define DEBUG_ETH
-#define DEBUG_RFID
-#define DEBUG_MEM
-#define DEBUG_ACC
+// #define DEBUG_ETH
+// #define DEBUG_RFID
+// #define DEBUG_MEM
+// #define DEBUG_ACC
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
@@ -12,10 +12,10 @@
 // #define modelL0016
 // #define modelL0032
 // #define modelL0064
-#define modelL0256
+// #define modelL0256
 // #define modelL0512
 // #define modelL0004
-// #define modelL0128
+#define modelL0128
 
 #define read_little_end
 #include <Arduino.h>
@@ -55,7 +55,7 @@ const int pin_IO[sizeRelay] = {24, 39, 46, 64, 48, 41, 22, 45, 42, 65, 47, 36, 2
 #elif defined(modelL0064)
 const int pin_IO[sizeRelay] = {36, 65, 44, 49, 23, 37, 30, 24, 31, 22, 35, 25, 43, 26, 28, 45, 62, 39, 42, 38, 47, 48, 64, 41, 63, 33, 46, 32, 40, 34, 29, 27};
 #elif defined(modelL0128)
-const int pin_IO[sizeRelay] = {49, 39, 29, 35, 37, 41, 43, 27, 62, 23, 42, 30, 25, 26, 44, 38, 28, 47, 48, 36, 22, 63, 32, 45, 64, 65, 24, 46, 34, 31, 40, 33};
+const int pin_IO[sizeRelay] = {49, 39, 29, 35, 37, 25, 30, 44, 26, 42, 63, 48, 41, 22, 43, 28, 23, 62, 45, 27, 65, 46, 32, 34, 36, 24, 64, 47, 38, 31, 40, 33};
 #endif
 // 50 -> 62
 // 51 -> 63
@@ -78,7 +78,7 @@ struct mapping_p
 #include <Ethernet.h>
 #include <TimeLib.h>
 #include <EthernetUdp.h>
-
+#define eth_cs 10
 /* #pinout#
  * PN532 RFID menggunakan I2C:
  * SDA = Pin 20 (Arduino Mega)
@@ -87,7 +87,7 @@ struct mapping_p
 
  * */
 
-#define CS_SD 2
+// #define CS_SD 2
 
 #define PIN_led 68
 #define PIN_buzzer 69
@@ -165,7 +165,7 @@ struct rfid_state
 {
     char read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl);
     signed char card_isregistered(const database_s *db);
-    bool open_doors(Relay_state *rl, bool *send_log);
+    bool open_doors(Relay_state *rl, bool *send_log, Adafruit_PN532 *nfc);
     long interval;
     uint8_t size_uid_incoming = size_uid;
     uint8_t uid_incoming[size_uid];

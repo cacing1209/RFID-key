@@ -40,11 +40,11 @@ app.post("/event-log", checkApiKey, (req, res) => {
   const card_uid = String(id).padStart(10, "0");
 
   const log = {
-    id        : eventLogs.length + 1,
-    timestamp : t,
-    locker    : no,
-    card_uid  : card_uid,
-    received  : new Date().toISOString(),
+    id: eventLogs.length + 1,
+    timestamp: t,
+    locker: no,
+    card_uid: card_uid,
+    received: new Date().toISOString(),
   };
 
   eventLogs.push(log);
@@ -56,7 +56,7 @@ app.post("/event-log", checkApiKey, (req, res) => {
 // ── GET /event-log ──────────────────────────────────────
 // Lihat semua log yang masuk (untuk debug)
 app.get("/event-log", (req, res) => {
-  const limit  = parseInt(req.query.limit)  || 50;
+  const limit = parseInt(req.query.limit) || 50;
   const locker = req.query.locker !== undefined ? parseInt(req.query.locker) : null;
 
   let result = [...eventLogs].reverse(); // terbaru dulu
@@ -68,9 +68,9 @@ app.get("/event-log", (req, res) => {
   result = result.slice(0, limit);
 
   res.json({
-    total  : eventLogs.length,
-    count  : result.length,
-    logs   : result,
+    total: eventLogs.length,
+    count: result.length,
+    logs: result,
   });
 });
 
@@ -92,10 +92,10 @@ app.delete("/event-log", checkApiKey, (req, res) => {
 // ── GET /health ─────────────────────────────────────────
 app.get("/health", (req, res) => {
   res.json({
-    status  : "ok",
-    uptime  : Math.floor(process.uptime()),
-    logs    : eventLogs.length,
-    time    : new Date().toISOString(),
+    status: "ok",
+    uptime: Math.floor(process.uptime()),
+    logs: eventLogs.length,
+    time: new Date().toISOString(),
   });
 });
 

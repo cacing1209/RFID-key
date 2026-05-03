@@ -39,7 +39,7 @@ String system_t()
 void ethernet_state::begin(database_s *db)
 {
     db_ptr = db;
-    Ethernet.init(10);
+    Ethernet.init(eth_cs);
     delay(250);
 #ifdef DEBUG_ETH
     Serial.println(":eth:init...");
@@ -617,20 +617,20 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
     new_db[locker].card[3] = (uid_decimal >> 24) & 0xFF;
     for (size_t xp = 0; xp < Size_Siswa; xp++)
     {
+        if (xp == locker)
+            continue;
+        if (db[xp].statusdb != Status_db::Not_Available)
+            continue;
 
-        String msg = "duplicated uid with locker num" + String(locker);
-        for (size_t i = 0; i < 4; i++)
+        if (memcmp(db[xp].card, new_db[locker].card, size_uid) == 0)
         {
-            if (db[xp].card[i] == new_db[locker].card[i])
-            {
+            String msg = "duplicated uid with locker num" + String(xp);
 #ifdef DEBUG_ETH
-                Serial.println(":eth:error same uid card " + String(db[xp].card[i]) + " :new:" + String(new_db[locker].card[i]));
+            Serial.println(":eth:error same uid card with locker " + String(xp));
 #endif
-                send_error(client, 409, msg.c_str());
-                memset(new_db[locker].card, 0, size_uid);
-
-                return;
-            }
+            send_error(client, 409, msg.c_str());
+            memset(new_db[locker].card, 0, size_uid);
+            return;
         }
     }
 
@@ -854,7 +854,8 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 
     // server_log = "93.144.178.187";
     // server_log = "93.144.178.53";
-    server_log = "93.144.178.53"; // ex: https://api.event-log
+    server_log = "192.168.0.105"; // now using link:locker-logs.qyubit.com
+    // server_log = "locker-logs.qyubit.com";
     portServer_log = 3000;
 
     if (!logClient.connect(server_log, portServer_log))

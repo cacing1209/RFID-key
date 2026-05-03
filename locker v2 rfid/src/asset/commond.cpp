@@ -6,48 +6,57 @@ void mapping_p::begin()
     for (size_t i = 0; i < sizeRelay; i++)
     {
         pinMode(pin_IO[i], OUTPUT);
+        digitalWrite(pin_IO[i], HIGH);
         if (!bypass)
+        {
             digitalWrite(pin_IO[i], HIGH);
+            delay(250);
+        }
         else
+        {
             digitalWrite(pin_IO[i], LOW);
+            delay(1500);
+            digitalWrite(pin_IO[i], HIGH);
+        }
         delay(100);
     }
-    if (!bypass)
-    {
-        Serial.println("start device");
-        return;
-    }
-    for (signed char i = sizeRelay; i >= 0; i--)
-    {
-        digitalWrite(pin_IO[i], HIGH);
-        delay(25);
-    }
-    delay(1000);
-    for (size_t i = 0; i < sizeRelay; i++)
-    {
-        digitalWrite(pin_IO[i], LOW);
-        delay(25);
-    }
-    delay(1500);
-    for (size_t i = 0; i < sizeRelay; i++)
-    {
-        digitalWrite(pin_IO[i], HIGH);
-    }
-    for (size_t i = 0; i < sizeRelay / 2; i++)
-    {
-        digitalWrite(pin_IO[i], LOW);
-        digitalWrite(pin_IO[sizeRelay - i], LOW);
-        if (i % 2 == 0)
-            delay(600);
-        else
-            delay(50);
-    }
-    delay(250);
-    for (size_t i = 0; i < sizeRelay; i++)
-    {
-        digitalWrite(pin_IO[i], HIGH);
-    }
-    delay(5000);
+    return;
+    // if (!bypass)
+    // {
+    //     Serial.println("start device");
+    //     return;
+    // }
+    // for (signed char i = sizeRelay; i >= 0; i--)
+    // {
+    //     digitalWrite(pin_IO[i], HIGH);
+    //     delay(25);
+    // }
+    // delay(1000);
+    // for (size_t i = 0; i < sizeRelay; i++)
+    // {
+    //     digitalWrite(pin_IO[i], LOW);
+    //     delay(25);
+    // }
+    // delay(1500);
+    // for (size_t i = 0; i < sizeRelay; i++)
+    // {
+    //     digitalWrite(pin_IO[i], HIGH);
+    // }
+    // for (size_t i = 0; i < sizeRelay / 2; i++)
+    // {
+    //     digitalWrite(pin_IO[i], LOW);
+    //     digitalWrite(pin_IO[sizeRelay - i], LOW);
+    //     if (i % 2 == 0)
+    //         delay(600);
+    //     else
+    //         delay(50);
+    // }
+    // delay(250);
+    // for (size_t i = 0; i < sizeRelay; i++)
+    // {
+    //     digitalWrite(pin_IO[i], HIGH);
+    // }
+    // delay(5000);
     Serial.println("start device");
 }
 bool mapping_p::pins_avaiable()
@@ -143,6 +152,9 @@ void mapping_p::main()
 
         Serial.print("get_input=>");
         digitalWrite(pin_IO[i], LOW);
+        delay(250);
+        digitalWrite(pin_IO[i], HIGH);
+        delay(1000);
 
         while (wait_input)
         {
