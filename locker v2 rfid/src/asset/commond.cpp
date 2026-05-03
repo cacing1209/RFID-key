@@ -15,7 +15,7 @@ void mapping_p::begin()
         else
         {
             digitalWrite(pin_IO[i], LOW);
-            delay(1500);
+            delay(500);
             digitalWrite(pin_IO[i], HIGH);
         }
         delay(100);
