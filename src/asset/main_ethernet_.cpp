@@ -936,9 +936,8 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 #ifdef DEBUG_ETH
     Serial.println("send log");
 #endif
-
-    StaticJsonDocument<128> doc;
-    char buffer[128];
+    StaticJsonDocument<256> doc;
+    char buffer[256];
     doc["t"] = system_t();
     doc["no"] = index;
     doc["id"] = uid_decimal;
