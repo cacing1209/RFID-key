@@ -852,7 +852,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
 
-    server_log = "192.168.0.105";
+    server_log = "192.168.0.102";
     portServer_log = 3000;
     String key = token_sck;
 
