@@ -854,7 +854,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 
     server_log = "192.168.0.102";
     portServer_log = 3000;
-    String key = token_sck;
+    String key = token_sck_log;
 
     if (!logClient.connect(server_log, portServer_log))
     {
