@@ -682,7 +682,7 @@ void ethernet_state::handle_open_locker(EthernetClient &client,
 
     // Activate relay to open locker
     locker[locker_num].status = Status_RL::ON;
-    locker[locker_num].reset_t = true;
+    locker[locker_num].open_loker = true;
 
 #ifdef DEBUG_ETH
     Serial.print("Opening locker: ");
@@ -852,11 +852,9 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
 
-    // server_log = "93.144.178.187";
-    // server_log = "93.144.178.53";
-    server_log = "192.168.0.105"; // now using link:locker-logs.qyubit.com
-    // server_log = "locker-logs.qyubit.com";
+    server_log = "192.168.0.105";
     portServer_log = 3000;
+    String key = token_sck;
 
     if (!logClient.connect(server_log, portServer_log))
     {
@@ -879,7 +877,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     logClient.println("POST /event-log HTTP/1.1");
     logClient.println("Host: " + String(server_log) + ':' + String(portServer_log));
     logClient.println("Content-Type: application/json");
-    logClient.println("Authorization:Bearer lockerqyubitL0002L0004L0008L000264L000128");
+    logClient.println("Authorization:Bearer " + key);
     logClient.println("Connection: close");
     logClient.print("Content-Length: ");
     logClient.println(len);

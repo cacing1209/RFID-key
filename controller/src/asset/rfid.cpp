@@ -36,9 +36,9 @@ bool rfid_state::open_doors(Relay_state *rl, bool *send_log, Adafruit_PN532 *nfc
     {
         if (rl[i].status == Status_RL::ON)
         {
-            if (rl[i].reset_t)
+            if (rl[i].open_loker)
             {
-                rl[i].reset_t = false;
+                rl[i].open_loker = false;
                 send_log[i] = true;
                 rl[i].last_t = millis();
 
@@ -343,13 +343,13 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         }
 #endif
         last_read_c = true;
-        last_t = now;
+        // last_t = now;
 
         signed char number_locker = card_isregistered(data);
         if (number_locker != -1)
         {
             rl[number_locker].status = Status_RL::ON;
-            rl[number_locker].reset_t = true;
+            rl[number_locker].open_loker = true;
             rl[number_locker].last_t = millis();
         }
         else

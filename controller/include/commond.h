@@ -157,7 +157,7 @@ struct Relay_state
     Status_RL status;
     byte pin;
     unsigned long last_t;
-    bool reset_t;
+    bool open_loker;
 };
 
 #include <Adafruit_PN532.h>
