@@ -4,7 +4,7 @@
 #   Usage: ./locker.sh <command> [args]
 # ═══════════════════════════════════════════════════
 
-BASE_URL="http://93.144.178.18:8000"
+BASE_URL="http://192.168.0.208:8000"
 API_KEY="lockerqyubitL0002L0004L0008L000264L000128"
 AUTH="Authorization: ${API_KEY}"
 CT="Content-Type: application/json"
@@ -32,6 +32,21 @@ pretty() {
 cmd_info() {
   info "GET /info"
   curl -s "${BASE_URL}/info" | pretty
+}
+
+cmd_set_class() {
+  # Usage: ./locker.sh set-class <dev_class>
+  # Contoh: ./locker.sh set-class XII-RPL-1
+  local dev_class=$1
+  if [[ -z "$dev_class" ]]; then
+    err "Usage: $0 set-class <dev_class>"
+    err "Contoh: $0 set-class XII-RPL-1"
+    exit 1
+  fi
+  info "Set dev_class = ${dev_class}"
+  curl -s -X POST "${BASE_URL}/info" \
+    -H "${CT}" -H "${AUTH}" \
+    -d "{\"dev_class\": \"${dev_class}\"}" | pretty
 }
 
 cmd_register() {
@@ -136,6 +151,7 @@ ${BOLD}Usage:${RST}
 
 ${BOLD}Commands:${RST}
   ${G}info${RST}                        Info controller
+  ${G}set-class${RST} <dev_class>       Set nama device_class (disimpan di EEPROM)
   ${G}status${RST}                      Lihat semua locker terpakai
   ${G}get${RST}                         Semua locker
   ${G}get${RST}     <locker_no>         Detail 1 locker
@@ -147,6 +163,7 @@ ${BOLD}Commands:${RST}
 
 ${BOLD}Contoh:${RST}
   ./locker.sh info
+  ./locker.sh set-class XII-RPL-1
   ./locker.sh register 0 0028758077
   ./locker.sh open 0
   ./locker.sh get 0
@@ -160,13 +177,14 @@ ${BOLD}Contoh:${RST}
 #   MAIN
 # ═══════════════════════════════════════════════════
 case "$1" in
-  info)     cmd_info ;;
-  register) cmd_register "$2" "$3" ;;
-  open)     cmd_open "$2" ;;
-  delete)   cmd_delete "$2" ;;
-  get)      cmd_get "$2" ;;
-  reset)    cmd_reset ;;
-  restart)  cmd_restart ;;
-  status)   cmd_status ;;
-  *)        usage ;;
+  info)      cmd_info ;;
+  set-class) cmd_set_class "$2" ;;
+  register)  cmd_register "$2" "$3" ;;
+  open)      cmd_open "$2" ;;
+  delete)    cmd_delete "$2" ;;
+  get)       cmd_get "$2" ;;
+  reset)     cmd_reset ;;
+  restart)   cmd_restart ;;
+  status)    cmd_status ;;
+  *)         usage ;;
 esac

@@ -183,6 +183,9 @@ struct storage_state
     bool load_data(database_s *db);
     bool save_data(database_s *db, database_s *new_db);
 
+    bool load_device_class(char *out, size_t max_len);
+    bool save_device_class(const char *name);
+
     void factory_reset(database_s *db);
 };
 
@@ -252,8 +255,8 @@ private:
     const char *controller_name = "L0512";
 #endif
 
-    const char *device_class = "A1";
-    char *location = "not_set";
+    char device_class[32] = "not_set";
+    const char *firmware_ver = "v1.0.0";
     EthernetServer server = EthernetServer(8000);
     char *server_log;
     int portServer_log;
@@ -261,7 +264,7 @@ private:
 public:
     auth_state auth;
     bool interupt_trigger = false;
-    void begin(database_s *db);
+    void begin(database_s *db, storage_state *memory);
     void loop(database_s *db, storage_state *memory, Relay_state *locker);
 
     /* request handling */
@@ -273,6 +276,7 @@ public:
     // void handle_info(EthernetClient &client, database_s *db, storage_state *memory, bool update = false);
     void handle_info(EthernetClient &client);
     void handle_get_data(EthernetClient &client, database_s *db);
+    void handle_post_info(EthernetClient &client, storage_state *memory);
     void handle_post_student(EthernetClient &client,
                              database_s *db,
                              storage_state *memory);
@@ -297,6 +301,7 @@ public:
     unsigned long start_time;
 
     database_s *db_ptr = nullptr;
+    storage_state *memory_ptr = nullptr;
 };
 #include <avr/wdt.h>
 struct system_d

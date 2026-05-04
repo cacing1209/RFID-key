@@ -36,9 +36,14 @@ String system_t()
     return String(buffer);
 }
 
-void ethernet_state::begin(database_s *db)
+void ethernet_state::begin(database_s *db, storage_state *memory)
 {
     db_ptr = db;
+    memory_ptr = memory;
+    if (memory_ptr)
+    {
+        memory_ptr->load_device_class(device_class, sizeof(device_class));
+    }
     Ethernet.init(eth_cs);
     delay(250);
 #ifdef DEBUG_ETH
@@ -310,6 +315,11 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
         route_found = true;
         handle_info(client);
     }
+    else if (strcmp(path, "/info") == 0 && strcmp(method, "POST") == 0)
+    {
+        route_found = true;
+        handle_post_info(client, memory);
+    }
     else if (strcmp(path, "/students") == 0 && strcmp(method, "GET") == 0)
     {
         route_found = true;
@@ -448,13 +458,11 @@ void ethernet_state::reset_parser()
 // }
 void ethernet_state::handle_info(EthernetClient &client)
 {
-
     StaticJsonDocument<512> doc;
     doc["status"] = "ok";
     doc["dev_class"] = device_class;
     doc["c_name"] = controller_name;
-    doc["location"] = location;
-    doc["ver"] = "1.0.0";
+    doc["ver"] = firmware_ver;
     doc["up_t"] = millis() / 1000;
 
     IPAddress ip = Ethernet.localIP();
@@ -494,6 +502,68 @@ void ethernet_state::handle_info(EthernetClient &client)
     send_ok(client, json.c_str());
 }
 
+void ethernet_state::handle_post_info(EthernetClient &client, storage_state *memory)
+{
+    if (!memory)
+    {
+        send_error(client, 500, "Storage not available");
+        return;
+    }
+
+    if (body_len == 0)
+    {
+        send_error(client, 400, "Empty body");
+        return;
+    }
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, body);
+    if (error)
+    {
+        send_error(client, 400, "Invalid JSON");
+        return;
+    }
+
+    if (!doc.containsKey("dev_class"))
+    {
+        send_error(client, 400, "Missing dev_class field");
+        return;
+    }
+
+    const char *new_class = doc["dev_class"];
+    if (!new_class || strlen(new_class) == 0)
+    {
+        send_error(client, 400, "Empty dev_class");
+        return;
+    }
+
+    if (strlen(new_class) >= sizeof(device_class))
+    {
+        send_error(client, 400, "dev_class too long");
+        return;
+    }
+
+    if (!memory->save_device_class(new_class))
+    {
+        send_error(client, 500, "Failed to save dev_class");
+        return;
+    }
+
+    strncpy(device_class, new_class, sizeof(device_class) - 1);
+    device_class[sizeof(device_class) - 1] = '\0';
+
+#ifdef DEBUG_ETH
+    Serial.println(String("dev_class updated: ") + device_class);
+#endif
+
+    StaticJsonDocument<128> response;
+    response["status"] = "updated";
+    response["dev_class"] = device_class;
+
+    char json[128];
+    serializeJson(response, json, sizeof(json));
+    send_ok(client, json);
+}
 void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
 {
     if (!db)
@@ -872,6 +942,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     doc["t"] = system_t();
     doc["no"] = index;
     doc["id"] = uid_decimal;
+    doc["dev_class"] = device_class;
     size_t len = serializeJson(doc, buffer);
 
     logClient.println("POST /event-log HTTP/1.1");

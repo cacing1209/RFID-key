@@ -7,6 +7,10 @@
 #define flags_fctry_reset 0x8
 #define flags_load 0x10
 
+#define DEV_CLASS_LEN 32
+#define magic_dev_class 0xA5
+#define addr_dev_class (flags_load + (int)(Size_Siswa * sizeof(database_s)))
+
 EEPROMClass epr;
 
 bool storage_state::load_data(database_s *db)
@@ -184,6 +188,72 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
 
 //     return true;
 // }
+
+bool storage_state::load_device_class(char *out, size_t max_len)
+{
+    if (!out || max_len == 0)
+        return false;
+    int addr = addr_dev_class;
+    if (addr + 1 + DEV_CLASS_LEN > (int)epr.length())
+    {
+#ifdef DEBUG_MEM
+        Serial.println(":mem:dev_class addr out of range");
+#endif
+        return false;
+    }
+
+    uint8_t magic = epr.read(addr);
+    if (magic != magic_dev_class)
+    {
+#ifdef DEBUG_MEM
+        Serial.println(":mem:dev_class not set");
+#endif
+        return false;
+    }
+
+    addr++;
+    size_t i = 0;
+    for (; i < DEV_CLASS_LEN && i < max_len - 1; i++)
+    {
+        char c = (char)epr.read(addr + i);
+        if (c == '\0')
+            break;
+        out[i] = c;
+    }
+    out[i] = '\0';
+#ifdef DEBUG_MEM
+    Serial.println(String(":mem:dev_class load=") + out);
+#endif
+    return i > 0;
+}
+
+bool storage_state::save_device_class(const char *name)
+{
+    if (!name)
+        return false;
+    int addr = addr_dev_class;
+    if (addr + 1 + DEV_CLASS_LEN > (int)epr.length())
+    {
+#ifdef DEBUG_MEM
+        Serial.println(":mem:dev_class addr out of range");
+#endif
+        return false;
+    }
+
+    epr.update(addr, magic_dev_class);
+    addr++;
+    size_t len = strlen(name);
+    if (len >= DEV_CLASS_LEN)
+        len = DEV_CLASS_LEN - 1;
+    for (size_t i = 0; i < len; i++)
+        epr.update(addr + i, (uint8_t)name[i]);
+    for (size_t i = len; i < DEV_CLASS_LEN; i++)
+        epr.update(addr + i, 0);
+#ifdef DEBUG_MEM
+    Serial.println(String(":mem:dev_class save=") + name);
+#endif
+    return true;
+}
 
 void storage_state::factory_reset(database_s *db)
 {

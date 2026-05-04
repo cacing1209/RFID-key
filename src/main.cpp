@@ -24,6 +24,7 @@ buzzer_state buzzer(75);
 ethernet_state eth;
 
 database_s data[Size_Siswa];
+storage_state memory;
 
 void init_mypin()
 {
@@ -63,9 +64,8 @@ void init_mypin()
 	delay(1000);
 	noTone(buzzer.pin);
 #endif
-	eth.begin(data);
+	eth.begin(data, &memory);
 }
-storage_state memory;
 
 void bypass_add_card()
 {
