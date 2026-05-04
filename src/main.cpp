@@ -136,7 +136,7 @@ void setup()
 	delay(6000);
 #endif
 	init_mypin();
-	bypass_add_card();
+	// bypass_add_card();
 	memory.load_data(data);
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
 	Serial.println("Device Start");
