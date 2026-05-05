@@ -586,7 +586,7 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
         if (db[i].statusdb == Status_db::Not_Available)
         {
             JsonObject student = students.createNestedObject();
-            student["locker"] = db[i].number_locker;
+            student["locker"] = i;
 
             unsigned long uid_decimal =
                 ((unsigned long)db[i].card[0]) |
@@ -599,8 +599,6 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
             student["card_uid"] = dec;
             student["status"] = "use";
 
-            Serial.print(db[i].number_locker + String("->"));
-            Serial.println(dec);
         }
     }
 
@@ -626,6 +624,7 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
 
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, body);
+    
     if (error)
     {
         send_error(client, 400, "Invalid JSON");
