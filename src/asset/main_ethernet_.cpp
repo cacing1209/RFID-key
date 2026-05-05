@@ -572,6 +572,9 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
         return;
     }
 
+#ifdef DEBUG_ETH
+    Serial.println(":eth:get all data");
+#endif
     JsonDocument doc;
     JsonArray students = doc.createNestedArray("students");
 
