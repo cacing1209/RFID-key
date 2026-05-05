@@ -578,34 +578,62 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
 #ifdef DEBUG_ETH
     Serial.println(":eth:get all data");
 #endif
-    JsonDocument doc;
-    JsonArray students = doc.createNestedArray("students");
 
+    // Stream langsung ke client supaya tidak bergantung heap (JsonDocument +
+    // String reallocation pernah produce JSON kosong/truncate di Mega ketika
+    // memori sempit, bikin dashboard nampilin semua locker sebagai "free").
+    // Format per entry: {"locker":N,"card_uid":"DDDDDDDDDD","status":"use"}
+    // Base length 51 (single-digit N). Tambah 1 char per digit ekstra.
+    const size_t base_envelope = 15; // strlen("{\"students\":[]}")
+    const size_t base_entry = 51;
+
+    size_t body_len = base_envelope;
+    int count = 0;
     for (int i = 0; i < Size_Siswa; i++)
     {
         if (db[i].statusdb == Status_db::Not_Available)
         {
-            JsonObject student = students.createNestedObject();
-            student["locker"] = i;
-
-            unsigned long uid_decimal =
-                ((unsigned long)db[i].card[0]) |
-                ((unsigned long)db[i].card[1] << 8) |
-                ((unsigned long)db[i].card[2] << 16) |
-                ((unsigned long)db[i].card[3] << 24);
-
-            char dec[11];
-            sprintf(dec, "%010lu", uid_decimal);
-            student["card_uid"] = dec;
-            student["status"] = "use";
-
+            count++;
+            body_len += base_entry;
+            if (i >= 10) body_len += 1;
+            if (i >= 100) body_len += 1;
         }
     }
+    if (count > 1) body_len += (count - 1); // koma antar entry
 
-    String json;
-    serializeJson(doc, json);
+    client.println(F("HTTP/1.1 200 OK"));
+    client.println(F("Content-Type: application/json"));
+    client.println(F("Connection: close"));
+    client.print(F("Content-Length: "));
+    client.println(body_len);
+    client.println();
 
-    send_ok(client, json.c_str());
+    client.print(F("{\"students\":["));
+    bool first = true;
+    for (int i = 0; i < Size_Siswa; i++)
+    {
+        if (db[i].statusdb != Status_db::Not_Available)
+            continue;
+
+        if (!first) client.print(',');
+        first = false;
+
+        unsigned long uid_decimal =
+            ((unsigned long)db[i].card[0]) |
+            ((unsigned long)db[i].card[1] << 8) |
+            ((unsigned long)db[i].card[2] << 16) |
+            ((unsigned long)db[i].card[3] << 24);
+
+        char dec[11];
+        sprintf(dec, "%010lu", uid_decimal);
+
+        client.print(F("{\"locker\":"));
+        client.print(i);
+        client.print(F(",\"card_uid\":\""));
+        client.print(dec);
+        client.print(F("\",\"status\":\"use\"}"));
+    }
+    client.print(F("]}"));
 }
 
 void ethernet_state::handle_post_student(EthernetClient &client, database_s *db, storage_state *memory)
