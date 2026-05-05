@@ -320,11 +320,11 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
         route_found = true;
         handle_post_info(client, memory);
     }
-    else if (strcmp(path, "/students") == 0 && strcmp(method, "GET") == 0)
-    {
-        route_found = true;
-        handle_get_data(client, db);
-    }
+    // else if (strcmp(path, "/students") == 0 && strcmp(method, "GET") == 0)
+    // {
+    //     route_found = true;
+    //     handle_get_data(client, db);
+    // }
     else if (strcmp(path, "/students") == 0 && strcmp(method, "POST") == 0)
     {
         route_found = true;

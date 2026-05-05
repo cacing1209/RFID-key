@@ -54,10 +54,12 @@ cmd_set_class() {
     err "Contoh: $0 set-class XII-RPL-1"
     exit 1
   fi
+  local payload="{\"dev_class\": \"${dev_class}\"}"
   info "POST /info  dev_class=${dev_class}"
+  echo -e "${Y}[PAYLOAD]${RST} ${payload}"
   curl -s -w "\n${C}── HTTP %{http_code}${RST}\n" -X POST "${BASE_URL}/info" \
     -H "${CT}" -H "${AUTH}" \
-    -d "{\"dev_class\": \"${dev_class}\"}" | pretty
+    -d "${payload}" | pretty
 }
 
 cmd_register() {
@@ -68,10 +70,12 @@ cmd_register() {
     err "Contoh: $0 register 0 0028758077"
     exit 1
   fi
+  local payload="{\"no\": ${locker}, \"id\": \"${uid}\"}"
   info "POST /students  locker=${locker} uid=${uid}"
+  echo -e "${Y}[PAYLOAD]${RST} ${payload}"
   curl -s -w "\n${C}── HTTP %{http_code}${RST}\n" -X POST "${BASE_URL}/students" \
     -H "${CT}" -H "${AUTH}" \
-    -d "{\"no\": ${locker}, \"id\": \"${uid}\"}" | pretty
+    -d "${payload}" | pretty
 }
 
 cmd_open() {
@@ -82,6 +86,7 @@ cmd_open() {
     exit 1
   fi
   info "POST /students/${locker}  (open)"
+  echo -e "${Y}[PAYLOAD]${RST} <empty body>"
   curl -s -w "\n${C}── HTTP %{http_code}${RST}\n" -X POST "${BASE_URL}/students/${locker}" \
     -H "${CT}" -H "${AUTH}" | pretty
 }
@@ -94,6 +99,7 @@ cmd_delete() {
     exit 1
   fi
   info "DELETE /students/${locker}"
+  echo -e "${Y}[PAYLOAD]${RST} <empty body>"
   curl -s -w "\n${C}── HTTP %{http_code}${RST}\n" -X DELETE "${BASE_URL}/students/${locker}" \
     -H "${CT}" -H "${AUTH}" | pretty
 }
@@ -115,6 +121,7 @@ cmd_reset() {
   read -r confirm
   if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
     info "POST /reset"
+    echo -e "${Y}[PAYLOAD]${RST} <empty body>"
     curl -s -w "\n${C}── HTTP %{http_code}${RST}\n" -X POST "${BASE_URL}/reset" \
       -H "${CT}" -H "${AUTH}" | pretty
   else
@@ -127,6 +134,7 @@ cmd_restart() {
   read -r confirm
   if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
     info "POST /restart"
+    echo -e "${Y}[PAYLOAD]${RST} <empty body>"
     curl -s -w "\n${C}── HTTP %{http_code}${RST}\n" -X POST "${BASE_URL}/restart" \
       -H "${CT}" -H "${AUTH}" | pretty
   else
@@ -150,6 +158,7 @@ for s in students:
 # ── Test auth: POST/DELETE tanpa Authorization → 401
 cmd_test_noauth() {
   info "Test POST /students tanpa auth (harap 401)"
+  echo -e "${Y}[PAYLOAD]${RST} {\"no\":0,\"id\":\"0000000001\"}"
   curl -s -w "\n${C}── HTTP %{http_code}${RST}\n" -X POST "${BASE_URL}/students" \
     -H "${CT}" -d '{"no":0,"id":"0000000001"}' | pretty
   info "Test DELETE /students/0 tanpa auth (harap 401)"
