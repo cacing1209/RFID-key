@@ -5,8 +5,6 @@
 # ═══════════════════════════════════════════════════
 
 BASE_URL="http://192.168.0.208:8000"
-API_KEY="lockerqyubitL0002L0004L0008L000264L000128"
-AUTH="Authorization: ${API_KEY}"
 CT="Content-Type: application/json"
 
 # ── Warna ───────────────────────────────────────────
@@ -45,7 +43,7 @@ cmd_set_class() {
   fi
   info "Set dev_class = ${dev_class}"
   curl -s -X POST "${BASE_URL}/info" \
-    -H "${CT}" -H "${AUTH}" \
+    -H "${CT}" \
     -d "{\"dev_class\": \"${dev_class}\"}" | pretty
 }
 
@@ -60,7 +58,7 @@ cmd_register() {
   fi
   info "Registrasi locker #${locker} dengan card ${uid}"
   curl -s -X POST "${BASE_URL}/students" \
-    -H "${CT}" -H "${AUTH}" \
+    -H "${CT}" \
     -d "{\"no\": ${locker}, \"id\": \"${uid}\"}" | pretty
 }
 
@@ -74,7 +72,7 @@ cmd_open() {
   fi
   info "Buka locker #${locker}"
   curl -s -X POST "${BASE_URL}/students/${locker}" \
-    -H "${CT}" -H "${AUTH}" | pretty
+    -H "${CT}" | pretty
 }
 
 cmd_delete() {
@@ -86,7 +84,7 @@ cmd_delete() {
   fi
   info "Hapus registrasi locker #${locker}"
   curl -s -X DELETE "${BASE_URL}/students/${locker}" \
-    -H "${CT}" -H "${AUTH}" | pretty
+    -H "${CT}" | pretty
 }
 
 cmd_get() {
@@ -107,7 +105,7 @@ cmd_reset() {
   if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
     info "Reset semua locker..."
     curl -s -X POST "${BASE_URL}/reset" \
-      -H "${CT}" -H "${AUTH}" | pretty
+      -H "${CT}" | pretty
   else
     info "Dibatalkan."
   fi
@@ -119,7 +117,7 @@ cmd_restart() {
   if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
     info "Restart Arduino..."
     curl -s -X POST "${BASE_URL}/restart" \
-      -H "${CT}" -H "${AUTH}" | pretty
+      -H "${CT}" | pretty
   else
     info "Dibatalkan."
   fi

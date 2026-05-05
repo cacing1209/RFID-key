@@ -258,10 +258,10 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
 #ifdef DEBUG_ETH
     Serial.print("Method: ");
     Serial.println(method);
-    Serial.print("Path: ");
-    Serial.println(path);
     Serial.print("Auth: ");
     Serial.println(auth_header);
+    Serial.print("Path: ");
+    Serial.println(path);
 #endif
 
     bool needs_auth = false;
