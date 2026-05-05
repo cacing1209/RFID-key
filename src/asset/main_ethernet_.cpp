@@ -569,9 +569,12 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
     if (!db)
     {
         send_error(client, 500, "Database not available");
+        #ifdef DEBUG_ETH
+            Serial.println(":eth:database not ready");
+        #endif
         return;
     }
-
+    
 #ifdef DEBUG_ETH
     Serial.println(":eth:get all data");
 #endif
