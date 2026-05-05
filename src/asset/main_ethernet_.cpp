@@ -964,9 +964,10 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     // portServer_log = 3000;
     server_log = "locker-logs.qyubit.io";
     portServer_log = 80;
+    IPAddress logServerIP(152, 42, 171, 241);
     String key = token_sck_log;
 
-    if (!logClient.connect(server_log, portServer_log))
+    if (!logClient.connect(logServerIP, portServer_log))
     {
 #ifdef DEBUG_ETH
         Serial.println("Gagal connect ke log server");
