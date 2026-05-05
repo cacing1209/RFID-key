@@ -595,11 +595,14 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
         {
             count++;
             body_len += base_entry;
-            if (i >= 10) body_len += 1;
-            if (i >= 100) body_len += 1;
+            if (i >= 10)
+                body_len += 1;
+            if (i >= 100)
+                body_len += 1;
         }
     }
-    if (count > 1) body_len += (count - 1); // koma antar entry
+    if (count > 1)
+        body_len += (count - 1); // koma antar entry
 
     client.println(F("HTTP/1.1 200 OK"));
     client.println(F("Content-Type: application/json"));
@@ -615,7 +618,8 @@ void ethernet_state::handle_get_data(EthernetClient &client, database_s *db)
         if (db[i].statusdb != Status_db::Not_Available)
             continue;
 
-        if (!first) client.print(',');
+        if (!first)
+            client.print(',');
         first = false;
 
         unsigned long uid_decimal =
@@ -652,7 +656,7 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
 
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, body);
-    
+
     if (error)
     {
         send_error(client, 400, "Invalid JSON");
@@ -956,9 +960,10 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
 void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
-
-    server_log = "192.168.0.102";
-    portServer_log = 3000;
+    // server_log = "192.168.0.208";
+    // portServer_log = 3000;
+    server_log = "locker-logs.qyubit.io";
+    portServer_log = 80;
     String key = token_sck_log;
 
     if (!logClient.connect(server_log, portServer_log))
@@ -980,7 +985,8 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     size_t len = serializeJson(doc, buffer);
 
     logClient.println("POST /event-log HTTP/1.1");
-    logClient.println("Host: " + String(server_log) + ':' + String(portServer_log));
+    // logClient.println("Host: " + String(server_log) + ':' + String(portServer_log));
+    logClient.println("Host: " + String(server_log));
     logClient.println("Content-Type: application/json");
     logClient.println("Authorization:Bearer " + key);
     logClient.println("Connection: close");
