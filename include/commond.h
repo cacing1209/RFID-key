@@ -1,7 +1,7 @@
 #ifndef COMMOND_H
 #define COMMOND_H
 #define DEBUG_ETH
-// #define DEBUG_RFID
+#define DEBUG_RFID
 #define DEBUG_MEM
 #define DEBUG_ACC
 // #define DEBUG_TIME
