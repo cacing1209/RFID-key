@@ -1,7 +1,7 @@
 #ifndef COMMOND_H
 #define COMMOND_H
 // #define find_p
-// #define DEBUG_ETH
+#define DEBUG_ETH
 // #define DEBUG_RFID
 // #define DEBUG_MEM
 // #define DEBUG_ACC
@@ -9,7 +9,7 @@
 // #define DEBUG_SYS
 
 // #define modelL0064
-// #define modelL0256
+#define modelL0256
 
 /*selesai*/
 // #define modelL0032
@@ -24,6 +24,16 @@
 
 // #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
 #define sizeRelay 32
+
+// Log server config — DNS-resolved at runtime so server IP can change
+// without re-flashing firmware. Update DNS A record only.
+#define LOG_SERVER_HOST "locker-logs.qyubit.io"
+#define LOG_SERVER_PORT 80
+#define LOG_SERVER_DNS_TTL_MS (6UL * 60UL * 60UL * 1000UL)
+#define LOG_SERVER_FALLBACK_DNS_A 8
+#define LOG_SERVER_FALLBACK_DNS_B 8
+#define LOG_SERVER_FALLBACK_DNS_C 8
+#define LOG_SERVER_FALLBACK_DNS_D 8
 
 #define COUNT_MODELS (              \
     (defined(modelL0002) ? 1 : 0) + \
@@ -260,8 +270,11 @@ private:
     char device_class[32] = "not_set";
     const char *firmware_ver = "v1.0.0";
     EthernetServer server = EthernetServer(8000);
-    char *server_log;
-    int portServer_log;
+
+    IPAddress log_server_ip;
+    unsigned long log_server_resolved_at = 0;
+    bool log_server_ip_valid = false;
+    bool resolve_log_server();
 
 public:
     auth_state auth;

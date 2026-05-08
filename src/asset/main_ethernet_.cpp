@@ -1,6 +1,7 @@
 #include <commond.h>
 #ifndef find_p
 #include <Ethernet.h>
+#include <Dns.h>
 #include <ArduinoJson.h>
 NTPConfig ntpCfg;
 bool ethernetCableConnected()
@@ -68,7 +69,9 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
                            : "Failed to configure Ethernet using DHCP");
 #endif
         IPAddress ip(192, 168, 0, 8);
-        Ethernet.begin(eth_mac, ip);
+        IPAddress dns(LOG_SERVER_FALLBACK_DNS_A, LOG_SERVER_FALLBACK_DNS_B,
+                      LOG_SERVER_FALLBACK_DNS_C, LOG_SERVER_FALLBACK_DNS_D);
+        Ethernet.begin(eth_mac, ip, dns);
         eth_connected = false;
         first_initialize = false;
         last_reconnect = millis();
@@ -971,22 +974,65 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
     client.println();
     client.println(json);
 }
+bool ethernet_state::resolve_log_server()
+{
+    DNSClient dns;
+    IPAddress dns_ip = Ethernet.dnsServerIP();
+    if (dns_ip == IPAddress(0, 0, 0, 0))
+    {
+        dns_ip = IPAddress(LOG_SERVER_FALLBACK_DNS_A, LOG_SERVER_FALLBACK_DNS_B,
+                           LOG_SERVER_FALLBACK_DNS_C, LOG_SERVER_FALLBACK_DNS_D);
+    }
+    dns.begin(dns_ip);
+
+    IPAddress resolved;
+    if (dns.getHostByName(LOG_SERVER_HOST, resolved) != 1)
+    {
+#ifdef DEBUG_ETH
+        Serial.println("DNS resolve gagal: " LOG_SERVER_HOST);
+#endif
+        return false;
+    }
+
+    log_server_ip = resolved;
+    log_server_resolved_at = millis();
+    log_server_ip_valid = true;
+#ifdef DEBUG_ETH
+    Serial.print("DNS " LOG_SERVER_HOST " -> ");
+    Serial.println(log_server_ip);
+#endif
+    return true;
+}
+
 void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
-    // server_log = "192.168.0.208";
-    // portServer_log = 3000;
-    server_log = "locker-logs.qyubit.io";
-    portServer_log = 80;
-    IPAddress logServerIP(152, 42, 171, 241);
     String key = token_sck_log;
 
-    if (!logClient.connect(logServerIP, portServer_log))
+    bool stale = !log_server_ip_valid ||
+                 (millis() - log_server_resolved_at) > LOG_SERVER_DNS_TTL_MS;
+    if (stale && !resolve_log_server() && !log_server_ip_valid)
+    {
+        return;
+    }
+
+    if (!logClient.connect(log_server_ip, LOG_SERVER_PORT))
     {
 #ifdef DEBUG_ETH
-        Serial.println("Gagal connect ke log server");
+        Serial.println("Gagal connect ke log server, invalidate cache");
 #endif
-        return;
+        log_server_ip_valid = false;
+        if (!resolve_log_server())
+        {
+            return;
+        }
+        if (!logClient.connect(log_server_ip, LOG_SERVER_PORT))
+        {
+#ifdef DEBUG_ETH
+            Serial.println("Connect retry gagal");
+#endif
+            return;
+        }
     }
 #ifdef DEBUG_ETH
     Serial.println("send log");
@@ -1000,8 +1046,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     size_t len = serializeJson(doc, buffer);
 
     logClient.println("POST /event-log HTTP/1.1");
-    // logClient.println("Host: " + String(server_log) + ':' + String(portServer_log));
-    logClient.println("Host: " + String(server_log));
+    logClient.println("Host: " LOG_SERVER_HOST);
     logClient.println("Content-Type: application/json");
     logClient.println("Authorization:Bearer " + key);
     logClient.println("Connection: close");
