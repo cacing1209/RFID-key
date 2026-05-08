@@ -228,16 +228,40 @@ Memanggil `sys.software_Resatrt()` untuk merestart perangkat lunak.
 
 ## Event Logging
 
-Controller secara otomatis mengirim log event ke server eksternal ketika ada akses locker (RFID terdeteksi). Ini dilakukan melalui fungsi `send_eventLog` yang dipanggil dari `loop()`.
+Controller secara otomatis mengirim log event ke server eksternal setiap kali ada akses locker (RFID terdeteksi). Loop di `main_ethernet_.cpp` memeriksa flag `send_log[i]`; jika set, fungsi `send_eventLog(uid_decimal, index)` dipanggil dan flag direset.
+
+### Konfigurasi server log
+
+Server log **tidak** lagi di-hardcode IP-nya — alamat di-resolve runtime via DNS. Konstanta di `include/commond.h`:
+
+| Konstanta | Nilai | Keterangan |
+|---|---|---|
+| `LOG_SERVER_HOST` | `locker-logs.qyubit.io` | hostname target log server |
+| `LOG_SERVER_PORT` | `80` | TCP port |
+| `LOG_SERVER_DNS_TTL_MS` | `6 * 60 * 60 * 1000` (6 jam) | umur cache hasil DNS sebelum re-resolve |
+
+> Untuk pindah server / ganti IP, **cukup update DNS A record** dari `LOG_SERVER_HOST`. Tidak perlu reflash firmware.
+>
+> Syarat: konfigurasi Ethernet harus punya gateway + DNS server yang valid. Jika pakai static IP, gunakan `Ethernet.begin(mac, ip, dns, gw)` — DNS tidak boleh kosong.
+
+### Workflow `send_eventLog`
+
+1. **Cek cache DNS** — jika `log_server_ip` belum valid atau umur cache > `LOG_SERVER_DNS_TTL_MS`, panggil `resolve_log_server()` (UDP DNS query via `dns.getHostByName(LOG_SERVER_HOST, ...)`).
+2. **Connect TCP** ke `log_server_ip:LOG_SERVER_PORT`.
+3. **Retry sekali** jika connect gagal: invalidate cache → re-resolve → connect ulang. Masih gagal → fungsi `return` diam (event di-drop, tidak ada queue persist).
+4. **Build JSON** ke `StaticJsonDocument<256>` dan **POST** `/event-log`.
+5. **Drain response** sampai idle 3 detik, lalu `logClient.stop()`. Status HTTP **tidak diparsing** — selama TCP write sukses, fungsi anggap selesai (best-effort).
 
 ### Request ke Server Log
 
-- **Method**: POST
-- **URL**: http://<server_log>:<port>/event-log
+- **Method**: `POST`
+- **URL**: `http://<LOG_SERVER_HOST>:<LOG_SERVER_PORT>/event-log`
 - **Headers**:
+  - `Host: <LOG_SERVER_HOST>`
   - `Content-Type: application/json`
-  - `Authorization: Bearer lockerqyubitL0002L0004L0008L000264L000128`
+  - `Authorization: Bearer <token_sck_log>` — token dari macro `token_sck_log` di `include/sec_tkn.h` (lihat `sec_tkn_example.h` sebagai template)
   - `Connection: close`
+  - `Content-Length: <len>`
 
 ### Payload JSON
 
@@ -245,21 +269,34 @@ Controller secara otomatis mengirim log event ke server eksternal ketika ada aks
 {
   "t": "2023-05-04 12:34:56",
   "no": 0,
-  "id": 28758077
+  "id": 28758077,
+  "dev_class": "<device class>"
 }
 ```
 
-- `t`: timestamp dalam format YYYY-MM-DD HH:MM:SS
-- `no`: nomor locker (index)
-- `id`: UID kartuformat desimal (unsigned long)
+- `t`: timestamp dari `system_t()` (format `YYYY-MM-DD HH:MM:SS`)
+- `no`: nomor locker / index `send_log[i]`
+- `id`: UID kartu dalam desimal (`unsigned long`, hasil pack `db[i].card[0..3]` little-endian)
+- `dev_class`: kelas perangkat yang melapor
+
+### Failure modes
+
+| Kondisi | Akibat |
+|---|---|
+| DNS resolver mati / hostname tidak resolve | `resolve_log_server()` gagal, event di-drop diam |
+| TCP connect gagal 2x (setelah re-resolve) | event di-drop diam |
+| Server balas non-2xx | tetap dianggap sukses (response tidak diparsing) |
+| Timeout drain >3 s | koneksi ditutup paksa via `stop()` |
+
+Tidak ada retry queue / persistence — kalau jaringan down, event yang terlewat **hilang**.
 
 ### Contoh curl untuk Event Log
 
 ```bash
-curl -v -X POST http://<server_log>:<port>/event-log \
+curl -v -X POST http://locker-logs.qyubit.io/event-log \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer lockerqyubitL0002L0004L0008L000264L000128" \
-  -d '{"t":"2023-05-04 12:34:56","no":0,"id":28758077}'
+  -H "Authorization: Bearer <token_sck_log>" \
+  -d '{"t":"2023-05-04 12:34:56","no":0,"id":28758077,"dev_class":"locker-A"}'
 ```
 
 ## Contoh `curl`

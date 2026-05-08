@@ -1,1 +1,0 @@
-1.file main_command.sh delet fiture with token file location in test/main_command.sh

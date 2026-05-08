@@ -1,4 +1,4 @@
 echo push
 git add .
-git commit -m "update"
+git commit -m "test-on-linux"
 git push 
