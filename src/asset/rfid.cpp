@@ -1,6 +1,45 @@
 
 #include <commond.h>
 #ifndef find_p
+void i2crecovery_ultra_reset()
+{
+    Wire.end();
+    pinMode(SCL, INPUT_PULLUP);
+    pinMode(SDA, INPUT_PULLUP);
+    delayMicroseconds(10);
+
+    pinMode(SCL, OUTPUT);
+    digitalWrite(SCL, HIGH);
+    delayMicroseconds(10);
+
+    for (size_t i = 0; i < 9; i++)
+    {
+        if (digitalRead(SDA) == HIGH)
+            break;
+        digitalWrite(SCL, LOW);
+        delayMicroseconds(10);
+        digitalWrite(SCL, HIGH);
+        delayMicroseconds(10);
+    }
+
+    // generate STOP: SDA LOW -> HIGH while SCL is HIGH
+    pinMode(SDA, OUTPUT);
+    digitalWrite(SDA, LOW);
+    delayMicroseconds(10);
+    digitalWrite(SCL, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(SDA, HIGH);
+    delayMicroseconds(10);
+
+    pinMode(SDA, INPUT_PULLUP);
+    pinMode(SCL, INPUT_PULLUP);
+
+    Wire.begin();
+    Wire.setWireTimeout(25000, true);
+#ifdef DEBUG_RFID
+    Serial.println(":rfid:bus recovered, sda=" + String(digitalRead(SDA)));
+#endif
+}
 void i2crecovery()
 {
     pinMode(SCL, OUTPUT);

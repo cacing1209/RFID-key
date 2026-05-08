@@ -8,7 +8,7 @@
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
-#define modelL0064
+// #define modelL0064
 // #define modelL0256
 
 /*selesai*/
