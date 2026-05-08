@@ -217,58 +217,58 @@ void loop()
 {
 	map_p.main();
 	static bool showing = false;
-	// if (map_p.bypass && showing)
-	// {
-	// 	for (size_t i = 0; i < sizeRelay; i++)
-	// 	{
-	// 		digitalWrite(pin_IO[i], LOW);
-	// 		delay(50);
-	// 		digitalWrite(pin_IO[i], HIGH);
-	// 		delay(50);
-	// 	}
-	// 	for (size_t i = 0; i < sizeRelay; i++)
-	// 	{
-	// 		digitalWrite(pin_IO[i], LOW);
-	// 		delay(50);
-	// 	}
-	// 	for (size_t i = 0; i < sizeRelay; i++)
-	// 	{
-	// 		digitalWrite(pin_IO[i], HIGH);
-	// 		delay(100);
-	// 	}
-	// 	for (size_t i = 0; i < sizeRelay / 2; i++)
-	// 	{
-	// 		digitalWrite(pin_IO[i], LOW);
-	// 		digitalWrite(pin_IO[sizeRelay - i], LOW);
-	// 		if (i % 2 == 0)
-	// 			delay(450);
-	// 		else
-	// 			delay(50);
-	// 	}
-	// 	for (size_t i = 0; i < sizeRelay; i++)
-	// 	{
-	// 		digitalWrite(pin_IO[i], HIGH);
-	// 		delay(100);
-	// 	}
-	// 	for (size_t i = 0; i < sizeRelay; i++)
-	// 	{
-	// 		digitalWrite(pin_IO[i], LOW);
-	// 		delay(800);
-	// 		Serial.println(',');
-	// 	}
-	// 	showing = false;
-	// }
-	// else
-	// {
-	// for (size_t i = 0; i < sizeRelay; i++)
-	// {
-	// 	digitalWrite(pin_IO[i], LOW);
-	// 	delay(800);
-	// 	Serial.print(i);
-	// 	Serial.print("->");
-	// 	Serial.println(pin_IO[i]);
-	// }
-	// }
+	if (map_p.bypass && showing)
+	{
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			delay(50);
+			digitalWrite(pin_IO[i], HIGH);
+			delay(50);
+		}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			delay(50);
+		}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], HIGH);
+			delay(100);
+		}
+		for (size_t i = 0; i < sizeRelay / 2; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			digitalWrite(pin_IO[sizeRelay - i], LOW);
+			if (i % 2 == 0)
+				delay(450);
+			else
+				delay(50);
+		}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], HIGH);
+			delay(100);
+		}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			delay(800);
+			Serial.println(',');
+		}
+		showing = false;
+	}
+	else
+	{
+	for (size_t i = 0; i < sizeRelay; i++)
+	{
+		digitalWrite(pin_IO[i], LOW);
+		delay(100);
+		Serial.print(i);
+		Serial.print("->");
+		Serial.println(pin_IO[i]);
+	}
+	}
 }
 
 #endif

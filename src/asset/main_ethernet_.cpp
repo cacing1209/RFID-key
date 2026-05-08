@@ -49,15 +49,29 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
 #ifdef DEBUG_ETH
     Serial.println(":eth:init...");
 #endif
-    if (Ethernet.begin(eth_mac) == 0)
+
+    // Skip DHCP entirely when the cable is not plugged in — the default
+    // Ethernet.begin(mac) blocks ~60s waiting for a lease. Trust LinkOFF;
+    // on Unknown (e.g. W5100) we still try, but with a short timeout.
+    EthernetLinkStatus link = Ethernet.linkStatus();
+    bool dhcp_ok = false;
+    if (link != LinkOFF)
+    {
+        dhcp_ok = (Ethernet.begin(eth_mac, 3000, 1000) != 0);
+    }
+
+    if (!dhcp_ok)
     {
 #ifdef DEBUG_ETH
-        Serial.println("Failed to configure Ethernet using DHCP");
+        Serial.println(link == LinkOFF
+                           ? "No cable, skipping DHCP"
+                           : "Failed to configure Ethernet using DHCP");
 #endif
         IPAddress ip(192, 168, 0, 8);
         Ethernet.begin(eth_mac, ip);
         eth_connected = false;
         first_initialize = false;
+        last_reconnect = millis();
     }
     else
     {
@@ -169,11 +183,12 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     {
         if (now - last_reconnect >= RECONNECT_INTERVAL)
         {
-
+            last_reconnect = millis();
 #ifdef DEBUG_ETH
             Serial.println("try dhcp");
 #endif
-            if (Ethernet.begin(eth_mac) != 0)
+            // Short DHCP timeout so a missing lease doesn't stall the loop.
+            if (Ethernet.begin(eth_mac, 3000, 1000) != 0)
             {
                 eth_connected = true;
                 first_initialize = true;
@@ -188,11 +203,10 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 Serial.println(Ethernet.localIP());
 #endif
             }
-        }
-        last_reconnect = millis();
 #ifdef DEBUG_ETH
-        Serial.println("try dhcp end");
+            Serial.println("try dhcp end");
 #endif
+        }
         return;
     }
 

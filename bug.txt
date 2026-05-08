@@ -1,0 +1,11 @@
+- setelah relay open noise relay mengganggu i2c comunication -> handle i2creconvery and before
+executed relay Wire.end();  [solve but recheck]
+
+- ethernet shield jika belum terhubung ke lan eth.begin lama banget, jika terhubung normal2 aja, dan apabila lan belum terhubung
+sampai masuk ke function loop gw akalain pakai timestemp now - last_reconnect >= RECONNECT_INTERVAL -> [solve]
+  fix:
+  * begin(): probe Ethernet.linkStatus() dulu; kalau LinkOFF skip DHCP, langsung pakai static IP fallback,
+    set last_reconnect supaya retry di loop terjadwal benar.
+  * pas link Unknown/ON, DHCP dipanggil dengan timeout pendek (3000ms, response 1000ms) — default 60s.
+  * loop() reconnect: pakai timeout pendek juga, dan last_reconnect cuma di-stamp pas attempt
+    DHCP (sebelumnya ke-reset tiap iterasi → RECONNECT_INTERVAL ga pernah ke-trigger lagi).

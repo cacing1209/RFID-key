@@ -1,21 +1,23 @@
 #ifndef COMMOND_H
 #define COMMOND_H
-#define DEBUG_ETH
-#define DEBUG_RFID
-#define DEBUG_MEM
-#define DEBUG_ACC
+// #define find_p
+// #define DEBUG_ETH
+// #define DEBUG_RFID
+// #define DEBUG_MEM
+// #define DEBUG_ACC
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
-// #define find_p
-// #define modelL0002
-// #define modelL0016
-// #define modelL0032
-// #define modelL0064
+#define modelL0064
 // #define modelL0256
-// #define modelL0512
+
+/*selesai*/
+// #define modelL0032
+// #define modelL0016
 // #define modelL0004
-#define modelL0128
+// #define modelL0002
+// #define modelL0512
+// #define modelL0128
 
 #define read_little_end
 #include <Arduino.h>
@@ -40,18 +42,18 @@
 #endif
 
 #ifdef modelL0002
-const int pin_IO[sizeRelay] = {47, 41, 23, 38, 64, 43, 44, 33, 36, 62, 42, 48, 40, 39, 65, 45, 46, 31, 35, 27, 25, 37, 49, 29, 63, 24, 34, 26, 22, 32, 30, 28};
+const int pin_IO[sizeRelay] = {29, 33, 43, 25, 34, 44, 28, 63, 49, 38, 62, 40, 24, 39, 46, 64, 31, 37, 35, 23, 41, 48, 22, 45, 32, 30, 26, 65, 42, 47, 27, 36};
 #elif defined(modelL0256)
 const int pin_IO[sizeRelay] = {26, 29, 22, 23, 41, 47, 31, 45, 63, 25, 34, 64, 49, 65, 28, 40, 27, 33, 48, 30, 46, 42, 35, 39, 44, 43, 62, 37, 38, 36, 24, 32};
 #elif defined(modelL0512)
 const int pin_IO[sizeRelay] = {35, 22, 65, 26, 44, 45, 62, 48, 31, 38, 37, 23, 33, 39, 28, 43, 42, 29, 25, 40, 32, 64, 30, 46, 34, 27, 49, 41, 24, 47, 36, 63};
 #elif defined(modelL0016)
-const int pin_IO[sizeRelay] = {45, 39, 42, 63, 48, 33, 49, 38, 43, 65, 27, 32, 30, 26, 28, 29, 46, 44, 23, 62, 37, 36, 35, 64, 41, 47, 22, 40, 24, 31, 25, 34};
+const int pin_IO[sizeRelay] = {47, 41, 23, 38, 46, 31, 35, 27, 64, 43, 44, 33, 29, 49, 37, 25, 26, 34, 24, 63, 28, 30, 32, 22, 39, 45, 65, 40, 48, 42, 62, 36};
 #elif defined(modelL0032)
-const int pin_IO[sizeRelay] = {63, 23, 31, 27, 48, 26, 62, 44, 30, 22, 45, 65, 25, 39, 49, 64, 32, 38, 47, 41, 46, 34, 28, 42, 29, 40, 43, 35, 33, 24, 37, 36};
+const int pin_IO[sizeRelay] = {37,36,24,33,48,26,62,44,41,47,38,32,22,30,45,65,43,29,35,40,64,49,39,25,63,23,31,27,42,28,34,46};
 
 #elif defined(modelL0004)
-const int pin_IO[sizeRelay] = {24, 39, 46, 64, 48, 41, 22, 45, 42, 65, 47, 36, 27, 26, 32, 30, 25, 43, 29, 33, 23, 35, 37, 31, 63, 28, 44, 34, 49, 62, 38, 40};
+const int pin_IO[sizeRelay] = {29, 28, 26, 30, 32, 27, 65, 43, 22, 47, 41, 42, 39, 45, 34, 40, 62, 24, 31, 25, 48, 33, 49, 38, 37, 36, 35, 64, 23, 44, 46, 63};
 #elif defined(modelL0064)
 const int pin_IO[sizeRelay] = {36, 65, 44, 49, 23, 37, 30, 24, 31, 22, 35, 25, 43, 26, 28, 45, 62, 39, 42, 38, 47, 48, 64, 41, 63, 33, 46, 32, 40, 34, 29, 27};
 #elif defined(modelL0128)
