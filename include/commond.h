@@ -1,17 +1,17 @@
 #ifndef COMMOND_H
 #define COMMOND_H
 // #define find_p
-#define DEBUG_ETH
+// #define DEBUG_ETH
 // #define DEBUG_RFID
 // #define DEBUG_MEM
 // #define DEBUG_ACC
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
-// #define modelL0064
-#define modelL0256
 
 /*selesai*/
+// #define modelL0256
+#define modelL0064e
 // #define modelL0032
 // #define modelL0016
 // #define modelL0004

@@ -1,0 +1,165 @@
+================================================================
+TODO - Event Log ke SD Card (fallback + buffer offline)
+================================================================
+Target board : ATmega2560 + Ethernet shield W5100/W5500
+Library      : SdFat - Adafruit Fork (sudah ada di libdeps)
+Storage      : SD card (share SPI bus dgn W5100)
+Pin map      : W5100 CS = D10, SD CS = D4 (Ethernet shield default)
+RAM budget   : <= 600 byte tambahan (sekarang 5233/8192)
+Status       : BELUM DIIMPLEMENTASIKAN
+Refer ke     : send_eventLog() @ main_ethernet_.cpp:1007 (kirim ke
+               HTTP log server, baseline yang ditiru / di-mirror)
+Sinkron dgn  : todo.txt (OTA via SD - share inisialisasi SD.begin)
+================================================================
+
+
+[ TUJUAN ] ------------------------------------------------------
+- Tetap bisa rekam event tap RFID kalau Ethernet putus / log server
+  down (sekarang event ilang gitu aja, lihat send_eventLog return
+  diam-diam di main_ethernet_.cpp:1015 / 1026 / 1033).
+- Bisa ditampilkan ulang via endpoint HTTP (mis. GET /sd-log?n=10)
+  buat audit lokal tanpa harus tarik dari log server.
+- Re-upload otomatis kalau koneksi balik (opsional fase lanjutan).
+
+
+[ DESAIN PENYIMPANAN ] ------------------------------------------
+Pilih SATU strategi rotasi:
+
+  Opsi A : SINGLE FILE + ROTATE (RECOMMENDED)
+    - File aktif    : /log/event.log
+    - File lama     : /log/event.old (replace yang sebelumnya)
+    - Cap ukuran    : 32 KB (tune sesuai sisa SD)
+    - Saat append bikin file > cap:
+        rename event.log -> event.old (overwrite),
+        bikin event.log baru.
+    - Pro : simple, FAT entry minim, append O(1).
+    - Con : cari "10 baris terakhir" perlu seek dari akhir file.
+
+  Opsi B : RING NUMBERED FILES
+    - /log/00.log .. /log/09.log, masing2 max 10 baris.
+    - Index file /log/idx.txt isi nomor file aktif.
+    - Penuh -> increment idx, wrap ke 00 (overwrite).
+    - Pro : "10 baris terakhir" = baca file aktif aja.
+    - Con : 11 entry direktori, tiap file minimal 1 cluster
+      (512 B) = boros space utk data yg cuma puluhan byte/baris.
+
+  Opsi C : DAILY FILE
+    - /log/YYYYMMDD.log, append seharian.
+    - Butuh tanggal valid (ada NTP / RTC?).
+    - Pro : human-readable, gampang cleanup manual.
+    - Con : tergantung RTC; fragmentasi entry direktori jangka
+      panjang.
+
+Default rekomendasi : OPSI A.
+
+
+[ FORMAT BARIS ] ------------------------------------------------
+Satu baris = satu event, plain text CSV (bukan JSON, hemat byte):
+
+    <epoch>,<index>,<uid_decimal>,<dev_class>,<flag>\n
+
+Contoh:
+    1731412345,7,123456789,LOCKER_A,SENT
+    1731412410,3,987654321,LOCKER_A,PEND
+
+Field flag:
+    SENT  = sukses kirim ke log server
+    PEND  = belum sempat kirim (buat re-upload nanti)
+    LOCAL = event yg memang cuma utk SD (mis. boot, OTA_REQUESTED)
+
+Estimasi ~40-50 byte/baris. 32 KB cap ~ 700 event = aman buat
+beberapa hari pemakaian normal.
+
+
+[ API MODUL (rancangan) ] ---------------------------------------
+File baru : src/asset/sd_log.h + src/asset/sd_log.cpp
+Class     : sd_log_state (mirip pola ethernet_state)
+
+  bool begin(uint8_t cs_pin = 4);
+      // SD.begin, mkdir /log kalau belum ada. Return false kalau
+      // SD ga kebaca - JANGAN bikin sketch hang, cukup disable
+      // logging SD utk sesi ini.
+
+  void append(uint32_t epoch, uint8_t idx, uint32_t uid,
+              const char* dev_class, char flag);
+      // Single write, flush, close. Cek ukuran file -> rotate
+      // kalau perlu. Pakai char buffer 64 byte, JANGAN String.
+
+  size_t tail(Print& out, uint8_t n = 10);
+      // Stream n baris terakhir ke `out` (EthernetClient atau
+      // Serial). Stream langsung, jangan load semua ke RAM.
+      // Return jumlah baris ke-print.
+
+  bool replay_pending(ethernet_state& eth);
+      // [FASE 2] Iterasi baris ber-flag PEND, kirim ulang via
+      // eth.send_eventLog(), tandai SENT. Hati-hati: rewrite
+      // file = mahal, lebih baik tulis file baru lalu rename.
+
+
+[ INTEGRASI DI SKETCH ] -----------------------------------------
+[ ] Inisialisasi SD di setup() SETELAH Ethernet.begin()
+    (W5100 perlu CS-nya idle dulu)
+[ ] Tambah field SdLogEnabled (bool) -> kalau begin() gagal,
+    semua call sd_log no-op
+[ ] Hook di send_eventLog() (main_ethernet_.cpp:1007):
+    [ ] Sebelum logClient.connect(): append ke SD dgn flag PEND
+    [ ] Setelah respons OK dari log server: update flag -> SENT
+        (atau cukup catat SENT tanpa rewrite, lebih simpel)
+[ ] Endpoint baru di handle HTTP:
+    [ ] GET /sd-log?n=10  -> sd_log.tail(client, n)
+    [ ] (opsional) DELETE /sd-log -> truncate file aktif
+[ ] Pastikan SPI CS coordination:
+    [ ] Sebelum SD op   : digitalWrite(10, HIGH);  // W5100 idle
+    [ ] Sebelum eth op  : digitalWrite(4,  HIGH);  // SD idle
+    SdFat & Ethernet lib biasanya udah handle sendiri, tapi
+    verifikasi pas testing.
+
+
+[ FASE EKSEKUSI ] -----------------------------------------------
+[ FASE 0 ] PERSIAPAN
+[ ] Pasang SD card, format FAT32, cek terbaca via contoh SdInfo
+[ ] Tentukan opsi rotasi (A / B / C) - default A
+[ ] Konfirmasi sisa flash (sekarang ~196 KB) cukup utk SdFat
+    (SdFat full ~ 15-20 KB flash, ~500 B RAM static)
+
+[ FASE 1 ] APPEND-ONLY
+[ ] Bikin sd_log.{h,cpp}
+[ ] Implement begin() + append() + rotate
+[ ] Hook ke send_eventLog (write SD dulu, baru kirim network)
+[ ] Tes: cabut LAN -> tap RFID -> cek file di SD via card reader
+
+[ FASE 2 ] READBACK
+[ ] Implement tail() streaming
+[ ] Tambah route GET /sd-log?n=N
+[ ] Tes: curl http://192.168.0.8/sd-log?n=10
+
+[ FASE 3 ] REPLAY (opsional, bisa ditunda)
+[ ] Implement replay_pending()
+[ ] Trigger : panggil di loop tiap N detik kalau eth UP & ada
+    baris PEND (cek cepat: stat ukuran file > threshold)
+[ ] Tes: log server down -> tap beberapa kali -> nyalain server
+    -> verifikasi entry masuk
+
+[ FASE 4 ] HARDENING
+[ ] Tes power-loss saat tulis (target: file rusak max 1 baris,
+    bukan korup total) - SdFat udah safer dari SD.h bawaan
+[ ] Tes SD penuh -> append harus return false, jangan crash
+[ ] Tes RAM headroom (target tetap < 80% = < 6553 B)
+[ ] Tes co-existence dgn rencana OTA-via-SD (pastikan path file
+    OTA mis. /firmware.bin gak konflik dgn /log/)
+
+
+[ CATATAN ] -----------------------------------------------------
+- PIN 4 = SD CS di Ethernet shield resmi. Kalau pakai shield
+  clone, verifikasi (kadang di pin lain).
+- Jangan pakai SD library bawaan (SD.h) - SdFat lebih hemat RAM
+  & lebih aman shutdown-nya, dan udah ke-pull di libdeps.
+- JANGAN pakai String di modul ini. Pakai char[64] + snprintf.
+  RAM tight.
+- system_t() dipakai di send_eventLog utk timestamp - reuse
+  fungsi yg sama biar konsisten epoch-nya.
+- Kalau opsi OTA-via-SD jadi (todo.txt FASE 0 opsi B/C), modul
+  ini dan modul OTA pakai SD.begin() yg sama - jangan double
+  init. Buat singleton state.
+- Endpoint /sd-log harus ada auth (mirip token_sck_log) - ini
+  data tap siswa, jangan kebuka publik.

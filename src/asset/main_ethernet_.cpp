@@ -153,6 +153,10 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 {
     unsigned long now = millis();
     // static byte counting_try = 0;
+    if (!first_initialize)
+    {
+        return;
+    }
     bool cable = ethernetCableConnected();
     if (!cable)
     {
@@ -1008,9 +1012,8 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
     String key = token_sck_log;
+    bool stale = !log_server_ip_valid || (millis() - log_server_resolved_at) > LOG_SERVER_DNS_TTL_MS;
 
-    bool stale = !log_server_ip_valid ||
-                 (millis() - log_server_resolved_at) > LOG_SERVER_DNS_TTL_MS;
     if (stale && !resolve_log_server() && !log_server_ip_valid)
     {
         return;

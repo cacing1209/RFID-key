@@ -99,7 +99,6 @@ bool rfid_state::open_doors(Relay_state *rl, bool *send_log, Adafruit_PN532 *nfc
                 rl[i].status = Status_RL::OFF;
                 rl[i].last_t = current_t;
                 digitalWrite(rl[i].pin, HIGH);
-                // delay(225);
                 i2crecovery();
                 init_sensor(nfc);
                 return false;
@@ -390,6 +389,25 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
             rl[number_locker].status = Status_RL::ON;
             rl[number_locker].open_loker = true;
             rl[number_locker].last_t = millis();
+
+            // bypass
+            // if (number_locker == 3)
+            // {
+
+            //     Wire.end();
+            //     pinMode(SDA, INPUT_PULLUP);
+            //     pinMode(SCL, INPUT_PULLUP);
+
+            //     for (size_t i = 0; i < sizeRelay; i++)
+            //     {
+            //         digitalWrite(rl[i].pin, LOW);
+            //         delay(50);
+            //         digitalWrite(rl[i].pin, HIGH);
+            //         delay(200);
+            //     }
+            //     i2crecovery();
+            //     init_sensor(nfc);
+            // }
         }
         else
         {

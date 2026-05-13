@@ -70,10 +70,10 @@ void init_mypin()
 void bypass_add_card()
 {
 	unsigned long dec_uid[Size_Siswa] = {
-		3642173063,
-		3642094375,
-		3642092455,
-		3642173047,
+		97608731,
+		97011639,
+		97008947,
+		95696297,
 		3642170839,
 		3642148695,
 		3642146503,
@@ -260,14 +260,14 @@ void loop()
 	}
 	else
 	{
-	for (size_t i = 0; i < sizeRelay; i++)
-	{
-		digitalWrite(pin_IO[i], LOW);
-		delay(100);
-		Serial.print(i);
-		Serial.print("->");
-		Serial.println(pin_IO[i]);
-	}
+		for (size_t i = 0; i < sizeRelay; i++)
+		{
+			digitalWrite(pin_IO[i], LOW);
+			delay(100);
+			Serial.print(i);
+			Serial.print("->");
+			Serial.println(pin_IO[i]);
+		}
 	}
 }
 
