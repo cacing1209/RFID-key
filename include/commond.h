@@ -11,7 +11,7 @@
 
 /*selesai*/
 // #define modelL0256
-#define modelL0064e
+#define modelL0064
 // #define modelL0032
 // #define modelL0016
 // #define modelL0004
