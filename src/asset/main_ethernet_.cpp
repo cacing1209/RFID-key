@@ -6,26 +6,13 @@
 NTPConfig ntpCfg;
 bool ethernetCableConnected()
 {
+    // W5100 reports Unknown — don't probe with a TCP connect to gateway:80.
+    // That probe burns a hardware socket each call (only 4 total on W5100) and
+    // blocks ~1s per failure, starving send_eventLog of free sockets.
     auto link = Ethernet.linkStatus();
-    if (link == LinkON)
-    {
-        return true;
-    }
-
     if (link == LinkOFF)
-    {
         return false;
-    }
-    EthernetClient testClient;
-    IPAddress gateway = Ethernet.gatewayIP();
-
-    if (testClient.connect(gateway, 80))
-    {
-        testClient.stop();
-        return true;
-    }
-
-    return false;
+    return true;
 }
 String system_t()
 {
