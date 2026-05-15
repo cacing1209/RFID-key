@@ -64,7 +64,7 @@ void i2crecovery()
 rfid_state::rfid_state(const long interval_executed, const int interval_current_read) : interval_reExecute(interval_executed), interval_current_Read_C(interval_current_read)
 {
     if (interval_executed < 25)
-        interval_reExecute = 27;
+        interval_reExecute = 100;
     if (interval_executed > 3000)
         interval_reExecute = 3000;
 
@@ -320,7 +320,7 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         }
 #endif
         last_read_c = true;
-        // last_t = now;
+        last_t = millis();
 
         signed char number_locker = card_isregistered(data);
         if (number_locker != -1)
@@ -357,7 +357,6 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
         }
         return 1;
     }
-
     if (!read_c && last_read_c)
     {
         memset(uid_incoming, 0, sizeof(uid_incoming));
