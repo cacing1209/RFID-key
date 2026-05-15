@@ -151,13 +151,13 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
 
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
-    unsigned long now = millis();
+    const unsigned long now = millis();
+    static unsigned long last_checkcable = 0;
+    const long interval_reCheck_cable = 2500;
+    if (now - last_checkcable < interval_reCheck_cable)
+        return;
     // static byte counting_try = 0;
-    // if (!first_initialize)
-    // {
-    //     return;
-    // }
-    bool cable = ethernetCableConnected();
+    const bool cable = ethernetCableConnected();
     if (!cable)
     {
         if (first_initialize)
@@ -184,6 +184,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     {
         last_reconnect = now;
         interupt_trigger = false;
+        last_checkcable = now;
         return;
     }
     if (!eth_connected)
