@@ -157,7 +157,6 @@ void loop()
 {
 // write to eeprom,handle relay,sync db
 #ifdef DEBUG_SYS
-	const unsigned long millis() = millis();
 	static unsigned long latency = 0;
 	static unsigned long last_t = 0, lte = 0, ltf = 0, ltc = 0, ltd = 0;
 	last_t = millis();
