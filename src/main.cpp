@@ -19,7 +19,7 @@
 #ifndef find_p
 Relay_state locker[sizeRelay];
 Adafruit_PN532 nfc(-1, -1);
-rfid_state rfid(500,127);
+rfid_state rfid(500, 127);
 buzzer_state buzzer(75);
 ethernet_state eth;
 
@@ -160,22 +160,26 @@ void loop()
 	static unsigned long latency = 0;
 	static unsigned long last_t = 0;
 	last_t = millis();
-	Serial.print("exec open door,");
+	Serial.print(",exec open door");
+	Serial.print("lt->" + String(latency));
 #endif
 	signed char card = 0;
 	bool opened_door = rfid.open_doors(locker, eth.send_log, &nfc);
 #ifdef DEBUG_SYS
-	Serial.print("exec acc main,");
-#endif
+	Serial.print(",exec acc main");
+	Serial.print("lt->" + String(latency));
+	#endif
 	bool acc = buzzer.in_action();
 	if (!opened_door && !acc)
 	{
-#ifdef DEBUG_SYS
-		Serial.print("exec eth.loop,");
-#endif
+		#ifdef DEBUG_SYS
+		Serial.print(",exec eth.loop");
+		Serial.print("lt->" + String(latency));
+		#endif
 		eth.loop(data, &memory, locker);
-#ifdef DEBUG_SYS
-		Serial.print("exec rfid.loop,");
+		#ifdef DEBUG_SYS
+		Serial.print(",exec rfid.loop");
+		Serial.print("lt->" + String(latency));
 #endif
 		card = rfid.read_crd(data, &nfc, locker);
 	}
