@@ -153,10 +153,10 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 {
     unsigned long now = millis();
     // static byte counting_try = 0;
-    if (!first_initialize)
-    {
-        return;
-    }
+    // if (!first_initialize)
+    // {
+    //     return;
+    // }
     bool cable = ethernetCableConnected();
     if (!cable)
     {
