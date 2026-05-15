@@ -71,7 +71,7 @@ rfid_state::rfid_state(const long interval_executed, const int interval_current_
     if (interval_current_read < 50)
         interval_current_Read_C = 75;
     if (interval_current_read > 250)
-        interval_reExecute = 200;
+        interval_current_Read_C = 200;
 }
 bool rfid_state::open_doors(Relay_state *rl, bool *send_log, Adafruit_PN532 *nfc)
 {
