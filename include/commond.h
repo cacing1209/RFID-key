@@ -8,7 +8,6 @@
 // #define DEBUG_TIME
 // #define DEBUG_SYS
 
-
 /*selesai*/
 // #define modelL0256
 #define modelL0064
@@ -60,7 +59,7 @@ const int pin_IO[sizeRelay] = {35, 22, 65, 26, 44, 45, 62, 48, 31, 38, 37, 23, 3
 #elif defined(modelL0016)
 const int pin_IO[sizeRelay] = {47, 41, 23, 38, 46, 31, 35, 27, 64, 43, 44, 33, 29, 49, 37, 25, 26, 34, 24, 63, 28, 30, 32, 22, 39, 45, 65, 40, 48, 42, 62, 36};
 #elif defined(modelL0032)
-const int pin_IO[sizeRelay] = {37,36,24,33,48,26,62,44,41,47,38,32,22,30,45,65,43,29,35,40,64,49,39,25,63,23,31,27,42,28,34,46};
+const int pin_IO[sizeRelay] = {37, 36, 24, 33, 48, 26, 62, 44, 41, 47, 38, 32, 22, 30, 45, 65, 43, 29, 35, 40, 64, 49, 39, 25, 63, 23, 31, 27, 42, 28, 34, 46};
 
 #elif defined(modelL0004)
 const int pin_IO[sizeRelay] = {29, 28, 26, 30, 32, 27, 65, 43, 22, 47, 41, 42, 39, 45, 34, 40, 62, 24, 31, 25, 48, 33, 49, 38, 37, 36, 35, 64, 23, 44, 46, 63};
@@ -178,11 +177,12 @@ struct rfid_state
     char read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_state *rl);
     signed char card_isregistered(const database_s *db);
     bool open_doors(Relay_state *rl, bool *send_log, Adafruit_PN532 *nfc);
-    long interval;
+    long interval_reExecute;
+    int interval_current_Read_C;
     uint8_t size_uid_incoming = size_uid;
     uint8_t uid_incoming[size_uid];
     void init_sensor(Adafruit_PN532 *nfc);
-    rfid_state::rfid_state(const long interval_read = 50);
+    rfid_state::rfid_state(const long interval_executed = 50, const int interval_current_read = 100);
 
 #ifdef little_endian
 
