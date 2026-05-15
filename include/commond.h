@@ -6,7 +6,7 @@
 // #define DEBUG_MEM
 // #define DEBUG_ACC
 // #define DEBUG_TIME
-// #define DEBUG_SYS
+ #define DEBUG_SYS
 
 /*selesai*/
 // #define modelL0256

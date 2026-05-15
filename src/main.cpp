@@ -157,29 +157,34 @@ void loop()
 {
 // write to eeprom,handle relay,sync db
 #ifdef DEBUG_SYS
+	const unsigned long now_t = millis();
 	static unsigned long latency = 0;
-	static unsigned long last_t = 0;
+	static unsigned long last_t = 0, lte = 0, ltf = 0, ltc = 0, ltd = 0;
 	last_t = millis();
+	ltd = now_t;
 	Serial.print(",exec open door");
-	Serial.print("lt->" + String(latency));
+	Serial.print("lt->" + String(now_t - ltd));
 #endif
 	signed char card = 0;
 	bool opened_door = rfid.open_doors(locker, eth.send_log, &nfc);
 #ifdef DEBUG_SYS
+	ltc = now_t;
 	Serial.print(",exec acc main");
-	Serial.print("lt->" + String(latency));
-	#endif
+	Serial.print("lt->" + String(now_t - ltc));
+#endif
 	bool acc = buzzer.in_action();
 	if (!opened_door && !acc)
 	{
-		#ifdef DEBUG_SYS
+#ifdef DEBUG_SYS
+		lte = now_t;
 		Serial.print(",exec eth.loop");
-		Serial.print("lt->" + String(latency));
-		#endif
+		Serial.print("lt->" + String(now_t - lte));
+#endif
 		eth.loop(data, &memory, locker);
-		#ifdef DEBUG_SYS
+#ifdef DEBUG_SYS
+		ltf = now_t;
 		Serial.print(",exec rfid.loop");
-		Serial.print("lt->" + String(latency));
+		Serial.print("lt->" + String(now_t - ltf));
 #endif
 		card = rfid.read_crd(data, &nfc, locker);
 	}
