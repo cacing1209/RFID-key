@@ -11,7 +11,7 @@
  */
 // #define PN532DEBUG
 // #define PN532DEBUGPRINT Serial
-
+// checkpoint tested commit sha 5b1cd49
 #include <commond.h>
 #include <Wire.h>
 

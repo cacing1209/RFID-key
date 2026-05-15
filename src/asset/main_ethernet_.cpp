@@ -222,11 +222,13 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     }
     ntpCfg.update();
     EthernetClient client = server.available();
+    bool handled_http = false;
     if (client)
     {
         handle_client(client, db, memory, locker);
         delay(1);
         client.stop();
+        handled_http = true;
     }
     // static bool res = true;
     // if (res)
@@ -234,6 +236,12 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     //     handle_reset(client, db, memory);
     //     res = false;
     // }
+
+    // Give the W5100 a moment for the just-closed server socket to fully
+    // transition to CLOSED before send_eventLog calls socketBegin() — without
+    // this gap the next TCP connect intermittently fails on the first try.
+    if (handled_http)
+        delay(30);
 
     for (size_t i = 0; i < Size_Siswa; i++)
     {
@@ -1001,6 +1009,9 @@ bool ethernet_state::resolve_log_server()
 void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
+    // W5100 default 1000ms is tight — TCP handshake + ARP can exceed it after
+    // a fresh socket allocation. Give 3s so a SYN retransmit can complete.
+    logClient.setConnectionTimeout(3000);
     String key = token_sck_log;
     bool stale = !log_server_ip_valid || (millis() - log_server_resolved_at) > LOG_SERVER_DNS_TTL_MS;
 
@@ -1015,6 +1026,11 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
         Serial.println("Gagal connect ke log server, invalidate cache");
 #endif
         log_server_ip_valid = false;
+        // Let the W5100 finish any socket-state transitions (TIME_WAIT/CLOSED)
+        // left behind by the just-handled HTTP server connection before we
+        // ask socketBegin() for a fresh slot.
+        delay(50);
+        Ethernet.maintain();
         if (!resolve_log_server())
         {
             return;
