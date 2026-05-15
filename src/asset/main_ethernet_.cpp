@@ -160,8 +160,9 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     const bool cable = ethernetCableConnected();
     if (!cable)
     {
-        if (first_initialize)
+        if (first_initialize || interupt_trigger)
         {
+            last_checkcable = millis();
 #ifdef DEBUG_ETH
             Serial.println("cable disconnect");
 #endif
