@@ -10,10 +10,10 @@
 
 /*selesai*/
 // #define modelL0256
-#define modelL0064
+// #define modelL0064
 // #define modelL0032
 // #define modelL0016
-// #define modelL0004
+#define modelL0004
 // #define modelL0002
 // #define modelL0512
 // #define modelL0128

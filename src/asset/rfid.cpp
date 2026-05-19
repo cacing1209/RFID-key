@@ -342,7 +342,7 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
             //         digitalWrite(rl[i].pin, LOW);
             //         delay(50);
             //         digitalWrite(rl[i].pin, HIGH);
-            //         delay(200);
+            //         delay(150);
             //     }
             //     i2crecovery();
             //     init_sensor(nfc);

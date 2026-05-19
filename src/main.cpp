@@ -69,7 +69,11 @@ void init_mypin()
 
 void bypass_add_card()
 {
-	unsigned long dec_uid[Size_Siswa] = {};
+	unsigned long dec_uid[Size_Siswa] = {
+		0,
+		0,
+		563089154,
+		38865439};
 
 	database_s new_db[Size_Siswa];
 	for (size_t i = 0; i < Size_Siswa; i++)
