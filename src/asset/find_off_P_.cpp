@@ -20,7 +20,7 @@ void mapping_p::begin()
         }
         delay(100);
     }
-    if (!bypass)
+    if (bypass)
     {
         Serial.println("start device");
         return;

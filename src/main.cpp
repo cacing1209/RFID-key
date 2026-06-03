@@ -73,6 +73,7 @@ void bypass_add_card()
 		0,
 		0,
 		563089154,
+		3255954663,
 		38865439};
 
 	database_s new_db[Size_Siswa];
@@ -195,6 +196,8 @@ void loop()
 
 // {1,2,3,4,5,13,15,20,18,17,10,7,6,9,8,29,16,28,12,25,14,11,23,19,27,21,26,22,24,	30}
 {
+	if (map_p.bypass)
+		return;
 	map_p.main();
 	static bool showing = false;
 	if (map_p.bypass && showing)

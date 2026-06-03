@@ -230,6 +230,16 @@ bool sensor_undetect(Adafruit_PN532 *nfc)
 
     if (need_rescan)
     {
+        if (counting_reset == 5)
+        {
+            i2crecovery_ultra_reset();
+            nfc->begin();
+            nfc->SAMConfig();
+            last_init = millis();
+#ifdef DEBUG_RFID
+            Serial.println(":rfid:ultra recovery + reinit pn532");
+#endif
+        }
         if (counting_reset >= 10)
         {
             counting_reset = 0;

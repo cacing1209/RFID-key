@@ -140,7 +140,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 {
     const unsigned long now = millis();
     static unsigned long last_checkcable = 0;
-    const long interval_reCheck_cable = 10000;
+    const long interval_reCheck_cable = 120000;
     if (now - last_checkcable < interval_reCheck_cable)
         return;
     // static byte counting_try = 0;
@@ -237,9 +237,10 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     //     res = false;
     // }
 
-    // Give the W5100 a moment for the just-closed server socket to fully
-    // transition to CLOSED before send_eventLog calls socketBegin() — without
-    // this gap the next TCP connect intermittently fails on the first try.
+    /* Give the W5100 a moment for the just-closed server socket to fully
+     transition to CLOSED before send_eventLog calls socketBegin() — without
+     this gap the next TCP connect intermittently fails on the first try.
+    */
     if (handled_http)
         delay(30);
 
