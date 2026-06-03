@@ -70,8 +70,6 @@ void init_mypin()
 void bypass_add_card()
 {
 	unsigned long dec_uid[Size_Siswa] = {
-		0,
-		0,
 		563089154,
 		3255954663,
 		38865439};

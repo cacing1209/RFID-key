@@ -340,7 +340,7 @@ char rfid_state::read_crd(const database_s *data, Adafruit_PN532 *nfc, Relay_sta
             rl[number_locker].last_t = millis();
 
             // bypass
-            // if (number_locker == 3)
+            // if (number_locker == 0)
             // {
 
             //     Wire.end();
