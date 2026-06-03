@@ -3,9 +3,8 @@
 import requests
 import json
 import time
-
 # BASE_URL = "http://93.144.178.18:8000"
-BASE_URL = "http://192.168.0.208:8000"
+BASE_URL = "http://192.168.0.112:8000"
 API_KEY = "lockerqyubitL0002L0004L0008L000264L000128"
 AUTH = API_KEY
 HEADERS = {"Content-Type": "application/json", "Authorization": AUTH}
@@ -86,7 +85,7 @@ for field in [
     "status",
     "dev_class",
     "c_name",
-    "location",
+    # "location",
     "ver",
     "up_t",
     "ip_a",
