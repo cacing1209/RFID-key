@@ -1013,7 +1013,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
     // W5100 default 1000ms is tight — TCP handshake + ARP can exceed it after
     // a fresh socket allocation. Give 3s so a SYN retransmit can complete.
     logClient.setConnectionTimeout(3000);
-    String key = token_sck_log;
+        String key = token_sck_log;
     bool stale = !log_server_ip_valid || (millis() - log_server_resolved_at) > LOG_SERVER_DNS_TTL_MS;
 
     if (stale && !resolve_log_server() && !log_server_ip_valid)
