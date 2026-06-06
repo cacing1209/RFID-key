@@ -2,6 +2,7 @@
 #define COMMOND_H
 // #define find_p
 #define DEBUG_OTA
+#define DEBUG_SD
 // #define DEBUG_ETH
 // #define DEBUG_RFID
 // #define DEBUG_MEM

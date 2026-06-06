@@ -1,4 +1,5 @@
 #include <sdf.h>
+#include <commond.h>
 sdf_state::sdf_state(byte csP)
 {
     sd_isnormal = card.begin(csP);

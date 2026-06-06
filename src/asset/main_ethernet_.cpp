@@ -1281,7 +1281,6 @@ bool ethernet_state::download_firmware(const char *filename, class Updater_state
         return false;
     }
 
-    // Check SD card health BEFORE attempting to write
     if (!updater->sd_is_healthy())
     {
 #ifdef DEBUG_OTA
@@ -1304,7 +1303,6 @@ bool ethernet_state::download_firmware(const char *filename, class Updater_state
         return false;
     }
 
-    // Open SD card file untuk menulis firmware
     SdFile fwFile;
     if (!fwFile.open(filename, O_CREAT | O_TRUNC | O_WRITE))
     {
