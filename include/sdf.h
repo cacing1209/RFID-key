@@ -1,7 +1,6 @@
 #include <SdFat.h>
 #include <ArduinoJson.h>
 #define cs_pin 0x04
-#define DEBUG_SD
 struct sdf_state
 {
 

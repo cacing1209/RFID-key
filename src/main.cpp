@@ -30,7 +30,7 @@ storage_state memory;
 
 void init_mypin()
 {
-#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID)
+#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_OTA) || defined(DEBUG_SD)
 	Serial.println("init my pins");
 #endif
 	for (size_t i = 0; i < sizeRelay; i++)
@@ -104,14 +104,14 @@ void bypass_add_card()
 }
 void setup()
 {
-#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
+#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_OTA) || defined(DEBUG_SD)
 	Serial.begin(baudRate_PC);
 	delay(6000);
 #endif
 	init_mypin();
 	// bypass_add_card();
 	memory.load_data(data);
-#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)
+#if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_OTA) || defined(DEBUG_SD)
 	Serial.println("Device Start");
 #endif
 	eth.interupt_trigger = true;
