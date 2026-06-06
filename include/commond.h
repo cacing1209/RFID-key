@@ -88,11 +88,12 @@ struct mapping_p
     bool pins_avaiable();
     void shorting_pins();
 };
+
 #else
 #include <Ethernet.h>
 #include <TimeLib.h>
 #include <EthernetUdp.h>
-#define eth_cs 10
+#define CS_P_ETH 10
 /* #pinout#
  * PN532 RFID menggunakan I2C:
  * SDA = Pin 20 (Arduino Mega)
@@ -229,6 +230,7 @@ struct NTPConfig
 
 #define S_MAC 6
 #include <auth.h>
+#define CS_P_ETH 0X0A
 struct ethernet_state
 {
 private:
@@ -311,11 +313,11 @@ public:
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
     void send_eventLog(const unsigned long uid_decimal, byte index);
-    
+
     /* OTA Download */
     bool download_firmware(const char *filename, class Updater_state *updater);
     void handle_update(EthernetClient &client, class Updater_state *updater = nullptr);
-    
+
     bool send_log[Size_Siswa];
     int newline_count;
     static const size_t BODY_SIZE = 2048;

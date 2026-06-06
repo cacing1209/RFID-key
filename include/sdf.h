@@ -1,6 +1,6 @@
 #include <SdFat.h>
 #include <ArduinoJson.h>
-#define cs_pin 0x04
+#define CS_P_SD 0x04
 struct sdf_state
 {
 
@@ -12,5 +12,5 @@ struct sdf_state
     bool is_healthy();  // Check SD card status
     size_t get_free_space();  // Get free space in bytes
     bool file_exists(const char *filename);
-    sdf_state::sdf_state(byte csP = 4); // constructor
+    sdf_state::sdf_state(byte csP = CS_P_SD); // constructor
 };

@@ -14,6 +14,7 @@
 // tested commit sha 5b1cd49
 #include <commond.h>
 #include <ota_megaXethernetshield.h>
+// #include <sdf.h>
 #include <Wire.h>
 
 #define baudRate_PC 9600
@@ -58,6 +59,9 @@ void init_mypin()
 	buzzer.act = acc_action::acc_off;
 	buzzer.mode = bz_mode::mode_fastloop4X;
 	pinMode(buzzer.pin, OUTPUT);
+	pinMode(CS_P_SD, OUTPUT);
+	pinMode(CS_P_ETH, OUTPUT);
+	digitalWrite(CS_P_SD, HIGH);
 	Wire.begin();
 	SPI.begin();
 	rfid.init_sensor(&nfc);

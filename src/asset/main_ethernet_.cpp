@@ -33,7 +33,7 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
     {
         memory_ptr->load_device_class(device_class, sizeof(device_class));
     }
-    Ethernet.init(eth_cs);
+    Ethernet.init(CS_P_ETH);
     delay(250);
 #ifdef DEBUG_ETH
     Serial.println(":eth:init...");
