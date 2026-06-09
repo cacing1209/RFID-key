@@ -1,10 +1,11 @@
 #ifndef COMMOND_H
 #define COMMOND_H
+//## for setup pin relay
 // #define find_p
-#define DEBUG_OTA
-#define DEBUG_SD
+// #define DEBUG_OTA
+// #define DEBUG_SD
 // #define DEBUG_ETH
-// #define DEBUG_RFID
+#define DEBUG_RFID
 // #define DEBUG_MEM
 // #define DEBUG_ACC
 // #define DEBUG_TIME
@@ -23,8 +24,9 @@
 
 #define read_little_end
 #include <Arduino.h>
-
 // #include <../lib/Ethernet-2.0.2/src/Ethernet.h>
+
+//## size all relay
 #define sizeRelay 32
 
 // Log server config — DNS-resolved at runtime so server IP can change

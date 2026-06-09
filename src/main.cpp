@@ -16,12 +16,15 @@
 #include <ota_megaXethernetshield.h>
 // #include <sdf.h>
 #include <Wire.h>
-
+#define DEBUGING_SYS(X) Serial.println(X)
 #define baudRate_PC 9600
 #ifndef find_p
 Relay_state locker[sizeRelay];
+
+#define debounce_readCARD 500
+#define interval_readcard 139
+rfid_state rfid(debounce_readCARD, interval_readcard);
 Adafruit_PN532 nfc(-1, -1);
-rfid_state rfid(500, 130);
 buzzer_state buzzer(75);
 ethernet_state eth;
 Updater_state ota_updater;
