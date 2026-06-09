@@ -6,7 +6,7 @@ import time
 
 # BASE_URL = "http://93.144.178.18:8000"
 BASE_URL = "http://192.168.0.208:8000"
-API_KEY = "lockerqyubitL0002L0004L0008L000264L000128"
+API_KEY = "lockerqyubitJ508J506L0008J50864L000128"
 AUTH = API_KEY
 HEADERS = {"Content-Type": "application/json", "Authorization": AUTH}
 TIMEOUT = 5

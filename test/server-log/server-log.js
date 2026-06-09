@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 
 const PORT = 3000;
-const API_KEY = "lockerqyubitL0002L0004L0008L000264L000128";
+const API_KEY = "lockerqyubitJ508J506L0008J50864L000128";
 
 // ── Middleware ──────────────────────────────────────────
 app.use(express.json());
