@@ -140,7 +140,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 {
     const unsigned long now = millis();
     static unsigned long last_checkcable = 0;
-    const long interval_reCheck_cable = 120000;
+    const long interval_reCheck_cable = 60000;
     if (now - last_checkcable < interval_reCheck_cable)
         return;
     // static byte counting_try = 0;
@@ -157,7 +157,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
         }
         else
         {
-            if (now - last_reconnect > 120000)
+            if (now - last_reconnect > interval_reCheck_cable)
             {
 #ifdef DEBUG_ETH
                 Serial.println("cable disconnect,with reinit");

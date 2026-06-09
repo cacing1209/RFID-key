@@ -6,7 +6,7 @@
 
 ## 1. Ringkasan
 
-Sistem locker sekolah berbasis kartu RFID. Setiap controller mengelola sampai **30 locker** (1 unit Mega), bisa di-deploy dalam beberapa varian model (`L0002` … `L0512`) yang membedakan mapping pin relay sesuai layout PCB.
+Sistem locker sekolah berbasis kartu RFID. Setiap controller mengelola sampai **30 locker** (1 unit Mega), bisa di-deploy dalam beberapa varian model (`J508` … `L0512`) yang membedakan mapping pin relay sesuai layout PCB.
 
 Operasi inti:
 
@@ -75,7 +75,7 @@ Legend: ✅ jalan stabil · 🟡 jalan tapi perlu polish · 🔧 belum / TODO
 | Baca kartu PN532 (I²C)                          | ✅     |
 | Mapping UID → locker dari EEPROM                | ✅     |
 | Buka relay + indikator buzzer/LED               | ✅     |
-| 7 varian model (`L0002`…`L0512`) via `#define`  | ✅     |
+| 7 varian model (`J508`…`L0512`) via `#define`  | ✅     |
 | Persistence DB siswa di EEPROM                  | ✅     |
 | Bypass loader 30 kartu (`bypass_add_card()`)    | ✅     |
 | Watchdog software restart (`sys.software_*`)    | ✅     |
@@ -173,7 +173,7 @@ Atau pakai `push.bat` (script convenience).
 
 ### Flag konfigurasi (`include/commond.h`)
 
-- **Pilih SATU model** dengan `#define modelL0xxx` (varian `L0002`/`L0004`/`L0016`/`L0032`/`L0064`/`L0128`/`L0256`/`L0512`). Compile-time error kalau salah pilih.
+- **Pilih SATU model** dengan `#define modelL0xxx` (varian `J508`/`J506`/`J504`/`J505`/`L0064`/`L0128`/`J507`/`L0512`). Compile-time error kalau salah pilih.
 - **Debug toggles** (default semua off): `DEBUG_ETH`, `DEBUG_RFID`, `DEBUG_MEM`, `DEBUG_ACC`, `DEBUG_TIME`, `DEBUG_SYS`. Aktifkan satu-satu sesuai modul yang lagi dibikin.
 - **Log server**: `LOG_SERVER_HOST`, `LOG_SERVER_PORT`, `LOG_SERVER_DNS_TTL_MS`. Pindah server cukup update DNS A record, tidak perlu reflash.
 

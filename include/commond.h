@@ -9,15 +9,16 @@
 // #define DEBUG_SYS
 
 /*selesai*/
-// #define modelL0032
+// #define modelJ505
+// #define modelJ506
+// #define modelJ508
+// #define modelJ507
 
-// #define modelL0004
-// #define modelL0256
-// #define modelL0002
+
 // #define modelL0064
 // #define modelL0512
 // #define modelL0128
-#define modelL0016
+#define modelJ504
 
 #define read_little_end
 #include <Arduino.h>
@@ -36,13 +37,13 @@
 #define LOG_SERVER_FALLBACK_DNS_D 8
 
 #define COUNT_MODELS (              \
-    (defined(modelL0002) ? 1 : 0) + \
-    (defined(modelL0004) ? 1 : 0) + \
-    (defined(modelL0016) ? 1 : 0) + \
-    (defined(modelL0032) ? 1 : 0) + \
+    (defined(modelJ508) ? 1 : 0) +       \
+    (defined(modelJ506) ? 1 : 0) + \
+    (defined(modelJ504) ? 1 : 0) + \
+    (defined(modelJ505) ? 1 : 0) + \
     (defined(modelL0064) ? 1 : 0) + \
     (defined(modelL0128) ? 1 : 0) + \
-    (defined(modelL0256) ? 1 : 0) + \
+    (defined(modelJ507) ? 1 : 0) + \
     (defined(modelL0512) ? 1 : 0))
 
 #if COUNT_MODELS == 0
@@ -51,18 +52,18 @@
 #error "Error: PILIH SATU AJA NDENG GENDENG!"
 #endif
 
-#ifdef modelL0002
+#ifdef modelJ508
 const int pin_IO[sizeRelay] = {29, 33, 43, 25, 34, 44, 28, 63, 49, 38, 62, 40, 24, 39, 46, 64, 31, 37, 35, 23, 41, 48, 22, 45, 32, 30, 26, 65, 42, 47, 27, 36};
-#elif defined(modelL0256)
+#elif defined(modelJ507)
 const int pin_IO[sizeRelay] = {26, 29, 22, 23, 41, 47, 31, 45, 63, 25, 34, 64, 49, 65, 28, 40, 27, 33, 48, 30, 46, 42, 35, 39, 44, 43, 62, 37, 38, 36, 24, 32};
 #elif defined(modelL0512)
 const int pin_IO[sizeRelay] = {35, 22, 65, 26, 44, 45, 62, 48, 31, 38, 37, 23, 33, 39, 28, 43, 42, 29, 25, 40, 32, 64, 30, 46, 34, 27, 49, 41, 24, 47, 36, 63};
-#elif defined(modelL0016)
+#elif defined(modelJ504)
 const int pin_IO[sizeRelay] = {47, 41, 23, 38, 46, 31, 35, 27, 64, 43, 44, 33, 29, 49, 37, 25, 26, 34, 24, 63, 28, 30, 32, 22, 39, 45, 65, 40, 48, 42, 62, 36};
-#elif defined(modelL0032)
+#elif defined(modelJ505)
 const int pin_IO[sizeRelay] = {37, 36, 24, 33, 48, 26, 62, 44, 41, 47, 38, 32, 22, 30, 45, 65, 43, 29, 35, 40, 64, 49, 39, 25, 63, 23, 31, 27, 42, 28, 34, 46};
 
-#elif defined(modelL0004)
+#elif defined(modelJ506)
 const int pin_IO[sizeRelay] = {29, 28, 26, 30, 32, 27, 65, 43, 22, 47, 41, 42, 39, 45, 34, 40, 62, 24, 31, 25, 48, 33, 49, 38, 37, 36, 35, 64, 23, 44, 46, 63};
 #elif defined(modelL0064)
 const int pin_IO[sizeRelay] = {36, 65, 44, 49, 23, 37, 30, 24, 31, 22, 35, 25, 43, 26, 28, 45, 62, 39, 42, 38, 47, 48, 64, 41, 63, 33, 46, 32, 40, 34, 29, 27};
@@ -242,27 +243,27 @@ private:
     bool header_done;
     char last_char;
 
-#ifdef modelL0002
+#ifdef modelJ508
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5C};
-    const char *controller_name = "L0002";
-#elif defined(modelL0004)
+    const char *controller_name = "J508";
+#elif defined(modelJ506)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5D};
-    const char *controller_name = "L0004";
-#elif defined(modelL0016)
+    const char *controller_name = "J506";
+#elif defined(modelJ504)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5E};
-    const char *controller_name = "L0016";
-#elif defined(modelL0032)
+    const char *controller_name = "J504";
+#elif defined(modelJ505)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x5F};
-    const char *controller_name = "L0032";
+    const char *controller_name = "J505";
 #elif defined(modelL0064)
     const char *controller_name = "L0064";
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x60};
 #elif defined(modelL0128)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x61};
     const char *controller_name = "L0128";
-#elif defined(modelL0256)
+#elif defined(modelJ507)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x62};
-    const char *controller_name = "L0256";
+    const char *controller_name = "J507";
 #elif defined(modelL0512)
     byte eth_mac[S_MAC] = {0x02, 0xA1, 0x01, 0x16, 0x3D, 0x63};
     const char *controller_name = "L0512";
