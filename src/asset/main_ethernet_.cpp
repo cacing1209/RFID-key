@@ -1007,7 +1007,7 @@ void ethernet_state::handle_update(EthernetClient &client, Updater_state *update
 
     if (should_download)
     {
-        bool dl_result = download_firmware("firmware.hex", updater);
+        bool dl_result = download_firmware(FW_BIN_NAME, updater);
         response["download"] = dl_result ? "success" : "failed";
 
 #ifdef DEBUG_OTA
@@ -1016,12 +1016,20 @@ void ethernet_state::handle_update(EthernetClient &client, Updater_state *update
 #endif
     }
 
+    // Flashing is delegated to the avr_boot SD bootloader. We only stage the
+    // image (FIRMWARE.BIN already on SD) and reset into the bootloader.
+    bool will_reboot = false;
     if (should_flash && updater)
     {
-        response["flash"] = "executing";
-#ifdef DEBUG_OTA
-        Serial.println(":ota:flash starting...");
-#endif
+        if (updater->check_firmware(FW_BIN_NAME))
+        {
+            response["flash"] = "rebooting";
+            will_reboot = true;
+        }
+        else
+        {
+            response["flash"] = "no firmware on sd";
+        }
     }
     else if (should_flash)
     {
@@ -1032,12 +1040,11 @@ void ethernet_state::handle_update(EthernetClient &client, Updater_state *update
     serializeJson(response, json, sizeof(json));
     send_ok(client, json);
 
-    // Jika flash diminta, execute setelah response
-    if (should_flash && updater)
+    // Reset into avr_boot AFTER the response is sent. Does not return.
+    if (will_reboot)
     {
         delay(500); // Tunggu agar client terima response
-        updater->execute_flash("firmware.hex");
-        // Jika berhasil, device akan restart
+        updater->stage_and_reboot();
     }
 }
 

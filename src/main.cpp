@@ -111,6 +111,11 @@ void init_mypin()
 // }
 void setup()
 {
+	// Disable the watchdog ASAP. stage_and_reboot() / software_Resatrt() use a
+	// watchdog reset to enter avr_boot; after the bootloader jumps back here the
+	// WDT may still be armed, which would loop-reset the app if left enabled.
+	MCUSR = 0;
+	wdt_disable();
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_OTA) || defined(DEBUG_SD)
 	Serial.begin(baudRate_PC);
 	delay(6000);
@@ -118,6 +123,16 @@ void setup()
 	init_mypin();
 	// bypass_add_card();
 	memory.load_data(data);
+
+	// If an OTA was staged, avr_boot has just flashed FIRMWARE.BIN; delete it
+	// so it is not reflashed on every subsequent reset.
+	if (ota_updater.post_ota_cleanup())
+	{
+		// firmware updated successfully — short confirmation tone
+		tone(buzzer.pin, 3200);
+		delay(400);
+		noTone(buzzer.pin);
+	}
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_OTA) || defined(DEBUG_SD)
 	Serial.println("Device Start");
 #endif
