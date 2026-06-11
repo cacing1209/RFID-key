@@ -33,6 +33,16 @@ String system_t()
 
 void ethernet_state::begin(database_s *db, storage_state *memory)
 {
+    // Deselect SD (CS pin 4) SEBELUM Ethernet init. W5100 & SD share SPI bus:
+    // kalau ada kartu SD kepasang dan CS-nya dibiarin floating, kartu ikut
+    // nimbrung di MISO pas W5100 init -> Ethernet.begin/DHCP bisa hang (gejala:
+    // macet sehabis "init my pins"). Dulu ke-handle gak sengaja sama card.begin()
+    // di constructor sdf_state; sekarang dibikin eksplisit di sini.
+    pinMode(CS_P_SD, OUTPUT);
+    digitalWrite(CS_P_SD, HIGH); // SD idle
+    pinMode(CS_P_ETH, OUTPUT);
+    digitalWrite(CS_P_ETH, HIGH); // W5100 idle (Ethernet.init ambil alih)
+
     db_ptr = db;
     memory_ptr = memory;
     if (memory_ptr)
