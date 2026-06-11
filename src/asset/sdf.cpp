@@ -97,3 +97,95 @@ bool sdf_state::save_file(String f)
     // Caller harus manual close file via card.close()
     return true;
 }
+
+// Append satu baris event ke SDLOG_ACTIVE. Rotate (active -> backup) kalau
+// ukuran file >= cap. Single open-write-sync-close, pakai char[80] (no String).
+bool sdf_state::log_event(unsigned long epoch, byte idx, unsigned long uid,
+                          const char *dev_class, const char *flag)
+{
+    if (!sd_isnormal)
+        return false;
+
+    SdFile f;
+    if (!f.open(SDLOG_ACTIVE, O_WRITE | O_CREAT))
+        return false;
+
+    // Rotasi: file aktif penuh -> rename ke .OLD (buang .OLD lama dulu),
+    // lalu bikin file aktif baru yg kosong.
+    if (f.fileSize() >= SDLOG_CAP_BYTES)
+    {
+        f.close();
+        card.remove(SDLOG_BACKUP);             // buang backup lama (abaikan hasil)
+        card.rename(SDLOG_ACTIVE, SDLOG_BACKUP); // event.log -> event.old
+        if (!f.open(SDLOG_ACTIVE, O_WRITE | O_CREAT))
+            return false;
+    }
+
+    f.seekSet(f.fileSize()); // posisikan di akhir (append)
+
+    char line[80];
+    int n = snprintf(line, sizeof(line), "%lu,%u,%lu,%s,%s\n",
+                     epoch, (unsigned)idx, uid, dev_class, flag);
+    if (n <= 0)
+    {
+        f.close();
+        return false;
+    }
+    if (n >= (int)sizeof(line)) // snprintf ke-truncate -> tulis yg muat aja
+        n = sizeof(line) - 1;
+
+    size_t w = f.write((const uint8_t *)line, n);
+    f.sync();
+    f.close();
+    return w == (size_t)n;
+}
+
+// Stream n baris terakhir SDLOG_ACTIVE ke `out`. Scan mundur dari akhir file
+// per-chunk buat nemu offset awal n baris terakhir, baru stream maju. Gak
+// pernah load seluruh file ke RAM. Return jumlah baris yg ke-print.
+size_t sdf_state::log_tail(Print &out, byte n)
+{
+    if (!sd_isnormal || n == 0)
+        return 0;
+
+    SdFile f;
+    if (!f.open(SDLOG_ACTIVE, O_READ))
+        return 0;
+
+    const uint16_t CHUNK = 64;
+    char buf[CHUNK];
+
+    uint32_t pos = f.fileSize();
+    uint32_t start = 0;       // default: dari awal kalau baris < n
+    uint16_t newlines = 0;    // file diakhiri '\n', jadi butuh n+1 utk skip n baris
+    while (pos > 0)
+    {
+        uint16_t want = (pos < CHUNK) ? (uint16_t)pos : CHUNK;
+        pos -= want;
+        f.seekSet(pos);
+        if (f.read(buf, want) != (int)want)
+            break;
+        for (int i = (int)want - 1; i >= 0; i--)
+        {
+            if (buf[i] == '\n' && ++newlines == (uint16_t)n + 1)
+            {
+                start = pos + (uint32_t)i + 1;
+                pos = 0; // hentikan loop luar
+                break;
+            }
+        }
+    }
+
+    f.seekSet(start);
+    size_t lines = 0;
+    int got;
+    while ((got = f.read(buf, CHUNK)) > 0)
+    {
+        out.write((const uint8_t *)buf, (size_t)got);
+        for (int i = 0; i < got; i++)
+            if (buf[i] == '\n')
+                lines++;
+    }
+    f.close();
+    return lines;
+}

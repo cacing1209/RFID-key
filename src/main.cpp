@@ -27,7 +27,9 @@ rfid_state rfid(debounce_readCARD, interval_readcard);
 Adafruit_PN532 nfc(-1, -1);
 buzzer_state buzzer(75);
 ethernet_state eth;
-Updater_state ota_updater;
+// OTA upgrade dimatikan sementara (fokus fitur event-log SD). File & class
+// Updater_state masih ada di repo, tinggal re-enable kalau perlu.
+// Updater_state ota_updater;
 
 database_s data[Size_Siswa];
 storage_state memory;
@@ -124,15 +126,16 @@ void setup()
 	// bypass_add_card();
 	memory.load_data(data);
 
-	// If an OTA was staged, avr_boot has just flashed FIRMWARE.BIN; delete it
-	// so it is not reflashed on every subsequent reset.
-	if (ota_updater.post_ota_cleanup())
-	{
-		// firmware updated successfully — short confirmation tone
-		tone(buzzer.pin, 3200);
-		delay(400);
-		noTone(buzzer.pin);
-	}
+	// OTA dimatikan sementara — post_ota_cleanup() di-skip.
+	// // If an OTA was staged, avr_boot has just flashed FIRMWARE.BIN; delete it
+	// // so it is not reflashed on every subsequent reset.
+	// if (ota_updater.post_ota_cleanup())
+	// {
+	// 	// firmware updated successfully — short confirmation tone
+	// 	tone(buzzer.pin, 3200);
+	// 	delay(400);
+	// 	noTone(buzzer.pin);
+	// }
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_OTA) || defined(DEBUG_SD)
 	Serial.println("Device Start");
 #endif

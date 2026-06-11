@@ -3,16 +3,11 @@
 import requests
 import json
 import time
-<<<<<<< HEAD
 import sys
 # BASE_URL = "http://93.144.178.18:8000"
 BASE_URL = sys.argv[1]
 print("Target:", BASE_URL)
-=======
-# BASE_URL = "http://93.144.178.18:8000"
-BASE_URL = "http://192.168.0.112:8000"
->>>>>>> a0fc042f95e69ee11698ef0590bd66305c1ce3dc
-API_KEY = "lockerqyubitL0002L0004L0008L000264L000128"
+API_KEY = "lockerqyubitL0002L0004L0008J50864L000128"
 AUTH = API_KEY
 HEADERS = {"Content-Type": "application/json", "Authorization": AUTH}
 TIMEOUT = 5

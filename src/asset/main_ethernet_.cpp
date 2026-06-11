@@ -4,7 +4,13 @@
 #include <Dns.h>
 #include <ArduinoJson.h>
 #include <ota_megaXethernetshield.h>
+#include <sdf.h>
 NTPConfig ntpCfg;
+
+// Satu-satunya instance SdFat dipakai event-log SD (OTA lagi dimatikan, jadi
+// gak ada double-init). card.begin() di-(re)run di ethernet_state::begin()
+// SETELAH SPI.begin() di setup() — constructor jalan sebelum SPI siap.
+sdf_state sd_card;
 bool ethernetCableConnected()
 {
     // W5100 reports Unknown — don't probe with a TCP connect to gateway:80.
@@ -100,6 +106,18 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
 #endif
     server.begin();
     reset_parser();
+
+    // Init SD utk event-log SETELAH Ethernet siap (W5100 share SPI bus, CS-nya
+    // harus idle dulu). Re-begin di sini karena constructor sd_card jalan
+    // sebelum SPI.begin() di setup(). Sengaja SEBELUM early-return di bawah:
+    // logging SD harus tetap nyala walau Ethernet putus. Gagal begin() -> semua
+    // call log_event/log_tail jadi no-op, sketch tetep jalan (gak hang).
+    sd_card.sd_isnormal = sd_card.card.begin(CS_P_SD);
+#ifdef DEBUG_SD
+    Serial.println(sd_card.sd_isnormal ? ":sd:event-log ready"
+                                       : ":sd:event-log disabled (card not found)");
+#endif
+
     if (!eth_connected)
     {
 #ifdef DEBUG_ETH
@@ -226,9 +244,8 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     bool handled_http = false;
     if (client)
     {
-        // Forward declaration - updater dari main.cpp
-        extern Updater_state ota_updater;
-        handle_client(client, db, memory, locker, &ota_updater);
+        // OTA dimatikan sementara — updater = nullptr (route /update di-skip).
+        handle_client(client, db, memory, locker, nullptr);
         delay(1);
         client.stop();
         handled_http = true;
@@ -291,6 +308,11 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
 
     if (strcmp(method, "POST") == 0 ||
         strcmp(method, "DELETE") == 0)
+    {
+        needs_auth = true;
+    }
+    // /sd-log = data tap siswa, jangan kebuka publik (lihat sd_log.txt).
+    else if (strcmp(method, "GET") == 0 && strncmp(path, "/sd-log", 7) == 0)
     {
         needs_auth = true;
     }
@@ -365,10 +387,25 @@ void ethernet_state::handle_client(EthernetClient &client, database_s *db, stora
         route_found = true;
         handle_reset(client, db, memory);
     }
-    else if (strcmp(path, "/update") == 0 && strcmp(method, "POST") == 0)
+    // OTA dimatikan sementara — route /update di-nonaktifkan.
+    // else if (strcmp(path, "/update") == 0 && strcmp(method, "POST") == 0)
+    // {
+    //     route_found = true;
+    //     handle_update(client, updater);
+    // }
+    else if (strncmp(path, "/sd-log", 7) == 0 && strcmp(method, "GET") == 0)
     {
         route_found = true;
-        handle_update(client, updater);
+        // Default 10 baris terakhir; ?n=N (1..100) buat override.
+        byte n = 10;
+        const char *q = strchr(path, '=');
+        if (q)
+        {
+            int v = atoi(q + 1);
+            if (v > 0 && v <= 100)
+                n = (byte)v;
+        }
+        handle_sd_log(client, n);
     }
 
     if (!route_found)
@@ -1109,7 +1146,10 @@ bool ethernet_state::resolve_log_server()
     return true;
 }
 
-void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
+// Kirim event ke HTTP log server. Return true kalau request kekirim (sampai
+// drain respons), false kalau gagal (DNS/connect) — dipakai send_eventLog buat
+// nentuin flag SENT vs PEND di SD.
+bool ethernet_state::transmit_eventLog(const unsigned long uid_decimal, byte index)
 {
     EthernetClient logClient;
     // W5100 default 1000ms is tight — TCP handshake + ARP can exceed it after
@@ -1120,7 +1160,7 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 
     if (stale && !resolve_log_server() && !log_server_ip_valid)
     {
-        return;
+        return false;
     }
 
     if (!logClient.connect(log_server_ip, LOG_SERVER_PORT))
@@ -1136,14 +1176,14 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
         Ethernet.maintain();
         if (!resolve_log_server())
         {
-            return;
+            return false;
         }
         if (!logClient.connect(log_server_ip, LOG_SERVER_PORT))
         {
 #ifdef DEBUG_ETH
             Serial.println("Connect retry gagal");
 #endif
-            return;
+            return false;
         }
     }
 #ifdef DEBUG_ETH
@@ -1181,6 +1221,31 @@ void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
         }
     }
     logClient.stop();
+    return true;
+}
+
+// Catat event tap: kirim ke log server, lalu SELALU append ke SD sebagai
+// fallback/audit lokal (flag SENT kalau kekirim, PEND kalau belum sempat).
+// Append jalan walau network gagal -> event gak ilang (lihat sd_log.txt).
+void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
+{
+    unsigned long epoch = now(); // sumber waktu sama dgn system_t()
+    bool sent = transmit_eventLog(uid_decimal, index);
+    sd_card.log_event(epoch, index, uid_decimal, device_class,
+                      sent ? "SENT" : "PEND");
+}
+
+// GET /sd-log?n=N -> stream N baris terakhir event log ke client (plain text).
+void ethernet_state::handle_sd_log(EthernetClient &client, byte n)
+{
+    // Streaming, panjang gak diketahui di depan -> tanpa Content-Length,
+    // client baca sampai koneksi ditutup (handle_client stop() setelah ini).
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: text/plain");
+    client.println("Connection: close");
+    client.println();
+    if (sd_card.log_tail(client, n) == 0)
+        client.println("# (kosong / SD tidak tersedia)");
 }
 
 // === OTA Download Firmware ===

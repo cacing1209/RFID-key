@@ -56,6 +56,31 @@ def progress_bar(current, total, width=40):
     sys.stdout.flush()
 
 
+def valid_subnet(subnet: str) -> bool:
+    """Validasi subnet 3 oktet, contoh 192.168.1 (tiap oktet 0-255)."""
+    parts = subnet.split(".")
+    if len(parts) != 3:
+        return False
+    try:
+        return all(0 <= int(p) <= 255 for p in parts)
+    except ValueError:
+        return False
+
+
+def prompt_manual_subnet(default_subnet: str) -> str:
+    """Tanya user subnet 3 oktet secara manual. ENTER = pakai auto subnet."""
+    while True:
+        raw = input(
+            f"  {YELLOW}Subnet manual (3 oktet, ex 192.168.1) "
+            f"[ENTER = {default_subnet}]: {RESET}"
+        ).strip()
+        if not raw:
+            return default_subnet
+        if valid_subnet(raw):
+            return raw
+        print(f"  {RED}Format salah. Harus 3 oktet 0-255, contoh 192.168.1{RESET}")
+
+
 def get_local_info():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -274,6 +299,11 @@ def main():
     )
     parser.add_argument("--subnet", type=str, help="Subnet target, e.g. 192.168.1")
     parser.add_argument(
+        "--manual",
+        action="store_true",
+        help="Input subnet 3 oktet manual secara interaktif",
+    )
+    parser.add_argument(
         "--port",
         type=int,
         default=DEFAULT_PORT,
@@ -310,7 +340,13 @@ def main():
         print(f"  {BLUE}Port kandidat : {port_list}{RESET}\n")
         results = scan_single(args.ip, port_list)
     else:
-        subnet = args.subnet or auto_subnet
+        subnet = args.subnet
+        if not subnet and args.manual:
+            subnet = prompt_manual_subnet(auto_subnet)
+        subnet = subnet or auto_subnet
+        if not valid_subnet(subnet):
+            print(f"  {RED}Subnet '{subnet}' tidak valid (harus 3 oktet).{RESET}")
+            return
         print(f"  {BLUE}Target subnet : {subnet}.0/24{RESET}")
         print(f"  {BLUE}Port          : {args.port}{RESET}")
         results = scan_subnet(subnet, args.port, args.workers)
@@ -333,7 +369,7 @@ def main():
 
         c = results[0]
         print(f"Target: {c['url']}")
-        subprocess.run(["python","test_case.py",c["url"]])
+        subprocess.run([sys.executable, "test_case.py", c["url"]])
         
         print(f"""
   {YELLOW}─── NICE ──────────────────────────────{RESET}

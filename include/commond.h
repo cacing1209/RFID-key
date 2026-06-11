@@ -5,7 +5,7 @@
 // #define DEBUG_OTA
 // #define DEBUG_SD
 // #define DEBUG_ETH
-#define DEBUG_RFID
+// #define DEBUG_RFID
 // #define DEBUG_MEM
 // #define DEBUG_ACC
 // #define DEBUG_TIME
@@ -315,6 +315,8 @@ public:
     void send_ok(EthernetClient &client, const char *json = "{}");
     void send_error(EthernetClient &client, int code, const char *msg);
     void send_eventLog(const unsigned long uid_decimal, byte index);
+    bool transmit_eventLog(const unsigned long uid_decimal, byte index);
+    void handle_sd_log(EthernetClient &client, byte n = 10);
 
     /* OTA Download */
     bool download_firmware(const char *filename, class Updater_state *updater);
