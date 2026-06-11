@@ -110,11 +110,21 @@ bool sdf_state::log_event(unsigned long epoch, byte idx, unsigned long uid,
                           const char *dev_class, const char *flag)
 {
     if (!sd_isnormal)
+    {
+#ifdef DEBUG_SD
+        Serial.println(":sd:log skip (card disabled)");
+#endif
         return false;
+    }
 
     SdFile f;
     if (!f.open(SDLOG_ACTIVE, O_WRITE | O_CREAT))
+    {
+#ifdef DEBUG_SD
+        Serial.println(":sd:log open FAIL " SDLOG_ACTIVE);
+#endif
         return false;
+    }
 
     // Rotasi: file aktif penuh -> rename ke .OLD (buang .OLD lama dulu),
     // lalu bikin file aktif baru yg kosong.
@@ -123,8 +133,16 @@ bool sdf_state::log_event(unsigned long epoch, byte idx, unsigned long uid,
         f.close();
         card.remove(SDLOG_BACKUP);             // buang backup lama (abaikan hasil)
         card.rename(SDLOG_ACTIVE, SDLOG_BACKUP); // event.log -> event.old
+#ifdef DEBUG_SD
+        Serial.println(":sd:rotate " SDLOG_ACTIVE " -> " SDLOG_BACKUP);
+#endif
         if (!f.open(SDLOG_ACTIVE, O_WRITE | O_CREAT))
+        {
+#ifdef DEBUG_SD
+            Serial.println(":sd:log reopen FAIL");
+#endif
             return false;
+        }
     }
 
     f.seekSet(f.fileSize()); // posisikan di akhir (append)
@@ -142,8 +160,21 @@ bool sdf_state::log_event(unsigned long epoch, byte idx, unsigned long uid,
 
     size_t w = f.write((const uint8_t *)line, n);
     f.sync();
+    uint32_t total = f.fileSize();
     f.close();
-    return w == (size_t)n;
+
+    bool ok = (w == (size_t)n);
+#ifdef DEBUG_SD
+    // line udah diakhiri '\n', jadi Serial.print(line) langsung pindah baris.
+    Serial.print(ok ? ":sd:saved " : ":sd:save FAIL ");
+    Serial.print(line);
+    Serial.print(":sd:file ");
+    Serial.print(SDLOG_ACTIVE);
+    Serial.print(" = ");
+    Serial.print(total);
+    Serial.println(" bytes");
+#endif
+    return ok;
 }
 
 // Stream n baris terakhir SDLOG_ACTIVE ke `out`. Scan mundur dari akhir file
