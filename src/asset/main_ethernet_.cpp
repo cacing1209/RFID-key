@@ -585,52 +585,61 @@ void ethernet_state::reset_parser()
 // }
 void ethernet_state::handle_info(EthernetClient &client)
 {
-    StaticJsonDocument<512> doc;
-    doc["status"] = "ok";
-    doc["dev_class"] = device_class;
-    doc["c_name"] = controller_name;
-    doc["ver"] = firmware_ver;
-    doc["up_t"] = millis() / 1000;
-
+    // Stream langsung tanpa JsonDocument/String. Di RAM sempit (Mega ~83%),
+    // StaticJsonDocument<512>+String sering GAGAL alokasi heap -> JSON kosong/
+    // korup -> `serializeJson` balikin sampah -> app gak ngenalin device pas
+    // scan (res.body null / status != "ok"). Debug Serial di bawah cetak nilai
+    // MENTAH (bukan dari JSON), makanya tetep keliatan walau JSON-nya gagal.
+    // Pola sama kayak handle_get_data yg udah dibenerin duluan. (lihat sd_log.txt)
     IPAddress ip = Ethernet.localIP();
     char ip_str[16];
     sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-    doc["ip_a"] = ip_str;
 
-    // MAC address
     Ethernet.MACAddress(eth_mac);
     char mac_str[18];
     sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
             eth_mac[0], eth_mac[1], eth_mac[2], eth_mac[3], eth_mac[4], eth_mac[5]);
-    doc["mac_addr"] = mac_str;
-    doc["total_locker"] = Size_Siswa;
 
     int use = 0;
     if (db_ptr)
-    {
         for (int i = 0; i < Size_Siswa; i++)
-        {
             if (db_ptr[i].statusdb == Status_db::Not_Available)
-            {
                 use++;
-            }
-        }
-    }
-    doc["avail_lock"] = Size_Siswa - use;
-    // Status SD event-log buat dashboard: "off" (card gak kebaca/dicabut),
-    // "full" (write gagal, kemungkinan penuh), "ok". Dashboard bisa poll ini.
-    // F() -> literal di flash, bukan static RAM (AVR; RAM tight, lihat sd_log).
-    doc["sd"] = !sd_card.sd_isnormal ? F("off") : (sd_card.sd_full ? F("full") : F("ok"));
+
+    const char *sd_stat = !sd_card.sd_isnormal ? "off" : (sd_card.sd_full ? "full" : "ok");
+
 #ifdef DEBUG_ETH
     Serial.println("mac:" + String(mac_str));
     Serial.println("c_name" + String(controller_name));
     Serial.println("dev_class" + String(device_class));
 #endif
 
-    String json;
-    serializeJson(doc, json);
+    // Tanpa Content-Length: client baca sampai koneksi ditutup (Connection:
+    // close + client.stop() di loop). Sama kayak handle_sd_log.
+    client.println(F("HTTP/1.1 200 OK"));
+    client.println(F("Content-Type: application/json"));
+    client.println(F("Connection: close"));
+    client.println();
 
-    send_ok(client, json.c_str());
+    client.print(F("{\"status\":\"ok\",\"dev_class\":\""));
+    client.print(device_class);
+    client.print(F("\",\"c_name\":\""));
+    client.print(controller_name);
+    client.print(F("\",\"ver\":\""));
+    client.print(firmware_ver);
+    client.print(F("\",\"up_t\":"));
+    client.print(millis() / 1000);
+    client.print(F(",\"ip_a\":\""));
+    client.print(ip_str);
+    client.print(F("\",\"mac_addr\":\""));
+    client.print(mac_str);
+    client.print(F("\",\"total_locker\":"));
+    client.print(Size_Siswa);
+    client.print(F(",\"avail_lock\":"));
+    client.print(Size_Siswa - use);
+    client.print(F(",\"sd\":\""));
+    client.print(sd_stat);
+    client.print(F("\"}"));
 }
 
 void ethernet_state::handle_post_info(EthernetClient &client, storage_state *memory)
