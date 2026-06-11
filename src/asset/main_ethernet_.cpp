@@ -230,8 +230,8 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
 #endif
     }
 
-    static unsigned long last_checkcable = 0;
     const long interval_reCheck_cable = 120000;
+    static unsigned long last_checkcable = interval_reCheck_cable;
     if (now - last_checkcable < interval_reCheck_cable)
         return;
     // static byte counting_try = 0;
