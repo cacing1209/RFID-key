@@ -123,10 +123,18 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
     Serial.println(":sd:begin...");
     Serial.flush();
 #endif
-    sd_card.sd_isnormal = sd_card.card.begin(CS_P_SD);
+    // Cap init clock di 4 MHz: lebih toleran ke wiring/bus share dgn W5100,
+    // dan bikin SdFat lebih cepet nyerah (return false) kalau slot kosong —
+    // bukan ngegantung. Slot kosong = logging SD di-disable, sketch jalan terus.
+    sd_card.sd_isnormal = sd_card.card.begin(CS_P_SD, SD_SCK_MHZ(4));
+
+    // Apapun hasilnya, lepas SD dari bus (CS HIGH) biar DO-nya yg mungkin
+    // nyangkut gak ngacak transaksi SPI W5100 (DHCP/HTTP) setelah ini.
+    digitalWrite(CS_P_SD, HIGH);
+    digitalWrite(CS_P_ETH, HIGH);
 #ifdef DEBUG_SD
     Serial.println(sd_card.sd_isnormal ? ":sd:event-log ready"
-                                       : ":sd:event-log disabled (card not found)");
+                                       : ":sd:event-log disabled (no card / not ready)");
 #endif
 
     if (!eth_connected)
