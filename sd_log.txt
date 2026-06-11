@@ -163,3 +163,26 @@ Class     : sd_log_state (mirip pola ethernet_state)
   init. Buat singleton state.
 - Endpoint /sd-log harus ada auth (mirip token_sck_log) - ini
   data tap siswa, jangan kebuka publik.
+
+
+BUG SD Card
+- kadang proses melambat dan device restart
+- jika sdcard tidak terdeteksi pada awal setup kemudian di loop sdcard di masukin program langsung stuck
+
+fitur
+- sebenernya send log ke dashboard masih perlu bedanya cuman ambil dari sdcard dan dashboard menerima dari controller
+- match in antara apps dan controller untuk endpointnya.. pake yang sebelumnya aja udah bener
+```json
+{
+  "t": "2023-05-04 12:34:56",
+  "no": 0,
+  "id": 0028758077,
+  "dev_class":"pandora"
+}
+```
+
+- `t`: timestamp format YYYY-MM-DD HH:MM:SS
+- `no`: nomor locker
+- `id`: UID kartuformat desimal (unsigned long)
+- `dev_class`:nama kelas
+- 

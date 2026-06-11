@@ -120,8 +120,12 @@ bool sdf_state::log_event(unsigned long epoch, byte idx, unsigned long uid,
     SdFile f;
     if (!f.open(SDLOG_ACTIVE, O_WRITE | O_CREAT))
     {
+        // Open utk WRITE|CREAT gagal = card dicabut/rusak (bukan sekadar file
+        // gak ada). Disable logging biar op berikut gak nyangkut di card mati;
+        // loop() yg nyoba re-detect & recover (lihat BUG SD Card sd_log.txt).
+        sd_isnormal = false;
 #ifdef DEBUG_SD
-        Serial.println(":sd:log open FAIL " SDLOG_ACTIVE);
+        Serial.println(F(":sd:log open FAIL " SDLOG_ACTIVE " -> disable, tunggu re-detect"));
 #endif
         return false;
     }
@@ -138,8 +142,9 @@ bool sdf_state::log_event(unsigned long epoch, byte idx, unsigned long uid,
 #endif
         if (!f.open(SDLOG_ACTIVE, O_WRITE | O_CREAT))
         {
+            sd_isnormal = false; // card hilang pas rotate -> disable, biar re-detect recover
 #ifdef DEBUG_SD
-            Serial.println(":sd:log reopen FAIL");
+            Serial.println(F(":sd:log reopen FAIL -> disable, tunggu re-detect"));
 #endif
             return false;
         }

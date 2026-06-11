@@ -11,6 +11,25 @@ NTPConfig ntpCfg;
 // gak ada double-init). card.begin() di-(re)run di ethernet_state::begin()
 // SETELAH SPI.begin() di setup() — constructor jalan sebelum SPI siap.
 sdf_state sd_card;
+
+// (Re)deteksi SD dgn koordinasi CS — dipakai di boot (begin) DAN re-detect
+// runtime di loop(). W5100 & SD share SPI bus: kedua CS HARUS idle (HIGH)
+// sebelum probe, kalau gak dua chip rebutan MISO -> card.begin() bisa hang.
+// Clock di-cap 4 MHz biar SdFat cepat nyerah (return false) di slot kosong,
+// bukan ngegantung. Apapun hasilnya, lepas SD dari bus (CS HIGH) lagi biar
+// DO-nya gak ngacak transaksi SPI W5100 berikutnya. (lihat sd_log.txt)
+static bool sd_begin_coordinated()
+{
+    pinMode(CS_P_ETH, OUTPUT);
+    digitalWrite(CS_P_ETH, HIGH); // W5100 idle
+    pinMode(CS_P_SD, OUTPUT);
+    digitalWrite(CS_P_SD, HIGH); // SD idle (begin akan ambil alih)
+    bool ok = sd_card.card.begin(CS_P_SD, SD_SCK_MHZ(4));
+    digitalWrite(CS_P_SD, HIGH);
+    digitalWrite(CS_P_ETH, HIGH);
+    return ok;
+}
+
 bool ethernetCableConnected()
 {
     // W5100 reports Unknown — don't probe with a TCP connect to gateway:80.
@@ -118,30 +137,17 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
     reset_parser();
 
     // Init SD utk event-log SETELAH Ethernet siap (W5100 share SPI bus, CS-nya
-    // harus idle dulu). Re-begin di sini karena constructor sd_card jalan
-    // sebelum SPI.begin() di setup(). Sengaja SEBELUM early-return di bawah:
-    // logging SD harus tetap nyala walau Ethernet putus. Gagal begin() -> semua
-    // call log_event/log_tail jadi no-op, sketch tetep jalan (gak hang).
-    // CS coordination (lihat sd_log.txt): W5100 & SD share SPI bus. W5100 CS
-    // HARUS idle (HIGH) sebelum SD init, kalau gak dua chip rebutan MISO ->
-    // card.begin() bisa hang. Drive kedua CS HIGH dulu.
-    pinMode(CS_P_ETH, OUTPUT);
-    digitalWrite(CS_P_ETH, HIGH); // W5100 idle
-    pinMode(CS_P_SD, OUTPUT);
-    digitalWrite(CS_P_SD, HIGH); // SD idle (begin akan ambil alih)
+    // harus idle dulu — dihandle sd_begin_coordinated()). Re-begin di sini
+    // karena constructor sd_card jalan sebelum SPI.begin() di setup(). Sengaja
+    // SEBELUM early-return di bawah: logging SD harus tetap nyala walau Ethernet
+    // putus. Gagal begin() -> log_event/log_tail jadi no-op, sketch tetep jalan
+    // (gak hang); loop() bakal re-detect tiap 30s, jadi card yg dicolok
+    // belakangan tetep kebaca tanpa reboot (lihat BUG SD Card di sd_log.txt).
 #ifdef DEBUG_SD
     Serial.println(":sd:begin...");
     Serial.flush();
 #endif
-    // Cap init clock di 4 MHz: lebih toleran ke wiring/bus share dgn W5100,
-    // dan bikin SdFat lebih cepet nyerah (return false) kalau slot kosong —
-    // bukan ngegantung. Slot kosong = logging SD di-disable, sketch jalan terus.
-    sd_card.sd_isnormal = sd_card.card.begin(CS_P_SD, SD_SCK_MHZ(4));
-
-    // Apapun hasilnya, lepas SD dari bus (CS HIGH) biar DO-nya yg mungkin
-    // nyangkut gak ngacak transaksi SPI W5100 (DHCP/HTTP) setelah ini.
-    digitalWrite(CS_P_SD, HIGH);
-    digitalWrite(CS_P_ETH, HIGH);
+    sd_card.sd_isnormal = sd_begin_coordinated();
 #ifdef DEBUG_SD
     Serial.println(sd_card.sd_isnormal ? ":sd:event-log ready"
                                        : ":sd:event-log disabled (no card / not ready)");
@@ -198,10 +204,32 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 uid_decimal = (uid_decimal << 8) | db[i].card[x];
             send_eventLog(uid_decimal, i);
             send_log[i] = false;
+            // Satu event per loop: transmit (≤3s) + SD write (open/sync/close)
+            // jangan numpuk dalam satu iterasi -> loop tetep responsif, gak
+            // "melambat" (BUG SD Card #1 di sd_log.txt). Sisa flag diproses
+            // di iterasi berikutnya; gak ada event yg ilang.
+            break;
         }
     }
 
     const unsigned long now = millis();
+
+    // Re-detect SD kalau lagi disabled (gagal deteksi di boot / dicabut saat
+    // jalan). Coba tiap 30s, CS-coordinated + clock rendah biar gak ngehang.
+    // Bikin card yg dicolok belakangan langsung kelog tanpa reboot. Sengaja
+    // SEBELUM gate cable di bawah: SD mesti recover walau Ethernet putus.
+    // (BUG SD Card di sd_log.txt)
+    static unsigned long last_sd_probe = 0;
+    if (!sd_card.sd_isnormal && now - last_sd_probe >= 30000UL)
+    {
+        last_sd_probe = now;
+        sd_card.sd_isnormal = sd_begin_coordinated();
+#ifdef DEBUG_SD
+        if (sd_card.sd_isnormal)
+            Serial.println(F(":sd:re-detect OK -> event-log nyala lagi"));
+#endif
+    }
+
     static unsigned long last_checkcable = 0;
     const long interval_reCheck_cable = 120000;
     if (now - last_checkcable < interval_reCheck_cable)
