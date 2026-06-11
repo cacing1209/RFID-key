@@ -186,6 +186,21 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
 
 void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *locker)
 {
+    // Proses event tap DULU — sebelum gate jaringan apa pun di bawah. SD log
+    // harus tetap jalan walau Ethernet putus / loop lagi di-throttle; itu inti
+    // dari fallback (dulu blok ini di ekor loop, jadi gak kepanggil pas offline).
+    for (size_t i = 0; i < Size_Siswa; i++)
+    {
+        if (send_log[i])
+        {
+            unsigned long uid_decimal = 0;
+            for (int x = 3; x >= 0; x--)
+                uid_decimal = (uid_decimal << 8) | db[i].card[x];
+            send_eventLog(uid_decimal, i);
+            send_log[i] = false;
+        }
+    }
+
     const unsigned long now = millis();
     static unsigned long last_checkcable = 0;
     const long interval_reCheck_cable = 120000;
@@ -287,23 +302,12 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
     // }
 
     /* Give the W5100 a moment for the just-closed server socket to fully
-     transition to CLOSED before send_eventLog calls socketBegin() — without
-     this gap the next TCP connect intermittently fails on the first try.
+     transition to CLOSED before the next send_eventLog (di awal loop
+     berikutnya) calls socketBegin() — without this gap the next TCP connect
+     intermittently fails on the first try.
     */
     if (handled_http)
         delay(30);
-
-    for (size_t i = 0; i < Size_Siswa; i++)
-    {
-        if (send_log[i])
-        {
-            unsigned long uid_decimal = 0;
-            for (int x = 3; x >= 0; x--)
-                uid_decimal = (uid_decimal << 8) | db[i].card[x];
-            send_eventLog(uid_decimal, i);
-            send_log[i] = false;
-        }
-    }
 }
 
 void ethernet_state::handle_client(EthernetClient &client, database_s *db, storage_state *memory, Relay_state *locker, Updater_state *updater)
@@ -1259,7 +1263,18 @@ bool ethernet_state::transmit_eventLog(const unsigned long uid_decimal, byte ind
 void ethernet_state::send_eventLog(const unsigned long uid_decimal, byte index)
 {
     unsigned long epoch = now(); // sumber waktu sama dgn system_t()
-    bool sent = transmit_eventLog(uid_decimal, index);
+    bool sent = false;
+    // Coba kirim ke log server CUMA kalau emang lagi konek. Kalau offline,
+    // langsung catat PEND ke SD tanpa buang waktu nyoba connect (3s timeout).
+    if (eth_connected && ethernetCableConnected())
+        sent = transmit_eventLog(uid_decimal, index);
+#ifdef DEBUG_SD
+    Serial.print(":sd:event tap idx=");
+    Serial.print(index);
+    Serial.print(" uid=");
+    Serial.print(uid_decimal);
+    Serial.println(sent ? " -> SENT" : " -> PEND (offline/gagal kirim)");
+#endif
     sd_card.log_event(epoch, index, uid_decimal, device_class,
                       sent ? "SENT" : "PEND");
 }
