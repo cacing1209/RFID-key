@@ -2,12 +2,20 @@
 #ifndef find_p
 void NTPConfig::update(int interval_sync)
 {
-    unsigned long last_sync = 0;
+    // BUG FIX: last_sync DULU lokal (selalu 0) -> kondisi di bawah true terus
+    // sehabis uptime 60s -> getNTPTime() (yang delay(1000)!) kepanggil TIAP
+    // loop -> controller lemot ~1 request/detik, scan & dashboard app sering
+    // ke-timeout (request ke-proses tapi telat, app keburu nyerah).
+    // Jadiin static: resync NTP cuma tiap `interval_sync` (default 60s). Sekalian
+    // beneran update jam-nya (dulu hasil getNTPTime() kebuang percuma).
+    static unsigned long last_sync = 0;
     const unsigned long now = millis();
-    if (now - last_sync > interval_sync)
+    if (now - last_sync > (unsigned long)interval_sync)
     {
-        getNTPTime();
         last_sync = now;
+        unsigned long t = getNTPTime();
+        if (t)
+            setTime(t);
     }
 }
 void NTPConfig::sendNTPpacket()
