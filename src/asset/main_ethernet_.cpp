@@ -112,6 +112,17 @@ void ethernet_state::begin(database_s *db, storage_state *memory)
     // sebelum SPI.begin() di setup(). Sengaja SEBELUM early-return di bawah:
     // logging SD harus tetap nyala walau Ethernet putus. Gagal begin() -> semua
     // call log_event/log_tail jadi no-op, sketch tetep jalan (gak hang).
+    // CS coordination (lihat sd_log.txt): W5100 & SD share SPI bus. W5100 CS
+    // HARUS idle (HIGH) sebelum SD init, kalau gak dua chip rebutan MISO ->
+    // card.begin() bisa hang. Drive kedua CS HIGH dulu.
+    pinMode(CS_P_ETH, OUTPUT);
+    digitalWrite(CS_P_ETH, HIGH); // W5100 idle
+    pinMode(CS_P_SD, OUTPUT);
+    digitalWrite(CS_P_SD, HIGH); // SD idle (begin akan ambil alih)
+#ifdef DEBUG_SD
+    Serial.println(":sd:begin...");
+    Serial.flush();
+#endif
     sd_card.sd_isnormal = sd_card.card.begin(CS_P_SD);
 #ifdef DEBUG_SD
     Serial.println(sd_card.sd_isnormal ? ":sd:event-log ready"

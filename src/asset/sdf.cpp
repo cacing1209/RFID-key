@@ -2,7 +2,13 @@
 #include <commond.h>
 sdf_state::sdf_state(byte csP)
 {
-    sd_isnormal = card.begin(csP);
+    // JANGAN card.begin() di sini: constructor jalan saat static-init, SEBELUM
+    // SPI.begin()/Serial.begin() di setup(). Poke SPI di tahap itu bisa nge-hang
+    // board sebelum Serial nyala (gak ada output sama sekali). begin() yg
+    // sebenernya dilakuin di runtime: ethernet_state::begin() (sd_card) atau
+    // Updater_state::sd_begin() (OTA). csP diabaikan di sini.
+    (void)csP;
+    sd_isnormal = false;
 }
 void sdf_state::init()
 {
