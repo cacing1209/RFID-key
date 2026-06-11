@@ -5,8 +5,11 @@ Target board : ATmega2560 + Ethernet shield W5100/W5500
 Library      : SdFat - Adafruit Fork (sudah ada di libdeps)
 Storage      : SD card (share SPI bus dgn W5100)
 Pin map      : W5100 CS = D10, SD CS = D4 (Ethernet shield default)
-RAM budget   : <= 600 byte tambahan (sekarang 5233/8192)
-Status       : BELUM DIIMPLEMENTASIKAN
+RAM budget   : <= 600 byte tambahan (build skrg 6342/8192 = 77.4% DEBUG_SD on)
+Status       : FASE 1 (append) + FASE 2 (readback) SUDAH JALAN & COMPILE.
+               FASE 3 (replay PEND) belum (opsional, ditunda).
+               Modul: src/asset/sdf.{h,cpp}, integrasi di main_ethernet_.cpp.
+               Catatan fix 2 BUG di bawah (perlu verifikasi di HW).
 Refer ke     : send_eventLog() @ main_ethernet_.cpp:1007 (kirim ke
                HTTP log server, baseline yang ditiru / di-mirror)
 Sinkron dgn  : todo.txt (OTA via SD - share inisialisasi SD.begin)
@@ -167,11 +170,64 @@ Class     : sd_log_state (mirip pola ethernet_state)
 
 BUG SD Card
 - kadang proses melambat dan device restart
+  [MITIGASI v1] Dispatch event-log dibatasi 1 per loop (dulu semua flag
+  send_log[] diproses sekaligus = transmit 3s + SD write numpuk dlm 1
+  iterasi). Sekarang sisa flag diproses iterasi berikutnya, loop tetap
+  responsif. + write gagal -> SD auto-disable (gak spam op lambat ke
+  card mati). main_ethernet_.cpp send_log loop + sdf.cpp log_event.
+  [BELUM TUNTAS] "device restart" kemungkinan besar RAM/stack pressure:
+  RAM static 77.7% (~1.8KB sisa) + POST handler alok database_s
+  new_db[30] (~420B) di stack + JsonDocument(heap) + String -> tabrakan
+  stack/heap intermiten. Audit RAM = item terpisah (lihat FASE 4).
+  CATATAN: WDT (lihat BUG #3) juga jadi jaring kalau "restart" ternyata
+  dari loop yg nyangkut -> auto-reset <=8s, bukan beku permanen.
 - jika sdcard tidak terdeteksi pada awal setup kemudian di loop sdcard di masukin program langsung stuck
+  [FIX] Re-detect SD di loop() tiap 30s kalau sd_isnormal=false (card
+  dicolok belakangan langsung kebaca tanpa reboot). Pakai
+  sd_begin_coordinated(): kedua CS (W5100+SD) di-HIGH-kan dulu + clock
+  SD_SCK_MHZ(4) -> SdFat nyerah cepat di slot kosong, bukan ngehang.
+  Re-detect ditaruh SEBELUM gate cable -> tetap jalan walau Ethernet putus.
+  CATATAN: kalau "stuck"-nya ELEKTRIS (MISO card murah gak tristate pas
+  CS HIGH), ini gak nyembuhin -> verifikasi di HW; mungkin butuh resistor
+  pull-up di MISO / level shifter. (sama akar masalahnya dgn BUG #3)
+- [BUG #3] SD dicabut PAS RUNTIME (idle / loop jalan) -> system langsung
+  stuck/hang. ROOT CAUSE: ELEKTRIS. Kartu yg setengah kecabut ngorup jalur
+  SPI MISO yg dipakai bareng W5100; driver Ethernet W5100 muter di loop
+  while(readSnSR/CR...) nungguin register yg gak pernah valid -> hang.
+  [FIX/HANDLE] Gak bisa DICEGAH murni software (elektris). Tapi di-RECOVER
+  pakai watchdog: wdt_enable(WDTO_8S) di akhir setup() + wdt_reset() di awal
+  loop() & di dalam op jaringan transmit_eventLog (DNS/connect/drain).
+  Hang > ~8s -> WDT fire -> auto-reset -> boot ulang (SD absen ditangani
+  graceful, re-detect jalan). CATATAN: selama kartu MASIH setengah kecabut,
+  boot ulang bisa ke-hang lagi di Ethernet.begin (MISO masih korup) -> bisa
+  reset berulang SAMPAI kartu kelar dicabut / dipasang penuh; abis itu
+  normal. Solusi tuntas = HW: pin card-detect (CD) buat tau kartu kecabut
+  tanpa sentuh SPI, atau buffer/level-shifter di bus SD.
+
+[ SD PENUH ] ----------------------------------------------------
+- Rotate (Opsi A, cap 32KB -> .OLD) udah batesin file log; jadi "penuh"
+  cuma kejadian kalau KARTU fisik penuh (data lain) / kartu kecil.
+- [IMPLEMENTED] log_event() set flag sdf_state::sd_full kalau write gagal
+  padahal card ke-open (= card ADA tapi gak bisa nulis). Auto-clear pas
+  write sukses lagi.
+- [IMPLEMENTED] Status SD ke-expose di GET /info -> field "sd": "ok" |
+  "full" | "off". Dashboard bisa POLL ini tanpa kontrak baru.
+- [IMPLEMENTED] PUSH: transmit_eventLog() nambahin field "err":"SD_FULL" ke
+  POST /event-log SELAMA sd_full set (additive; server lama yg baca {t,no,id}
+  aman). Jadi tiap event tap saat SD penuh ikut bawa flag -> dashboard tau.
+  Catatan: ke-report di event tap BERIKUTNYA (transmit jalan sebelum
+  log_event), dan cuma kalau ONLINE. Buat alert standalone/instant tanpa
+  nunggu tap -> butuh endpoint khusus (apps-phase).
 
 fitur
 - sebenernya send log ke dashboard masih perlu bedanya cuman ambil dari sdcard dan dashboard menerima dari controller
+  [CONTROLLER SUDAH SIAP] GET /sd-log?n=N (auth Bearer, lihat handle_sd_log)
+  stream N baris terakhir dari SD. Tinggal apps-side yang consume.
 - match in antara apps dan controller untuk endpointnya.. pake yang sebelumnya aja udah bener
+  CATATAN FORMAT: /sd-log balikin CSV "<epoch>,<idx>,<uid>,<dev_class>,<flag>"
+  (epoch unix). Contoh JSON dashboard di atas pakai t="YYYY-MM-DD HH:MM:SS".
+  Keputusan apps-phase: apps parse CSV + convert epoch, ATAU /sd-log
+  diubah emit JSON. Default: biarin CSV (hemat byte di controller).
 ```json
 {
   "t": "2023-05-04 12:34:56",

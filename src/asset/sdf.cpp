@@ -9,6 +9,7 @@ sdf_state::sdf_state(byte csP)
     // Updater_state::sd_begin() (OTA). csP diabaikan di sini.
     (void)csP;
     sd_isnormal = false;
+    sd_full = false;
 }
 void sdf_state::init()
 {
@@ -169,9 +170,13 @@ bool sdf_state::log_event(unsigned long epoch, byte idx, unsigned long uid,
     f.close();
 
     bool ok = (w == (size_t)n);
+    // Write nggak utuh padahal card ke-open (card ADA) = kemungkinan SD penuh
+    // / write error. Tandai flag biar send_eventLog bisa kabarin dashboard.
+    // Auto-clear pas write sukses lagi (mis. setelah rotate bikin ruang).
+    sd_full = !ok;
 #ifdef DEBUG_SD
     // line udah diakhiri '\n', jadi Serial.print(line) langsung pindah baris.
-    Serial.print(ok ? ":sd:saved " : ":sd:save FAIL ");
+    Serial.print(ok ? ":sd:saved " : ":sd:save FAIL (SD penuh?) ");
     Serial.print(line);
     Serial.print(":sd:file ");
     Serial.print(SDLOG_ACTIVE);

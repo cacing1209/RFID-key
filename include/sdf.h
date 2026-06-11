@@ -16,6 +16,10 @@ struct sdf_state
 
     SdFat card;
     bool sd_isnormal;
+    // true kalau write terakhir gagal padahal card ke-open (kemungkinan SD
+    // penuh / write error). Caller (send_eventLog) bisa kabarin dashboard.
+    // Auto-clear begitu ada write sukses lagi. (lihat sd_log.txt: SD penuh)
+    bool sd_full;
     void init();
     bool open_file(String file);
     bool save_file(String file);

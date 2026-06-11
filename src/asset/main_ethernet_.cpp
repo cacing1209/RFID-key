@@ -281,6 +281,7 @@ void ethernet_state::loop(database_s *db, storage_state *memory, Relay_state *lo
                 eth_connected = true;
                 first_initialize = true;
                 server.begin();
+                wdt_reset(); // abis DHCP (<=4s); kasih NTP window WDT sendiri
                 ntpCfg.Udp.begin(ntpCfg.localPort);
                 ntpCfg.update(0);
                 if (ntpCfg.getNTPTime() != 0)
@@ -616,6 +617,10 @@ void ethernet_state::handle_info(EthernetClient &client)
         }
     }
     doc["avail_lock"] = Size_Siswa - use;
+    // Status SD event-log buat dashboard: "off" (card gak kebaca/dicabut),
+    // "full" (write gagal, kemungkinan penuh), "ok". Dashboard bisa poll ini.
+    // F() -> literal di flash, bukan static RAM (AVR; RAM tight, lihat sd_log).
+    doc["sd"] = !sd_card.sd_isnormal ? F("off") : (sd_card.sd_full ? F("full") : F("ok"));
 #ifdef DEBUG_ETH
     Serial.println("mac:" + String(mac_str));
     Serial.println("c_name" + String(controller_name));
@@ -1216,6 +1221,8 @@ bool ethernet_state::transmit_eventLog(const unsigned long uid_decimal, byte ind
     // W5100 default 1000ms is tight — TCP handshake + ARP can exceed it after
     // a fresh socket allocation. Give 3s so a SYN retransmit can complete.
     logClient.setConnectionTimeout(3000);
+    wdt_reset(); // op jaringan di bawah (DNS/connect/drain) bisa makan bbrp
+                 // detik berturut-turut; tahan WDT biar gak reset palsu.
     String key = token_sck_log;
     bool stale = !log_server_ip_valid || (millis() - log_server_resolved_at) > LOG_SERVER_DNS_TTL_MS;
 
@@ -1224,6 +1231,7 @@ bool ethernet_state::transmit_eventLog(const unsigned long uid_decimal, byte ind
         return false;
     }
 
+    wdt_reset();
     if (!logClient.connect(log_server_ip, LOG_SERVER_PORT))
     {
 #ifdef DEBUG_ETH
@@ -1235,10 +1243,12 @@ bool ethernet_state::transmit_eventLog(const unsigned long uid_decimal, byte ind
         // ask socketBegin() for a fresh slot.
         delay(50);
         Ethernet.maintain();
+        wdt_reset();
         if (!resolve_log_server())
         {
             return false;
         }
+        wdt_reset();
         if (!logClient.connect(log_server_ip, LOG_SERVER_PORT))
         {
 #ifdef DEBUG_ETH
@@ -1256,6 +1266,11 @@ bool ethernet_state::transmit_eventLog(const unsigned long uid_decimal, byte ind
     doc["no"] = index;
     doc["id"] = uid_decimal;
     doc["dev_class"] = device_class;
+    // SD penuh/write gagal -> nambahin flag ke POST yg emang udah dikirim
+    // (additive, server lama yg cuma baca {t,no,id} aman ngabaikan). Flag
+    // persist tiap event sampai SD bisa nulis lagi. (lihat sd_log.txt SD PENUH)
+    if (sd_card.sd_full)
+        doc["err"] = F("SD_FULL");
     size_t len = serializeJson(doc, buffer);
 
     logClient.println("POST /event-log HTTP/1.1");
@@ -1271,6 +1286,7 @@ bool ethernet_state::transmit_eventLog(const unsigned long uid_decimal, byte ind
     unsigned long timeout = millis();
     while (logClient.connected() && millis() - timeout < 3000)
     {
+        wdt_reset(); // drain respons bisa sampai 3s; tahan WDT per iterasi
         while (logClient.available())
         {
 #ifdef DEBUG_ETH

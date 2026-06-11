@@ -148,11 +148,25 @@ void setup()
 			noTone(buzzer.pin);
 		delay(75);
 	}
+
+	// Aktifkan watchdog SETELAH semua init blocking selesai (DHCP/NTP/SD di
+	// eth.begin lewat init_mypin) biar gak ke-reset pas boot. Window 8s (max
+	// AVR) > semua op blocking normal: DHCP <=4s, connect log-server <=3s,
+	// NTP ~1s. Gunanya: recovery dari hang akibat SD dicabut paksa saat jalan
+	// (SPI MISO ke-korup -> driver W5100 muter di loop nungguin register yg
+	// gak pernah kelar). setup() di atas udah MCUSR=0 + wdt_disable, jadi aman
+	// dari reset-loop bekas WDT/bootloader. (lihat sd_log.txt BUG SD Card)
+	wdt_enable(WDTO_8S);
 }
 
 void setup();
 void loop()
 {
+	// WDT: di-reset tiap iterasi. Kalau satu iterasi nyangkut > ~8s (mis. SD
+	// dicabut paksa -> SPI MISO korup -> driver W5100 muter di loop nungguin
+	// register yg gak pernah kelar), WDT fire -> board auto-reset & balik
+	// normal, bukan beku selamanya (lihat sd_log.txt BUG SD Card).
+	wdt_reset();
 // write to eeprom,handle relay,sync db
 #ifdef DEBUG_SYS
 	static unsigned long latency = 0;
