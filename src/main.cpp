@@ -67,39 +67,39 @@ void init_mypin()
 	eth.begin(data, &memory);
 }
 
-void bypass_add_card()
-{
-	unsigned long dec_uid[Size_Siswa] = {
-		563089154,
-		3255954663,
-		38865439};
+// void bypass_add_card()
+// {
+// 	unsigned long dec_uid[Size_Siswa] = {
+// 		563089154,
+// 		3255954663,
+// 		38865439};
 
-	database_s new_db[Size_Siswa];
-	for (size_t i = 0; i < Size_Siswa; i++)
-	{
-		new_db[i] = data[i];
-		memset(new_db[i].card, 0, size_uid);
+// 	database_s new_db[Size_Siswa];
+// 	for (size_t i = 0; i < Size_Siswa; i++)
+// 	{
+// 		new_db[i] = data[i];
+// 		memset(new_db[i].card, 0, size_uid);
 
-		new_db[i].card[0] = (dec_uid[i]) & 0xFF;
-		new_db[i].card[1] = (dec_uid[i] >> 8) & 0xFF;
-		new_db[i].card[2] = (dec_uid[i] >> 16) & 0xFF;
-		new_db[i].card[3] = (dec_uid[i] >> 24) & 0xFF;
+// 		new_db[i].card[0] = (dec_uid[i]) & 0xFF;
+// 		new_db[i].card[1] = (dec_uid[i] >> 8) & 0xFF;
+// 		new_db[i].card[2] = (dec_uid[i] >> 16) & 0xFF;
+// 		new_db[i].card[3] = (dec_uid[i] >> 24) & 0xFF;
 
-		new_db[i].number_locker = i;
-		new_db[i].statusdb = Status_db::Not_Available;
-	}
+// 		new_db[i].number_locker = i;
+// 		new_db[i].statusdb = Status_db::Not_Available;
+// 	}
 
-	if (!memory.save_data(data, new_db))
-	{
-#if defined(DEBUG_MEM) || defined(DEBUG_SYS)
-		Serial.println(":bypass:save_data FAILED");
-#endif
-		return;
-	}
-#if defined(DEBUG_MEM) || defined(DEBUG_SYS)
-	Serial.println(":bypass:save_data OK");
-#endif
-}
+// 	if (!memory.save_data(data, new_db))
+// 	{
+// #if defined(DEBUG_MEM) || defined(DEBUG_SYS)
+// 		Serial.println(":bypass:save_data FAILED");
+// #endif
+// 		return;
+// 	}
+// #if defined(DEBUG_MEM) || defined(DEBUG_SYS)
+// 	Serial.println(":bypass:save_data OK");
+// #endif
+// }
 void setup()
 {
 #if defined(DEBUG_MEM) || defined(DEBUG_ETH) || defined(DEBUG_RFID) || defined(DEBUG_SYS)

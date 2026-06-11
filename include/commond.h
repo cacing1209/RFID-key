@@ -10,15 +10,14 @@
 
 /*selesai*/
 // #define modelJ505
-// #define modelJ506
+#define modelJ506
 // #define modelJ508
 // #define modelJ507
-
 
 // #define modelL0064
 // #define modelL0512
 // #define modelL0128
-#define modelJ504
+// #define modelJ504
 
 #define read_little_end
 #include <Arduino.h>
@@ -37,13 +36,13 @@
 #define LOG_SERVER_FALLBACK_DNS_D 8
 
 #define COUNT_MODELS (              \
-    (defined(modelJ508) ? 1 : 0) +       \
-    (defined(modelJ506) ? 1 : 0) + \
-    (defined(modelJ504) ? 1 : 0) + \
-    (defined(modelJ505) ? 1 : 0) + \
+    (defined(modelJ508) ? 1 : 0) +  \
+    (defined(modelJ506) ? 1 : 0) +  \
+    (defined(modelJ504) ? 1 : 0) +  \
+    (defined(modelJ505) ? 1 : 0) +  \
     (defined(modelL0064) ? 1 : 0) + \
     (defined(modelL0128) ? 1 : 0) + \
-    (defined(modelJ507) ? 1 : 0) + \
+    (defined(modelJ507) ? 1 : 0) +  \
     (defined(modelL0512) ? 1 : 0))
 
 #if COUNT_MODELS == 0
