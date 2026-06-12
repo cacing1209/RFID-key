@@ -200,6 +200,10 @@ struct storage_state
 
     bool load_data(database_s *db);
     bool save_data(database_s *db, database_s *new_db);
+    // Tulis SATU entri locker ke EEPROM tanpa menyalin seluruh DB ke stack.
+    // Dipakai add/delete student supaya tidak ada array database_s[Size_Siswa]
+    // (~420B) di stack yang bikin SRAM ATmega2560 jebol -> korup -> reboot.
+    bool save_one(byte idx, const database_s &entry);
 
     bool load_device_class(char *out, size_t max_len);
     bool save_device_class(const char *name);

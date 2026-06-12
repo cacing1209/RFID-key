@@ -850,20 +850,18 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         return;
     }
 
-    database_s new_db[Size_Siswa];
-    for (int i = 0; i < Size_Siswa; i++)
-    {
-        new_db[i] = db[i];
-    }
-
-    memset(new_db[locker].card, 0, size_uid);
+    // Bangun entri di stack lokal (1 struct, bukan salinan seluruh DB) lalu
+    // persist via save_one. Tanpa array database_s[Size_Siswa] yang bikin
+    // kehabisan RAM saat DEBUG_ETH aktif.
+    database_s entry = db[locker];
+    memset(entry.card, 0, size_uid);
 
     unsigned long uid_decimal = strtoul(uid_str.c_str(), NULL, 10);
 
-    new_db[locker].card[0] = (uid_decimal) & 0xFF;
-    new_db[locker].card[1] = (uid_decimal >> 8) & 0xFF;
-    new_db[locker].card[2] = (uid_decimal >> 16) & 0xFF;
-    new_db[locker].card[3] = (uid_decimal >> 24) & 0xFF;
+    entry.card[0] = (uid_decimal) & 0xFF;
+    entry.card[1] = (uid_decimal >> 8) & 0xFF;
+    entry.card[2] = (uid_decimal >> 16) & 0xFF;
+    entry.card[3] = (uid_decimal >> 24) & 0xFF;
     for (size_t xp = 0; xp < Size_Siswa; xp++)
     {
         if (xp == locker)
@@ -871,14 +869,13 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
         if (db[xp].statusdb != Status_db::Not_Available)
             continue;
 
-        if (memcmp(db[xp].card, new_db[locker].card, size_uid) == 0)
+        if (memcmp(db[xp].card, entry.card, size_uid) == 0)
         {
             String msg = "duplicated uid with locker num" + String(xp);
 #ifdef DEBUG_ETH
             Serial.println(":eth:error same uid card with locker " + String(xp));
 #endif
             send_error(client, 409, msg.c_str());
-            memset(new_db[locker].card, 0, size_uid);
             return;
         }
     }
@@ -891,20 +888,21 @@ void ethernet_state::handle_post_student(EthernetClient &client, database_s *db,
     Serial.print(" as bytes: ");
     for (int i = 0; i < 4; i++)
     {
-        Serial.print(new_db[locker].card[i]);
+        Serial.print(entry.card[i]);
         Serial.print(" ");
     }
     Serial.println();
 #endif
 
-    new_db[locker].number_locker = locker;
-    new_db[locker].statusdb = Status_db::Not_Available;
+    entry.number_locker = locker;
+    entry.statusdb = Status_db::Not_Available;
 
-    if (!memory->save_data(db, new_db))
+    if (!memory->save_one(locker, entry))
     {
         send_error(client, 500, "Failed to save data");
         return;
     }
+    db[locker] = entry;
 
     StaticJsonDocument<128> response;
     response["status"] = "created";
@@ -1000,21 +998,17 @@ void ethernet_state::handle_delete_student(EthernetClient &client,
         return;
     }
 
-    database_s new_db[Size_Siswa];
-    for (int i = 0; i < Size_Siswa; i++)
-    {
-        new_db[i] = db[i];
-    }
+    database_s entry = db[locker_num];
+    entry.statusdb = Status_db::Available;
+    memset(entry.card, 0, size_uid);
+    entry.number_locker = locker_num;
 
-    new_db[locker_num].statusdb = Status_db::Available;
-    memset(new_db[locker_num].card, 0, size_uid);
-    new_db[locker_num].number_locker = locker_num;
-
-    if (!memory->save_data(db, new_db))
+    if (!memory->save_one(locker_num, entry))
     {
         send_error(client, 500, "Failed to save data");
         return;
     }
+    db[locker_num] = entry;
 
 #ifdef DEBUG_ETH
     Serial.print("Deleted student from locker: ");
@@ -1040,19 +1034,18 @@ void ethernet_state::handle_reset(EthernetClient &client,
         return;
     }
 
-    database_s new_db[Size_Siswa];
-
     for (int i = 0; i < Size_Siswa; i++)
     {
-        new_db[i].statusdb = Status_db::Available;
-        memset(new_db[i].card, 0, size_uid);
-        new_db[i].number_locker = i;
-    }
-
-    if (!memory->save_data(db, new_db))
-    {
-        send_error(client, 500, "Failed to reset data");
-        return;
+        database_s entry = db[i];
+        entry.statusdb = Status_db::Available;
+        memset(entry.card, 0, size_uid);
+        entry.number_locker = i;
+        if (!memory->save_one((byte)i, entry))
+        {
+            send_error(client, 500, "Failed to reset data");
+            return;
+        }
+        db[i] = entry;
     }
 
     StaticJsonDocument<128> response;

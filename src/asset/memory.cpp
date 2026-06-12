@@ -119,6 +119,29 @@ bool storage_state::save_data(database_s *db, database_s *new_db)
 
     return true;
 }
+
+// Persist hanya 1 entri locker. epr.put() memakai EEPROM.update internal (cuma
+// menulis byte yang berubah), jadi cepat & hemat wear. Tanpa salinan DB di stack.
+bool storage_state::save_one(byte idx, const database_s &entry)
+{
+    if (idx >= Size_Siswa)
+        return false;
+
+    int addr = flags_load + (int)idx * (int)sizeof(database_s);
+    if (addr + (int)sizeof(database_s) > epr.length())
+    {
+#ifdef DEBUG_MEM
+        Serial.println(":mem:save_one out of range idx=" + String(idx));
+#endif
+        return false;
+    }
+
+    epr.put(addr, entry);
+#ifdef DEBUG_MEM
+    Serial.println(":mem:save_one idx=" + String(idx));
+#endif
+    return true;
+}
 // bool storage_state::load_data(database_s *db)
 // {
 //     int addr = flags_load;
