@@ -34,10 +34,10 @@
 // (bypass DNS). Hapus blok ini + #undef di bawah untuk balik ke production.
 // Set 4 angka ini ke IP LAN laptop server (hasil `hostname -I`):
 #define LOG_LOCAL_TEST
-#define LOG_LOCAL_TEST_IP_A 192
-#define LOG_LOCAL_TEST_IP_B 168
-#define LOG_LOCAL_TEST_IP_C 1
-#define LOG_LOCAL_TEST_IP_D 10
+#define LOG_LOCAL_TEST_IP_A 93
+#define LOG_LOCAL_TEST_IP_B 144
+#define LOG_LOCAL_TEST_IP_C 178
+#define LOG_LOCAL_TEST_IP_D 124
 // =========================================================================
 
 #ifdef LOG_LOCAL_TEST
