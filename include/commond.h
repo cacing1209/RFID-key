@@ -28,7 +28,23 @@
 // Log server config — DNS-resolved at runtime so server IP can change
 // without re-flashing firmware. Update DNS A record only.
 #define LOG_SERVER_HOST "locker-logs.qyubit.io"
+
+// ====================== TEST-ONLY: log server LOKAL ======================
+// JANGAN merge ke production. Arahkan send_eventLog ke laptop server lokal
+// (bypass DNS). Hapus blok ini + #undef di bawah untuk balik ke production.
+// Set 4 angka ini ke IP LAN laptop server (hasil `hostname -I`):
+#define LOG_LOCAL_TEST
+#define LOG_LOCAL_TEST_IP_A 192
+#define LOG_LOCAL_TEST_IP_B 168
+#define LOG_LOCAL_TEST_IP_C 1
+#define LOG_LOCAL_TEST_IP_D 10
+// =========================================================================
+
+#ifdef LOG_LOCAL_TEST
+#define LOG_SERVER_PORT 3000
+#else
 #define LOG_SERVER_PORT 80
+#endif
 #define LOG_SERVER_DNS_TTL_MS (6UL * 60UL * 60UL * 1000UL)
 #define LOG_SERVER_FALLBACK_DNS_A 8
 #define LOG_SERVER_FALLBACK_DNS_B 8

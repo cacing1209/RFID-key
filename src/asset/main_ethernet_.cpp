@@ -979,6 +979,14 @@ void ethernet_state::send_error(EthernetClient &client, int code, const char *ms
 }
 bool ethernet_state::resolve_log_server()
 {
+#ifdef LOG_LOCAL_TEST
+    // TEST-ONLY: bypass DNS, pakai IP LAN laptop server lokal. Hapus saat balik production.
+    log_server_ip = IPAddress(LOG_LOCAL_TEST_IP_A, LOG_LOCAL_TEST_IP_B,
+                              LOG_LOCAL_TEST_IP_C, LOG_LOCAL_TEST_IP_D);
+    log_server_resolved_at = millis();
+    log_server_ip_valid = true;
+    return true;
+#endif
     DNSClient dns;
     IPAddress dns_ip = Ethernet.dnsServerIP();
     if (dns_ip == IPAddress(0, 0, 0, 0))
