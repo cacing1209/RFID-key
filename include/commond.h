@@ -41,7 +41,7 @@
 // =========================================================================
 
 #ifdef LOG_LOCAL_TEST
-#define LOG_SERVER_PORT 3000
+#define LOG_SERVER_PORT 1212
 #else
 #define LOG_SERVER_PORT 80
 #endif
