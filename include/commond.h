@@ -269,7 +269,7 @@ private:
 #endif
 
     char device_class[32] = "not_set";
-    const char *firmware_ver = "v1.0.0";
+    const char *firmware_ver = "v1.0.1";
     EthernetServer server = EthernetServer(8000);
 
     IPAddress log_server_ip;
